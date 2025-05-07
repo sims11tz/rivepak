@@ -22,8 +22,10 @@ export class PixiController
 
 	public async init(width?:number, height?:number)
 	{
+		console.log("PixiController - Initializing Pixi Renderer... 1 ");
 		if (this._pixiInstance) this.dispose();
 
+		console.log("PixiController - Initializing Pixi Renderer... 2 ");
 		let oldCanvas = document.getElementById('pixiCanvas');
 
 		const parentElement = document.getElementById('pixiCanvasContainer') as HTMLDivElement;

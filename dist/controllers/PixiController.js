@@ -24,8 +24,10 @@ export class PixiController {
     get Pixi() { return this._pixiInstance; }
     init(width, height) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("PixiController - Initializing Pixi Renderer... 1 ");
             if (this._pixiInstance)
                 this.dispose();
+            console.log("PixiController - Initializing Pixi Renderer... 2 ");
             let oldCanvas = document.getElementById('pixiCanvas');
             const parentElement = document.getElementById('pixiCanvasContainer');
             if (oldCanvas)

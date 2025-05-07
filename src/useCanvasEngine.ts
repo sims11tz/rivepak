@@ -44,6 +44,7 @@ export class CanvasEngine
 
 	public async init(canvasSettings: CanvasSettingsDef, onInitComplete?: () => void)
 	{
+		console.log("CanvasEngine - Initializing......");
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
 		this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
@@ -216,6 +217,7 @@ export function useCanvasEngineHook(canvasSettings: CanvasSettingsDef, onInit?: 
 	const fpsSpinner = useRef<HTMLDivElement>(null!);
 
 	useEffect(() => {
+		console.log("useCanvasEngineHook Initializing Canvas Engine!.!.!");
 		const engine = CanvasEngine.get();
 		engine.setRefs({
 			canvasRef: canvasRef.current!,
