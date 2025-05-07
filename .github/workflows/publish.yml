@@ -33,7 +33,7 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          npm version patch -m "ci: auto bump to %s [skip ci]"
+          npm version patch --force -m "ci: auto bump to %s [skip ci]"
           npm publish
 
           git push origin main --follow-tags
