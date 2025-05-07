@@ -1,0 +1,41 @@
+name: Auto-publish rivpak
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "tsconfig.json"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to push updated version back to repo
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          registry-url: "https://npm.pkg.github.com/"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bump version & publish
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          npm version patch -m "ci: auto bump to %s [skip ci]"
+          npm publish
+
+          git push origin main --follow-tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
