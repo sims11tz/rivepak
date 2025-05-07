@@ -45,6 +45,7 @@ export function CanvasPhysicsMixin(Base) {
             }
         }
         dispose() {
+            super.dispose();
             try {
                 if (this._body) {
                     if (PhysicsController.get().engine != null && PhysicsController.get().engine.world != null) {

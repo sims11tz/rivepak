@@ -38,7 +38,7 @@ export interface CanvasObjectDef {
 }
 export declare abstract class CanvasObj {
     abstract update(time: number, frameCount: number, onceSecond: boolean): void;
-    abstract dispose(): void;
+    dispose(): void;
     _uuid: string;
     get uuid(): string;
     _label: string;

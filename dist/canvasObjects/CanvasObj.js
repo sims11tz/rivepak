@@ -19,6 +19,8 @@ export class GlobalUIDGenerator {
 GlobalUIDGenerator.currentId = 0;
 GlobalUIDGenerator.uniqueIds = {};
 export class CanvasObj {
+    dispose() {
+    }
     get uuid() { return this._uuid; }
     get label() { return this._label; }
     get defObj() { return this._defObj; }

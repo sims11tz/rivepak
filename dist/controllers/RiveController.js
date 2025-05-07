@@ -55,8 +55,6 @@ export class RiveController {
     CreateRiveObj(riveObjDefs) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            //let defs = Array.isArray(riveObjDefs) ? riveObjDefs : [riveObjDefs];
-            //defs = defs.flatMap(def => Array.from({ length: def.count ?? 1 }, () => ({ ...def })));
             const defs = [];
             if (Array.isArray(riveObjDefs)) {
                 riveObjDefs.forEach(def => { var _a; for (let i = 0; i < ((_a = def.count) !== null && _a !== void 0 ? _a : 1); i++)

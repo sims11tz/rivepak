@@ -174,7 +174,7 @@ export class CanvasRiveObj extends CanvasObj {
     }
     dispose() {
         var _a;
-        console.log("CanvasRiveObj dispose() called");
+        super.dispose();
         this._animations.forEach((animation) => animation.delete());
         (_a = this._stateMachine) === null || _a === void 0 ? void 0 : _a.delete();
         this._animations = [];

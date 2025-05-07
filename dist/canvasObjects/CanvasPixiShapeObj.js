@@ -56,6 +56,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
         }
     }
     dispose() {
+        super.dispose();
         if (this._graphics) {
             PixiController.get().Pixi.stage.removeChild(this._graphics);
             this._graphics.destroy();

@@ -1,4 +1,5 @@
 import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
+import { JSX } from "react";
 import { CanvasObj } from "./canvasObjects/CanvasObj";
 export declare enum CANVAS_ENGINE_RUN_STATE {
     STOPPED = "STOPPED",
@@ -6,10 +7,16 @@ export declare enum CANVAS_ENGINE_RUN_STATE {
     PAUSED = "PAUSED"
 }
 export declare class CanvasSettingsDef {
-    usePhysics: boolean;
-    width: number;
-    height: number;
-    constructor(usePhysics?: boolean, width?: number, height?: number);
+    usePhysics?: boolean;
+    width?: number;
+    height?: number;
+    debugMode?: boolean;
+    constructor({ usePhysics, width, height, debugMode, }: {
+        usePhysics?: boolean | undefined;
+        width?: number | undefined;
+        height?: number | undefined;
+        debugMode?: boolean | undefined;
+    });
 }
 export declare class CanvasEngine {
     private static _instance;
@@ -26,11 +33,17 @@ export declare class CanvasEngine {
     private riveInstance;
     private runState;
     private engine;
-    init(canvasSettings: CanvasSettingsDef, onInitComplete?: () => void): Promise<void>;
-    dispose(): void;
-    addCanvasObjects(objs: CanvasObj | CanvasObj[], group?: string): void;
+    Init(canvasSettings: CanvasSettingsDef, onInitComplete?: () => void): Promise<void>;
+    ToggleRunState(): void;
+    SetRunState(state: CANVAS_ENGINE_RUN_STATE): void;
+    private fpsValue;
+    private fpsCallback?;
+    setFpsCallback(cb: (fps: string) => void): void;
+    getFPS(): string;
+    Dispose(): void;
+    AddCanvasObjects(objs: CanvasObj | CanvasObj[], group?: string): void;
     private updateZIndex;
-    setRefs({ canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner }: {
+    SetRefs({ canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasRef: HTMLCanvasElement;
         pixiCanvasRef?: HTMLCanvasElement;
         debugContainerRef?: HTMLDivElement;
@@ -39,16 +52,15 @@ export declare class CanvasEngine {
         fpsSpinner?: HTMLDivElement;
     }): void;
 }
-export declare function useCanvasEngineHook(canvasSettings: CanvasSettingsDef, onInit?: () => void): {
-    canvasRef: import("react").RefObject<HTMLCanvasElement>;
-    pixiCanvasRef: import("react").RefObject<HTMLCanvasElement>;
-    debugContainerRef: import("react").RefObject<HTMLDivElement>;
-    runStateLabel: import("react").RefObject<HTMLDivElement>;
-    fpsLabel: import("react").RefObject<HTMLDivElement>;
-    fpsSpinner: import("react").RefObject<HTMLDivElement>;
+export declare function UseCanvasEngineHook(settings?: Partial<ConstructorParameters<typeof CanvasSettingsDef>[0]>, onInit?: () => void): {
+    RivePakCanvas: () => JSX.Element | null;
+    canvasRef: React.RefObject<HTMLCanvasElement>;
+    pixiCanvasRef: React.RefObject<HTMLCanvasElement>;
+    canvasObjects: Map<string, CanvasObj[]>;
+    debugContainerRef: React.RefObject<HTMLDivElement>;
     addCanvasObjects: (objs: CanvasObj | CanvasObj[], group?: string) => void;
-    canvasObjectsRef: {
-        current: Map<string, CanvasObj[]>;
-    };
-    fps: import("react").RefObject<HTMLDivElement>;
+    ToggleRunState: () => void;
+    SetRunState: (state: CANVAS_ENGINE_RUN_STATE) => void;
+    fpsRef: React.RefObject<HTMLDivElement>;
+    runStateLabel: React.RefObject<HTMLDivElement>;
 };

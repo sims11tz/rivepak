@@ -54,8 +54,6 @@ export class RiveController
 
 	public async CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>
 	{
-		//let defs = Array.isArray(riveObjDefs) ? riveObjDefs : [riveObjDefs];
-		//defs = defs.flatMap(def => Array.from({ length: def.count ?? 1 }, () => ({ ...def })));
 		const defs: RiveObjectDef[] = [];
 		if (Array.isArray(riveObjDefs))
 		{

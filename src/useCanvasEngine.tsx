@@ -2,7 +2,7 @@ import { Renderer } from "@rive-app/webgl-advanced";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
-import { useEffect, useRef } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { CanvasObj } from "./canvasObjects/CanvasObj";
 import { RiveController } from "./controllers/RiveController";
 import Matter from "matter-js";
@@ -16,11 +16,22 @@ export enum CANVAS_ENGINE_RUN_STATE
 
 export class CanvasSettingsDef
 {
-	constructor(
-		public usePhysics: boolean = false,
-		public width: number = 800,
-		public height: number = 500
-	) {}
+	public usePhysics?:boolean;
+	public width?:number;
+	public height?:number;
+	public debugMode?:boolean;
+
+	constructor({
+		usePhysics=false,
+		width=800,
+		height=500,
+		debugMode=false,
+	}) {
+		this.usePhysics = usePhysics;
+		this.width = width;
+		this.height = height;
+		this.debugMode = debugMode;
+	}
 }
 
 export class CanvasEngine
@@ -42,17 +53,27 @@ export class CanvasEngine
 	private runState: CANVAS_ENGINE_RUN_STATE = CANVAS_ENGINE_RUN_STATE.STOPPED;
 	private engine: Matter.Engine | null = null;
 
-	public async init(canvasSettings: CanvasSettingsDef, onInitComplete?: () => void)
+	public async Init(canvasSettings:CanvasSettingsDef, onInitComplete?:() => void)
 	{
-		console.log("CanvasEngine - Initializing......");
+		console.log("CanvasEngine - Initializing...... canvasSettings=",canvasSettings);
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
 		this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
-		if (this.runStateLabel) this.runStateLabel.innerText = this.runState;
+		if (this.runStateLabel)
+		{
+			console.log("CanvasEngine - Setting runStateLabel to RUNNING");
+			this.runStateLabel.innerText = this.runState;
+		}
+		else
+		{
+			console.warn("CanvasEngine - runStateLabel not set");
+		}
 
 		const canvas = this.canvasRef;
-		canvas.width = canvasSettings.width;
-		canvas.height = canvasSettings.height;
+		canvas.width = canvasSettings.width ?? 800;
+		canvas.height = canvasSettings.height ?? 500;
+
+		PixiController.get().init(canvasSettings.width, canvasSettings.height);
 
 		await RiveController.get().init(canvas);
 
@@ -62,9 +83,13 @@ export class CanvasEngine
 		const riveRenderer: Renderer = RiveController.get().Renderer;
 
 		let riveFps = 0;
-		riveInstance.enableFPSCounter((rFps) => (riveFps = Math.round(rFps)));
+		await riveInstance.enableFPSCounter((rFps) => {
+			riveFps = Math.round(rFps);
+			//this.fpsValue = riveFps;
+			//if (this.fpsCallback) this.fpsCallback(this.fpsValue);
+		});
 
-		if (canvasSettings.usePhysics) PhysicsController.get().init(canvas, this.debugContainerRef!, true);
+		if(canvasSettings.usePhysics) PhysicsController.get().init(canvas, this.debugContainerRef!, canvasSettings.debugMode);
 
 		let lastTime = 0;
 		let accumulatedTime = 0;
@@ -74,6 +99,12 @@ export class CanvasEngine
 		let lastLogTime = performance.now();
 		const spinnerFrames = [' -- ', ' \\', ' | ', ' / ', ' -- ', ' \\', ' | ', ' / '];
 		let spinnerIdx = 0;
+		const MIN_TIME_STEP = 0.012;
+
+		if(canvasSettings.debugMode == null || !canvasSettings.debugMode)
+		{
+
+		}
 
 		const updateLoop = (time: number) =>
 		{
@@ -92,10 +123,12 @@ export class CanvasEngine
 			lastTime = time;
 			accumulatedTime += elapsedTimeSec;
 
-			if (accumulatedTime < 0.02)
+
+			if (accumulatedTime < MIN_TIME_STEP)
 			{
 				skipsPerSecond++;
 				this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+				//console.log(`Skipping frame ${numSkips}/${numNoSkips} - elapsedTime=${elapsedTimeSec.toFixed(4)}, accumulatedTime=${accumulatedTime.toFixed(4)}`);
 				return;
 			}
 
@@ -105,18 +138,20 @@ export class CanvasEngine
 			const onceSecond = time - lastLogTime > 1000;
 			if (onceSecond)
 			{
-				if (this.fpsLabel) this.fpsLabel.innerText = `FPS=${riveFps}:${iterationCount}, Skips=${skipsPerSecond}`;
+				if (this.fpsCallback)
+				{
+					spinnerIdx = (spinnerIdx + 1) % spinnerFrames.length;
+					this.fpsCallback(`${spinnerFrames[spinnerIdx]} FPS=${riveFps}:${iterationCount}, Skips=${skipsPerSecond}`);
+				}
 				skipsPerSecond = 0;
 				iterationCount = 0;
 				lastLogTime = time;
-				if (this.fpsSpinner) this.fpsSpinner.innerText = spinnerFrames[spinnerIdx];
-				spinnerIdx = (spinnerIdx + 1) % spinnerFrames.length;
 			}
 
-			if (canvasSettings.usePhysics)
-				PhysicsController.get().update(elapsedTimeSec, frameCount, onceSecond);
+			if (canvasSettings.usePhysics) PhysicsController.get().update(elapsedTimeSec, frameCount, onceSecond);
 
 			riveRenderer.clear();
+
 			this.canvasObjects.forEach((objects) =>
 				objects.forEach((obj) => obj.update(elapsedTimeSec, frameCount, onceSecond))
 			);
@@ -129,7 +164,32 @@ export class CanvasEngine
 		if (onInitComplete) onInitComplete();
 	}
 
-	public dispose()
+	public ToggleRunState()
+	{
+		this.SetRunState( this.runState === CANVAS_ENGINE_RUN_STATE.RUNNING ? CANVAS_ENGINE_RUN_STATE.STOPPED : CANVAS_ENGINE_RUN_STATE.RUNNING );
+	}
+
+	public SetRunState(state: CANVAS_ENGINE_RUN_STATE)
+	{
+		this.runState = state;
+		if (this.runStateLabel)
+		{
+			this.runStateLabel.innerText = this.runState;
+		}
+	}
+
+	private fpsValue: number = 0;
+	private fpsCallback?: (fps: string) => void;
+
+	public setFpsCallback(cb: (fps: string) => void) {
+		this.fpsCallback = cb;
+	}
+
+	public getFPS(): string {
+		return this.fpsValue.toString();
+	}
+
+	public Dispose()
 	{
 		this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
 
@@ -156,7 +216,7 @@ export class CanvasEngine
 		if (this.engine) this.engine = null;
 	}
 
-	public addCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
+	public AddCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
 	{
 		const cObjs = Array.isArray(objs) ? objs : [objs];
 		if (!this.canvasObjects.has(group)) this.canvasObjects.set(group, []);
@@ -184,13 +244,13 @@ export class CanvasEngine
 		}
 	}
 
-	public setRefs({
+	public SetRefs({
 		canvasRef,
 		pixiCanvasRef,
 		debugContainerRef,
 		runStateLabel,
 		fpsLabel,
-		fpsSpinner
+		fpsSpinner,
 	}: {
 		canvasRef: HTMLCanvasElement;
 		pixiCanvasRef?: HTMLCanvasElement;
@@ -208,38 +268,109 @@ export class CanvasEngine
 	}
 }
 
-export function useCanvasEngineHook(canvasSettings: CanvasSettingsDef, onInit?: () => void) {
+export function UseCanvasEngineHook(
+	settings: Partial<ConstructorParameters<typeof CanvasSettingsDef>[0]> = {},
+	onInit?: () => void
+): {
+	RivePakCanvas:() => JSX.Element | null;
+	canvasRef:React.RefObject<HTMLCanvasElement>;
+	pixiCanvasRef:React.RefObject<HTMLCanvasElement>;
+	canvasObjects:Map<string, CanvasObj[]>;
+	debugContainerRef:React.RefObject<HTMLDivElement>;
+	addCanvasObjects:(objs: CanvasObj | CanvasObj[], group?: string) => void;
+	ToggleRunState:() => void;
+	SetRunState:(state: CANVAS_ENGINE_RUN_STATE) => void;
+	fpsRef:React.RefObject<HTMLDivElement>;
+	runStateLabel:React.RefObject<HTMLDivElement>;
+} {
+	const canvasSettings = new CanvasSettingsDef(settings);
 	const canvasRef = useRef<HTMLCanvasElement>(null!);
 	const pixiCanvasRef = useRef<HTMLCanvasElement>(null!);
 	const debugContainerRef = useRef<HTMLDivElement>(null!);
 	const runStateLabel = useRef<HTMLDivElement>(null!);
-	const fpsLabel = useRef<HTMLDivElement>(null!);
 	const fpsSpinner = useRef<HTMLDivElement>(null!);
+	const fpsRef = useRef<HTMLDivElement>(null!);
+	const ToggleRunState = () => CanvasEngine.get().ToggleRunState();
+	const SetRunState = (state: CANVAS_ENGINE_RUN_STATE) => CanvasEngine.get().SetRunState(state);
+
+	const RivePakCanvas = () => {
+		//if(canvasRef.current) return canvasRef.current;
+
+		return (
+			<div>
+				<div id="debugTools" className="debugTools" style={{
+					display: canvasSettings.debugMode ? "flex" : "none",
+					gap: "10px",
+					marginBottom:"10px",
+					width: "100%",
+					alignItems: "center",
+					justifyContent: "center"
+				 }}>
+					<button onClick={ToggleRunState}><span ref={runStateLabel}></span></button>
+					<div className="fpsContainer" style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
+						<span className="fpsSpinner" style={{display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px"}} ref={fpsSpinner}></span><span ref={fpsRef}></span>
+					</div>
+				</div>
+				<div style={{ position: "relative" }}>
+					<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black" }} />
+					<div id="pixiCanvasContainer" style={{ position: "absolute", top: 0, left: 0, zIndex: 2 }}>
+						<canvas id="pixiCanvas" ref={pixiCanvasRef} />
+					</div>
+					<div
+						ref={debugContainerRef}
+						style={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							pointerEvents: "none",
+							opacity: 0.25,
+						}}
+					/>
+				</div>
+			</div>
+		);
+	};
 
 	useEffect(() => {
-		console.log("useCanvasEngineHook Initializing Canvas Engine!.!.!");
 		const engine = CanvasEngine.get();
-		engine.setRefs({
-			canvasRef: canvasRef.current!,
-			pixiCanvasRef: pixiCanvasRef.current!,
-			debugContainerRef: debugContainerRef.current!,
-			runStateLabel: runStateLabel.current!,
-			fpsLabel: fpsLabel.current!,
-			fpsSpinner: fpsSpinner.current!,
+
+		requestAnimationFrame(() => {
+			if (!canvasRef.current) {
+				console.warn(
+					"[RivePak] canvasRef is still null after mount. Did you forget to render CanvasView or call SetRefs?"
+				);
+				return;
+			}
+
+			engine.setFpsCallback((fps) => {
+				fpsRef.current!.innerText = `${fps}`;
+			});
+
+			engine.SetRefs({
+				canvasRef: canvasRef.current!,
+				pixiCanvasRef: pixiCanvasRef.current!,
+				debugContainerRef: debugContainerRef.current!,
+				runStateLabel: runStateLabel.current!,
+				fpsLabel: fpsRef.current!,
+				fpsSpinner: fpsSpinner.current!,
+			});
+
+			engine.Init(canvasSettings, onInit);
 		});
-		engine.init(canvasSettings, onInit);
-		return () => engine.dispose();
+
+		return () => CanvasEngine.get().Dispose();
 	}, []);
 
 	return {
+		RivePakCanvas,
 		canvasRef,
 		pixiCanvasRef,
 		debugContainerRef,
+		canvasObjects: CanvasEngine.get().canvasObjects,
+		addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),
+		ToggleRunState,
+		SetRunState,
 		runStateLabel,
-		fpsLabel,
-		fpsSpinner,
-		addCanvasObjects: CanvasEngine.get().addCanvasObjects.bind(CanvasEngine.get()),
-		canvasObjectsRef: { current: CanvasEngine.get().canvasObjects },
-		fps: fpsLabel,
+		fpsRef:fpsRef
 	};
 }

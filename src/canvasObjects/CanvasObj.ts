@@ -76,7 +76,10 @@ export interface CanvasObjectDef
 export abstract class CanvasObj
 {
 	public abstract update(time: number, frameCount: number, onceSecond: boolean): void;
-	public abstract dispose(): void;
+	public dispose():void
+	{
+
+	}
 
 	public _uuid: string = "";
 	public get uuid(): string { return this._uuid; }

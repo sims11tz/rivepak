@@ -80,6 +80,8 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 
 		public dispose(): void
 		{
+			super.dispose();
+
 			try
 			{
 				if (this._body)
