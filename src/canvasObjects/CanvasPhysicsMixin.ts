@@ -1,6 +1,6 @@
 import Matter from "matter-js";
-import CanvasObj from "./CanvasObj";
-import PhysicsController from "../controllers/PhysicsController";
+import { CanvasObj } from "./CanvasObj";
+import { PhysicsController } from "../controllers/PhysicsController";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -19,7 +19,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 {
 	return class extends Base implements iCollisionMixin
 	{
-		protected _body: Matter.Body | null = null;
+		public _body: Matter.Body | null = null;
 
 		public initPhysics(): void
 		{

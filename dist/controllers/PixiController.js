@@ -8,13 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import * as PIXI from "pixi.js";
-import RiveController from "./RiveController";
+import { RiveController } from "./RiveController";
 export var PIXI_OBJECT_TYPE;
 (function (PIXI_OBJECT_TYPE) {
     PIXI_OBJECT_TYPE["GRAPHICS"] = "GRAPHICS";
     PIXI_OBJECT_TYPE["TEXTURE"] = "TEXTURE";
 })(PIXI_OBJECT_TYPE || (PIXI_OBJECT_TYPE = {}));
-export default class PixiController {
+export class PixiController {
     constructor() {
         this._pixiInstance = null;
     }

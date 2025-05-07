@@ -1,6 +1,6 @@
-import CanvasObj, { CanvasObjectDef } from "./CanvasObj";
+import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
 import * as PIXI from "pixi.js";
-export default class CanvasPixiShapeObj extends CanvasObj {
+export declare class CanvasPixiShapeObj extends CanvasObj {
     private _graphics;
     constructor(canvasDef: CanvasObjectDef);
     initPixiObject(): void;

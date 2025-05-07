@@ -1,7 +1,7 @@
 import Matter from "matter-js";
-import RivePhysicsObject from "../canvasObjects/RivePhysicsObj";
+import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 
-export default class PhysicsController
+export class PhysicsController
 {
 	static myInstance: PhysicsController;
 	static get() {

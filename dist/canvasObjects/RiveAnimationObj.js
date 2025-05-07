@@ -1,5 +1,5 @@
-import CanvasRiveObj from "./CanvasRiveObj";
-export default class RiveAnimationObject extends CanvasRiveObj {
+import { CanvasRiveObj } from "./CanvasRiveObj";
+export class RiveAnimationObject extends CanvasRiveObj {
     constructor(riveDef, artboard) {
         super(riveDef, artboard);
         this.initRiveObject();

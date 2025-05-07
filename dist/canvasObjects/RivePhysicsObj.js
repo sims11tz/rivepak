@@ -1,8 +1,8 @@
-import CanvasRiveObj from "./CanvasRiveObj";
+import { CanvasRiveObj } from "./CanvasRiveObj";
 import { CanvasPhysicsMixin } from "./CanvasPhysicsMixin";
 class BaseRivePhysicsObject extends CanvasPhysicsMixin(CanvasRiveObj) {
 }
-export default class RivePhysicsObject extends BaseRivePhysicsObject {
+export class RivePhysicsObject extends BaseRivePhysicsObject {
     constructor(riveDef, artboard) {
         super(riveDef, artboard);
         this.initRiveObject();

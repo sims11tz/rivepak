@@ -1,8 +1,8 @@
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance } from "@rive-app/canvas-advanced";
-import RiveController, { RiveObjectDef } from "../controllers/RiveController";
-import CanvasObj, { CanvasObjectEntity } from "./CanvasObj";
+import { RiveController, RiveObjectDef } from "../controllers/RiveController";
+import { CanvasObj, CanvasObjectEntity } from "./CanvasObj";
 import * as PIXI from "pixi.js";
-import PixiController from "../controllers/PixiController";
+import { PixiController } from "../controllers/PixiController";
 
 export type RiveInstance = Awaited<ReturnType<typeof RiveCanvas>>;
 
@@ -23,7 +23,7 @@ export interface EntityObj
 	body: Matter.Body | null;
 }
 
-export default class CanvasRiveObj extends CanvasObj
+export class CanvasRiveObj extends CanvasObj
 {
 	private _artboard: Artboard;
 	protected _renderer:Renderer;

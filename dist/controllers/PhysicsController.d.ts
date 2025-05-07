@@ -1,8 +1,8 @@
 import Matter from "matter-js";
-export default class PhysicsController {
+export declare class PhysicsController {
     static myInstance: PhysicsController;
     static get(): PhysicsController;
-    get engine(): any;
+    get engine(): Matter.Engine;
     private _engine;
     private _debugRender;
     init(canvas: HTMLCanvasElement, debugRenderDiv: HTMLDivElement, debug?: boolean): void;

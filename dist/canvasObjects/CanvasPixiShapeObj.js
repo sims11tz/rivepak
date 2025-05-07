@@ -1,8 +1,8 @@
-import PixiController from "../../controllers/PixiController";
-import RiveController from "../../controllers/RiveController";
-import CanvasObj from "./CanvasObj";
+import { PixiController } from "../controllers/PixiController";
+import { RiveController } from "../controllers/RiveController";
+import { CanvasObj } from "./CanvasObj";
 import * as PIXI from "pixi.js";
-export default class CanvasPixiShapeObj extends CanvasObj {
+export class CanvasPixiShapeObj extends CanvasObj {
     constructor(canvasDef) {
         super(canvasDef);
         this._graphics = null;

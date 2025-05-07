@@ -1,6 +1,6 @@
 import { Artboard, Renderer } from "@rive-app/webgl-advanced";
-import CanvasRiveObj from "../components/rive/CanvasRiveObj";
-import { CanvasObjectDef, CanvasObjectEntity } from "../components/rive/CanvasObj";
+import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
+import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",
     PHYSICS = "PHYSICS"
@@ -11,7 +11,7 @@ export interface RiveObjectDef extends CanvasObjectDef {
     artboardName: string;
     classType?: new (def: RiveObjectDef, artboard: Artboard) => CanvasRiveObj;
 }
-export default class RiveController {
+export declare class RiveController {
     static myInstance: RiveController;
     static get(): RiveController;
     private _riveInstance;

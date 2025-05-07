@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { CanvasObjectDef } from "../canvasObjects/CanvasObj";
-import RiveController from "./RiveController";
+import { RiveController } from "./RiveController";
 
 export enum PIXI_OBJECT_TYPE
 {
@@ -13,7 +13,7 @@ export interface PixiObjectDef extends CanvasObjectDef
 	type: PIXI_OBJECT_TYPE;
 }
 
-export default class PixiController
+export class PixiController
 {
 	static myInstance: PixiController; static get() { if (PixiController.myInstance == null) { PixiController.myInstance = new PixiController(); } return this.myInstance; }
 

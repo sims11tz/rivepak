@@ -1,8 +1,8 @@
 import { CanvasPhysicsMixin } from "./CanvasPhysicsMixin";
-import CanvasPixiShapeObj from "./CanvasPixiShapeObj";
+import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 class BaseShapePhysicsObj extends CanvasPhysicsMixin(CanvasPixiShapeObj) {
 }
-export default class PixiShapePhysicsObj extends BaseShapePhysicsObj {
+export class PixiShapePhysicsObj extends BaseShapePhysicsObj {
     constructor(canvasDef) {
         super(canvasDef);
         this.initPhysics();

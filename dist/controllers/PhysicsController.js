@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-export default class PhysicsController {
+export class PhysicsController {
     constructor() {
         this._engine = null;
         this._debugRender = null;

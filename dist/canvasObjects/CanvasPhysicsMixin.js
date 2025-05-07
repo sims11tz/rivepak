@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import PhysicsController from "../../controllers/PhysicsController";
+import { PhysicsController } from "../controllers/PhysicsController";
 export function CanvasPhysicsMixin(Base) {
     return class extends Base {
         constructor() {

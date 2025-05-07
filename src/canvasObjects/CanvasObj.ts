@@ -73,22 +73,22 @@ export interface CanvasObjectDef
 	riveInteractiveLocalOnly?: boolean;
 }
 
-export default abstract class CanvasObj
+export abstract class CanvasObj
 {
 	public abstract update(time: number, frameCount: number, onceSecond: boolean): void;
 	public abstract dispose(): void;
 
-	private _uuid: string = "";
+	public _uuid: string = "";
 	public get uuid(): string { return this._uuid; }
 
-	private _label: string = "";
+	public _label: string = "";
 	public get label(): string { return this._label; }
 
-	protected _defObj: CanvasObjectDef | null = null;
+	public _defObj: CanvasObjectDef | null = null;
 	public get defObj(): CanvasObjectDef { return this._defObj!; }
 
 	public enabled: boolean = true;
-	private _state: { x: number; y: number; z: number }; // Internal state
+	public _state: { x: number; y: number; z: number }; // Internal state
 
 	public group: string = "main";
 	public width: number = 0;
@@ -96,9 +96,9 @@ export default abstract class CanvasObj
 	public xScale: number = 0;
 	public yScale: number = 0;
 
-	protected _body: Matter.Body | null = null;
+	public _body: Matter.Body | null = null;
 
-	private _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
+	public _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
 
 	constructor(defObj: CanvasObjectDef)
 	{
@@ -171,5 +171,5 @@ export default abstract class CanvasObj
 	{
 		this._onZIndexChanged = func;
 	}
-	private _onZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
+	public _onZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
 }

@@ -8,14 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import RiveCanvas from "@rive-app/webgl-advanced";
-import RiveAnimationObject from "../components/rive/RiveAnimationObj";
-import RivePhysicsObject from "../components/rive/RivePhysicsObj";
+import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
+import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 export var RIVE_OBJECT_TYPE;
 (function (RIVE_OBJECT_TYPE) {
     RIVE_OBJECT_TYPE["ANIMATION"] = "ANIMATION";
     RIVE_OBJECT_TYPE["PHYSICS"] = "PHYSICS";
 })(RIVE_OBJECT_TYPE || (RIVE_OBJECT_TYPE = {}));
-export default class RiveController {
+export class RiveController {
     constructor() {
         this._riveInstance = null;
         this._riveRenderer = null;

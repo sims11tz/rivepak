@@ -1,11 +1,11 @@
 import { Artboard } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
-import CanvasRiveObj from "./CanvasRiveObj";
+import { CanvasRiveObj } from "./CanvasRiveObj";
 import { CanvasPhysicsMixin } from "./CanvasPhysicsMixin";
 
 class BaseRivePhysicsObject extends CanvasPhysicsMixin(CanvasRiveObj) {}
 
-export default class RivePhysicsObject extends BaseRivePhysicsObject
+export class RivePhysicsObject extends BaseRivePhysicsObject
 {
 	constructor(riveDef: RiveObjectDef, artboard: Artboard)
 	{

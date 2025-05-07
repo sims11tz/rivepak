@@ -1,5 +1,5 @@
-import CanvasPixiShapeObj from "./CanvasPixiShapeObj";
-export default class PixiGraphicsObject extends CanvasPixiShapeObj {
+import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
+export class PixiGraphicsObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
     }

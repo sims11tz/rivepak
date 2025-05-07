@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { CanvasObjectDef } from "../components/rive/CanvasObj";
+import { CanvasObjectDef } from "../canvasObjects/CanvasObj";
 export declare enum PIXI_OBJECT_TYPE {
     GRAPHICS = "GRAPHICS",
     TEXTURE = "TEXTURE"
@@ -7,7 +7,7 @@ export declare enum PIXI_OBJECT_TYPE {
 export interface PixiObjectDef extends CanvasObjectDef {
     type: PIXI_OBJECT_TYPE;
 }
-export default class PixiController {
+export declare class PixiController {
     static myInstance: PixiController;
     static get(): PixiController;
     private _pixiInstance;
