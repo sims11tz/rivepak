@@ -5,7 +5,8 @@ export declare enum CANVAS_ENGINE_RUN_STATE {
     RUNNING = "RUNNING",
     PAUSED = "PAUSED",
     SLOW_MOTION = "SLOW_MOTION",
-    FAST_FORWARD = "FAST_FORWARD"
+    FAST_FORWARD = "FAST_FORWARD",
+    ANOTHER = "ANOTHER"
 }
 export declare class CanvasSettingsDef {
     usePhysics: boolean;
