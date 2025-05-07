@@ -12,6 +12,8 @@ export enum CANVAS_ENGINE_RUN_STATE
 	STOPPED = "STOPPED",
 	RUNNING = "RUNNING",
 	PAUSED = "PAUSED",
+	SLOW_MOTION = "SLOW_MOTION",
+	FAST_FORWARD = "FAST_FORWARD",
 }
 
 export class CanvasSettingsDef

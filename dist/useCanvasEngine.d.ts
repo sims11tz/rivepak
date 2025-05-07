@@ -3,7 +3,9 @@ import { CanvasObj } from "./canvasObjects/CanvasObj";
 export declare enum CANVAS_ENGINE_RUN_STATE {
     STOPPED = "STOPPED",
     RUNNING = "RUNNING",
-    PAUSED = "PAUSED"
+    PAUSED = "PAUSED",
+    SLOW_MOTION = "SLOW_MOTION",
+    FAST_FORWARD = "FAST_FORWARD"
 }
 export declare class CanvasSettingsDef {
     usePhysics: boolean;
