@@ -21,10 +21,18 @@ export class RiveController {
         this._riveRenderer = null;
         this._canvas = null;
         this._canvasBounds = null;
+        this._canvasGlobalBounds = null;
         this._initCalled = false;
         this._cache = new Map();
         this._mousePos = { x: 0, y: 0 };
+        this._mouseGlobalPos = { x: 0, y: 0 };
         this._mouseDown = false;
+        this.SetMouseGlobalPos = (e) => {
+            var _a, _b;
+            this._mouseGlobalPos.x = e.clientX;
+            this._mouseGlobalPos.y = e.clientY;
+            this._canvasGlobalBounds = (_b = (_a = this._canvas) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect()) !== null && _b !== void 0 ? _b : null;
+        };
     }
     static get() { if (RiveController.myInstance == null) {
         RiveController.myInstance = new RiveController();
@@ -33,6 +41,7 @@ export class RiveController {
     get Renderer() { return this._riveRenderer; }
     get Canvas() { return this._canvas; }
     get CanvasBounds() { return this._canvasBounds; }
+    get CanvasGlobalBounds() { return this._canvasBounds; }
     init(canvas) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -46,6 +55,7 @@ export class RiveController {
                 this._canvas = canvas;
                 this._canvasBounds = this._canvas.getBoundingClientRect();
                 console.log("🚀 Rive Renderer Type:", (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor.name);
+                window.addEventListener("mousemove", this.SetMouseGlobalPos);
             }
             catch (error) {
                 console.error("Failed to initialize Rive:", error);
@@ -176,7 +186,49 @@ export class RiveController {
             artboardY /= (_h = entity.yScale) !== null && _h !== void 0 ? _h : 1;
         return { x: artboardX, y: artboardY };
     }
+    WindowToArtboard(entity, interactiveCheck = false) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        const width = (_a = entity.width) !== null && _a !== void 0 ? _a : 1;
+        const height = (_b = entity.height) !== null && _b !== void 0 ? _b : 1;
+        const objLeft = ((_c = entity.x) !== null && _c !== void 0 ? _c : 0) - (width / 2);
+        const objTop = ((_d = entity.y) !== null && _d !== void 0 ? _d : 0) - (height / 2);
+        // Get absolute window mouse position
+        const mouseX = this._mouseGlobalPos.x;
+        const mouseY = this._mouseGlobalPos.y;
+        // Get canvas bounds relative to the screen
+        if (!this._canvasGlobalBounds && this._canvas) {
+            this._canvasGlobalBounds = this._canvas.getBoundingClientRect();
+        }
+        const offsetX = (_f = (_e = this._canvasGlobalBounds) === null || _e === void 0 ? void 0 : _e.left) !== null && _f !== void 0 ? _f : 0;
+        const offsetY = (_h = (_g = this._canvasGlobalBounds) === null || _g === void 0 ? void 0 : _g.top) !== null && _h !== void 0 ? _h : 0;
+        const canvasX = mouseX - offsetX;
+        const canvasY = mouseY - offsetY;
+        // Convert to local entity space
+        const localX = canvasX - objLeft;
+        const localY = canvasY - objTop;
+        const normX = localX / width;
+        const normY = localY / height;
+        let artboardX = normX * width;
+        let artboardY = normY * height;
+        if (!interactiveCheck && (entity.riveInteractiveLocalOnly == undefined || entity.riveInteractiveLocalOnly == false)) {
+            if (artboardX < 0)
+                artboardX = 1;
+            if (artboardY < 0)
+                artboardY = 1;
+            if (artboardX > entity.width)
+                artboardX = entity.width - 1;
+            if (artboardY > entity.height)
+                artboardY = entity.height - 1;
+        }
+        if (entity.xScale !== 0)
+            artboardX /= (_j = entity.xScale) !== null && _j !== void 0 ? _j : 1;
+        if (entity.yScale !== 0)
+            artboardY /= (_k = entity.yScale) !== null && _k !== void 0 ? _k : 1;
+        return { x: artboardX, y: artboardY };
+    }
     dispose() {
+        console.log("RiveController - Dispose !!!!!!! ");
+        window.removeEventListener("mousemove", this.SetMouseGlobalPos);
         try {
             this._riveInstance.cleanup();
         }

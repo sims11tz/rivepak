@@ -176,7 +176,8 @@ export class CanvasRiveObj extends CanvasObj
 			{
 				this._entityObj!.x = this.x;
 				this._entityObj!.y = this.y;
-				const artboardMoveSpace = RiveController.get().CanvasToArtboard(this._entityObj!);
+				//const artboardMoveSpace = RiveController.get().CanvasToArtboard(this._entityObj!);
+				const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj!);
 
 				const mouseDown = RiveController.get().MouseDown;
 				const mousePosChanged = ( this._lastMousePos.x !== artboardMoveSpace.x || this._lastMousePos.y !== artboardMoveSpace.y);

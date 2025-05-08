@@ -21,15 +21,19 @@ export declare class RiveController {
     private _canvas;
     get Canvas(): HTMLCanvasElement;
     private _canvasBounds;
+    private _canvasGlobalBounds;
     get CanvasBounds(): DOMRect;
+    get CanvasGlobalBounds(): DOMRect;
     private _initCalled;
     private _cache;
     init(canvas: HTMLCanvasElement): Promise<void>;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>;
     private loadRiveFiles;
     private _mousePos;
+    private _mouseGlobalPos;
     private _mouseDown;
     SetMousePos(x: number, y: number): void;
+    SetMouseGlobalPos: (e: MouseEvent) => void;
     get MousePos(): {
         x: number;
         y: number;
@@ -37,6 +41,10 @@ export declare class RiveController {
     SetMouseDown(down: boolean): void;
     get MouseDown(): boolean;
     CanvasToArtboard(entity: CanvasObjectEntity, interactiveCheck?: boolean): {
+        x: number;
+        y: number;
+    };
+    WindowToArtboard(entity: CanvasObjectEntity, interactiveCheck?: boolean): {
         x: number;
         y: number;
     };

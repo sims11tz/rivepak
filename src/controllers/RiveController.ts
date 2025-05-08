@@ -31,7 +31,9 @@ export class RiveController
 	private _canvas:HTMLCanvasElement | null = null;
 	public get Canvas() { return this._canvas!; }
 	private _canvasBounds:DOMRect | null = null;
+	private _canvasGlobalBounds:DOMRect | null = null;
 	public get CanvasBounds() { return this._canvasBounds!; }
+	public get CanvasGlobalBounds() { return this._canvasBounds!; }
 
 	private _initCalled: boolean = false;
 	private _cache: Map<string, Uint8Array> = new Map();
@@ -48,6 +50,9 @@ export class RiveController
 			this._canvas = canvas;
 			this._canvasBounds = this._canvas.getBoundingClientRect();
 			console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
+
+			window.addEventListener("mousemove", this.SetMouseGlobalPos);
+
 
 		} catch (error) { console.error("Failed to initialize Rive:", error); }
 	}
@@ -157,12 +162,21 @@ export class RiveController
 	}
 
 	private _mousePos = { x: 0, y: 0 };
+	private _mouseGlobalPos = { x: 0, y: 0 };
 	private _mouseDown:boolean = false;
 	public SetMousePos(x: number, y: number)
 	{
 		this._mousePos.x = x;
 		this._mousePos.y = y;
 	}
+
+	public SetMouseGlobalPos = (e: MouseEvent) =>
+	{
+		this._mouseGlobalPos.x = e.clientX;
+		this._mouseGlobalPos.y = e.clientY;
+		this._canvasGlobalBounds = this._canvas?.getBoundingClientRect() ?? null;
+	}
+
 	public get MousePos(): { x: number, y: number }
 	{
 		return this._mousePos;
@@ -210,8 +224,60 @@ export class RiveController
 		return { x: artboardX, y: artboardY };
 	}
 
+	public WindowToArtboard(entity: CanvasObjectEntity, interactiveCheck:boolean=false): { x: number, y: number }
+	{
+		const width = entity.width ?? 1;
+		const height = entity.height ?? 1;
+
+		const objLeft = (entity.x ?? 0) - (width / 2);
+		const objTop = (entity.y ?? 0) - (height / 2);
+
+		// Get absolute window mouse position
+		const mouseX = this._mouseGlobalPos.x;
+		const mouseY = this._mouseGlobalPos.y;
+
+		// Get canvas bounds relative to the screen
+		if (!this._canvasGlobalBounds && this._canvas) {
+			this._canvasGlobalBounds = this._canvas.getBoundingClientRect();
+		}
+
+		const offsetX = this._canvasGlobalBounds?.left ?? 0;
+		const offsetY = this._canvasGlobalBounds?.top ?? 0;
+
+		const canvasX = mouseX - offsetX;
+		const canvasY = mouseY - offsetY;
+
+		// Convert to local entity space
+		const localX = canvasX - objLeft;
+		const localY = canvasY - objTop;
+
+		const normX = localX / width;
+		const normY = localY / height;
+
+		let artboardX = normX * width;
+		let artboardY = normY * height;
+
+		if(!interactiveCheck && (entity.riveInteractiveLocalOnly == undefined || entity.riveInteractiveLocalOnly == false))
+		{
+			if(artboardX < 0) artboardX = 1;
+			if(artboardY < 0) artboardY = 1;
+			if(artboardX > entity.width!) artboardX = entity.width! - 1;
+			if(artboardY > entity.height!) artboardY = entity.height! - 1;
+		}
+
+		if(entity.xScale !== 0) artboardX /= entity.xScale ?? 1;
+		if(entity.yScale !== 0) artboardY /= entity.yScale ?? 1;
+
+		return { x: artboardX, y: artboardY };
+	}
+
+
 	public dispose()
 	{
+		console.log("RiveController - Dispose !!!!!!! ");
+
+		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
+
 		try
 		{
 			this._riveInstance!.cleanup();
