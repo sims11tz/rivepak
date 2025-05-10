@@ -42,6 +42,7 @@ export class CanvasEngine
 	private static _instance: CanvasEngine; static get(): CanvasEngine { if (!CanvasEngine._instance) CanvasEngine._instance = new CanvasEngine(); return CanvasEngine._instance; }
 
 	public canvasContainerRef: HTMLDivElement | null = null;
+	public canvasAreaRef: HTMLDivElement | null = null;
 	public canvasRef: HTMLCanvasElement | null = null;
 	public pixiCanvasRef: HTMLCanvasElement | null = null;
 	public debugContainerRef: HTMLDivElement | null = null;
@@ -77,8 +78,6 @@ export class CanvasEngine
 		const canvas = this.canvasRef;
 		this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
 		this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
-
-		console.log("!! SET DAT SHIT BITCH !!");
 
 		PixiController.get().Init(this._canvasWidth, this._canvasHeight);
 
@@ -266,25 +265,66 @@ export class CanvasEngine
 
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
 
-		const screenWidth = window.innerWidth;
-		const screenHeight = window.innerHeight;
+		const el = document.getElementById("routesContainer") as HTMLDivElement;
+		const rect2 = el.getBoundingClientRect();
+		const screenWidth = rect2.width;
+		const screenHeight = rect2.height;
+		console.log("Width:", rect2.width, "Height:", rect2.height);
+
+		const screenWidth2 = window.innerWidth;
+		const screenHeight2 = window.innerHeight;
+
+		const rect = this.canvasAreaRef!.getBoundingClientRect();
+		const screenWidth3 = rect.width;
+		const screenHeight3 = rect.height;
+
+		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth=", screenWidth, "screenHeight=", screenHeight);
+		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth2=", screenWidth2, "screenHeight2=", screenHeight2);
+		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth3=", rect.width, "screenHeight3=", rect.height);
+
 		const dpr = window.devicePixelRatio || 1;
 
 		this._currentCanvasScale = Math.min(screenWidth / this._canvasSettings.width!, screenHeight / this._canvasSettings.height!);
 
-		const newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale);
-		const newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale);
+		let newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale)-4;
+		let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
+
+		let horizMargin = 0;
+		console.log('');
+		console.log('...');
+		console.log('>> vertMargin -- screenHeight:'+screenHeight+' newHeight:'+newHeight);
+		console.log('...');
+		console.log('');
+		let vertMargin = (screenHeight - newHeight) / 2;
+		//const vertMargin = 0;
+
+		if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
+		{
+			vertMargin = 0;
+			newWidth = this._canvasSettings.width-10;
+			newHeight = this._canvasSettings.height-10;
+		}
+		//if it snaps one you gotta change the other one.... lol
 
 		// 🧠 Buffer (actual pixel size) for crispness
 		//canvas.width = newWidth * dpr;
 		//canvas.height = newHeight * dpr;
 
-		const horizMargin = (screenWidth - newWidth) / 2;
-		const vertMargin = (screenHeight - newHeight) / 2;
+		//const horizMargin = (screenWidth - newWidth) / 2;
 
-		this.canvasContainerRef!.style.width = `${screenWidth}px`;
-		this.canvasContainerRef!.style.height = `${screenHeight}px`;
+
+		this.canvasContainerRef!.style.width = `${newWidth}px`;
+		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
+
+		this.canvasContainerRef!.style.display = "none";
+		void this.canvasContainerRef!.offsetHeight; // force reflow
+		this.canvasContainerRef!.style.display = "";
+
+			//this.canvasContainerRef!.style.display = "none";
+			//void this.canvasContainerRef!.offsetHeight; // force reflow
+			//this.canvasContainerRef!.style.display = "";
+
 
 		// 📐 Update Rive's WebGL viewport (optional but safe)
 		//const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
@@ -295,6 +335,7 @@ export class CanvasEngine
 		//}
 
 		console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
+		console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
 
 		// Notify Rive of resize
 		RiveController.get().Canvas?.setAttribute("width", `${newWidth}`);
@@ -350,6 +391,7 @@ export class CanvasEngine
 
 	public SetRefs({
 		canvasContainerRef,
+		canvasAreaRef,
 		canvasRef,
 		pixiCanvasRef,
 		debugContainerRef,
@@ -358,6 +400,7 @@ export class CanvasEngine
 		fpsSpinner,
 	}: {
 		canvasContainerRef: HTMLDivElement;
+		canvasAreaRef: HTMLDivElement;
 		canvasRef: HTMLCanvasElement;
 		pixiCanvasRef?: HTMLCanvasElement;
 		debugContainerRef?: HTMLDivElement;
@@ -366,6 +409,7 @@ export class CanvasEngine
 		fpsSpinner?: HTMLDivElement;
 	}) {
 		this.canvasContainerRef = canvasContainerRef;
+		this.canvasAreaRef = canvasAreaRef;
 		this.canvasRef = canvasRef;
 		this.pixiCanvasRef = pixiCanvasRef || null;
 		this.debugContainerRef = debugContainerRef || null;
@@ -392,6 +436,7 @@ export function UseCanvasEngineHook(
 } {
 	const canvasSettings = new CanvasSettingsDef(settings);
 	const canvasRef = useRef<HTMLCanvasElement>(null!);
+	const canvasAreaRef = useRef<HTMLDivElement>(null!);
 	const canvasContainerRef = useRef<HTMLDivElement>(null!);
 	const pixiCanvasRef = useRef<HTMLCanvasElement>(null!);
 	const debugContainerRef = useRef<HTMLDivElement>(null!);
@@ -406,7 +451,7 @@ export function UseCanvasEngineHook(
 	if (!canvasJSXRef.current)
 	{
 		canvasJSXRef.current = (
-			<div>
+			<div id="canvasArea" ref={canvasAreaRef}>
 				<div id="debugTools" className="debugTools" style={{ display: canvasSettings.debugMode ? "flex" : "none", gap: "10px", marginBottom:"10px", width: "100%", alignItems: "center", justifyContent: "center" }}>
 					<button onClick={ToggleRunState}><span ref={runStateLabel}></span></button>
 					<div className="fpsContainer" style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
@@ -423,8 +468,6 @@ export function UseCanvasEngineHook(
 			</div>
 		);
 	}
-
-	console.log("...........CUNT CHECK1........");
 
 	const hasEngineInitialized = useRef(false);
 	useEffect(() => {
@@ -447,6 +490,7 @@ export function UseCanvasEngineHook(
 
 			engine.SetRefs({
 				canvasContainerRef: canvasContainerRef.current!,
+				canvasAreaRef: canvasAreaRef.current!,
 				canvasRef: canvasRef.current!,
 				pixiCanvasRef: pixiCanvasRef.current!,
 				debugContainerRef: debugContainerRef.current!,
@@ -463,8 +507,6 @@ export function UseCanvasEngineHook(
 			CanvasEngine.get().Dispose();
 		};
 	}, []);
-
-	console.log("...........CUNT CHECK2........");
 
 	return {
 		RivePakCanvas: () => canvasJSXRef.current,

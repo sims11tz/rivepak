@@ -29,9 +29,9 @@ export class CanvasRiveObj extends CanvasObj {
         this.yScale = (_f = this.defObj.yScale) !== null && _f !== void 0 ? _f : 0;
         if (this.yScale > 0)
             this.height = this.height * this.yScale;
-        console.log("");
-        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.width + "x" + this.height + " --- " + this.xScale + "x" + this.yScale);
-        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.x + "|" + this.y);
+        //console.log("");
+        //console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
+        //console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.x+"|"+this.y);
         this.UpdateBaseProps();
         if (this.defObj.interactive)
             this.initInteractive();
@@ -200,17 +200,18 @@ export class CanvasRiveObj extends CanvasObj {
             this._interactiveGraphics.width = objBounds.maxX - objBounds.minX;
             this._interactiveGraphics.height = objBounds.maxY - objBounds.minY;
             //this._interactiveGraphics.rect(0, 0, this._interactiveGraphics.width, this._interactiveGraphics.height);
-            if (frameCount == 5 || frameCount == 10) {
-                //console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
-                console.log("<" + frameCount + ">________________________________");
-                console.log("<" + frameCount + "> tx=" + this.x + "   ty=" + this.y + "");
-            }
+            //if(frameCount == 5 || frameCount == 10)
+            //{
+            //	//console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
+            //	console.log("<"+frameCount+">________________________________");
+            //	console.log("<"+frameCount+"> tx="+this.x+"   ty="+this.y+"");
+            //}
         }
         this.artboard.draw(this.Renderer);
         this.Renderer.restore();
     }
     initInteractive() {
-        console.log("   INIT INTERACTIVE RIVE OBJECT -- " + this._label);
+        //console.log("   INIT INTERACTIVE RIVE OBJECT -- "+this._label);
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
         this._interactiveGraphics.rect(0, 0, this.width, this.height);

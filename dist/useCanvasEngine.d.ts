@@ -24,6 +24,7 @@ export declare class CanvasEngine {
     private static _instance;
     static get(): CanvasEngine;
     canvasContainerRef: HTMLDivElement | null;
+    canvasAreaRef: HTMLDivElement | null;
     canvasRef: HTMLCanvasElement | null;
     pixiCanvasRef: HTMLCanvasElement | null;
     debugContainerRef: HTMLDivElement | null;
@@ -57,8 +58,9 @@ export declare class CanvasEngine {
     get CurrentCanvasScale(): number;
     ResizeCanvasToWindow: () => void;
     Dispose(): void;
-    SetRefs({ canvasContainerRef, canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
+    SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasContainerRef: HTMLDivElement;
+        canvasAreaRef: HTMLDivElement;
         canvasRef: HTMLCanvasElement;
         pixiCanvasRef?: HTMLCanvasElement;
         debugContainerRef?: HTMLDivElement;
