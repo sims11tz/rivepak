@@ -4,18 +4,13 @@ import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 export class PhysicsController
 {
 	static myInstance: PhysicsController;
-	static get() {
-		if (PhysicsController.myInstance == null) {
-			PhysicsController.myInstance = new PhysicsController();
-		}
-		return this.myInstance;
-	}
+	static get() { if (PhysicsController.myInstance == null) { PhysicsController.myInstance = new PhysicsController(); } return this.myInstance; }
 
 	public get engine() { return this._engine!; }
 	private _engine: Matter.Engine | null = null;
 	private _debugRender: Matter.Render | null = null;
 
-	public init(canvas: HTMLCanvasElement, debugRenderDiv: HTMLDivElement, debug: boolean = false)
+	public Init(canvas: HTMLCanvasElement, debugRenderDiv: HTMLDivElement, debug: boolean = false)
 	{
 		if (this._debugRender)
 		{
@@ -59,7 +54,7 @@ export class PhysicsController
 		Matter.World.add(this._engine.world, walls);
 	}
 
-	public addBody(body: Matter.Body)
+	public AddBody(body: Matter.Body)
 	{
 		if (this._engine)
 		{
@@ -67,7 +62,7 @@ export class PhysicsController
 		}
 	}
 
-	public update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time: number, frameCount: number, onceSecond: boolean): void
 	{
 		if (this._engine)
 		{
@@ -89,13 +84,13 @@ export class PhysicsController
 			if (objA && objB)
 			{
 				const impactForce = Matter.Vector.magnitude(pair.collision.penetration);
-				objA.onCollision(objB, impactForce);
-				objB.onCollision(objA, impactForce);
+				objA.OnCollision(objB, impactForce);
+				objB.OnCollision(objA, impactForce);
 			}
 		});
 	};
 
-	public dispose()
+	public Dispose()
 	{
 		if (this._engine)
 		{

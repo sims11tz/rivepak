@@ -6,7 +6,7 @@ export function CanvasPhysicsMixin(Base) {
             super(...arguments);
             this._body = null;
         }
-        initPhysics() {
+        InitPhysics() {
             var _a, _b;
             this._body = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, {
                 friction: 0,
@@ -17,7 +17,7 @@ export function CanvasPhysicsMixin(Base) {
             });
             //(this._body as any).plugin = { object: this };
             this._body.plugin = { object: this };
-            PhysicsController.get().addBody(this._body);
+            PhysicsController.get().AddBody(this._body);
             let initialXSpeed = 0;
             let initialYSpeed = 0;
             if (this.defObj.xSpeed || this.defObj.ySpeed) {
@@ -32,26 +32,25 @@ export function CanvasPhysicsMixin(Base) {
                 Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
             }
         }
-        updatePhysics(time, frameCount, onceSecond) {
+        UpdatePhysics(time, frameCount, onceSecond) {
         }
-        update(time, frameCount, onceSecond) {
-            this.updatePhysics(time, frameCount, onceSecond);
+        Update(time, frameCount, onceSecond) {
+            this.UpdatePhysics(time, frameCount, onceSecond);
         }
-        onCollision(other, impactForce) {
+        OnCollision(other, impactForce) {
             //console.log(`💥💥💥💥💥💥 MIXIN Collision! ${this.label} hit ${other.label} with force ${impactForce}`);
             if (impactForce > 1) {
                 //console.log("impactForce:"+impactForce);
                 //this.artboard.textRun("Run1").text = `Impact: ${impactForce.toFixed(2)}`;
             }
         }
-        dispose() {
-            super.dispose();
+        Dispose() {
+            super.Dispose();
             try {
                 if (this._body) {
                     if (PhysicsController.get().engine != null && PhysicsController.get().engine.world != null) {
                         Matter.World.remove(PhysicsController.get().engine.world, this._body);
                     }
-                    //(this._body as any).plugin.object = null;
                     this._body.plugin = { object: null };
                     this._body = null;
                 }

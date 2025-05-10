@@ -11,7 +11,7 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 	{
 		super(riveDef, artboard);
 		this.initRiveObject();
-		this.initPhysics();
+		this.InitPhysics();
 	}
 
 	protected initRiveObject()
@@ -19,7 +19,7 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 		super.initRiveObject();
 	}
 
-	public update(time: number, frameCount: number, onceSecond: boolean)
+	public Update(time: number, frameCount: number, onceSecond: boolean)
 	{
 		if (this.enabled === false) return;
 
@@ -29,7 +29,6 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 			this.y = this._body.position.y;
 		}
 
-		//call super
-		CanvasRiveObj.prototype.update.call(this, time, frameCount, onceSecond);
+		CanvasRiveObj.prototype.Update.call(this, time, frameCount, onceSecond);
 	}
 }

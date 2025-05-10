@@ -4,5 +4,5 @@ import { CanvasRiveObj } from "./CanvasRiveObj";
 export declare class RiveAnimationObject extends CanvasRiveObj {
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     protected initRiveObject(): void;
-    update(time: number, frameCount: number, onceSecond: boolean): void;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
 }

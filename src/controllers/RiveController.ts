@@ -3,6 +3,7 @@ import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
+import { CanvasEngine } from "../useCanvasEngine";
 
 export enum RIVE_OBJECT_TYPE
 {
@@ -38,7 +39,7 @@ export class RiveController
 	private _initCalled: boolean = false;
 	private _cache: Map<string, Uint8Array> = new Map();
 
-	public async init(canvas: HTMLCanvasElement)
+	public async Init(canvas: HTMLCanvasElement)
 	{
 		if (this._initCalled) { return; }
 		this._initCalled = true;
@@ -90,6 +91,7 @@ export class RiveController
 			//for (let x = 0; x < riveFile.artboardCount(); x++) { const artboard = riveFile.artboardByIndex(x); if (artboard) { console.log(`Artboard ${x}:`, artboard.name); } }
 
 			let artboard: Artboard | null = riveFile.artboardByName(def.artboardName);
+			if(artboard) artboard.devicePixelRatioUsed = window.devicePixelRatio;
 			if (!artboard)
 			{
 				if(riveFile.artboardCount() > 0)
@@ -102,18 +104,23 @@ export class RiveController
 				}
 			}
 
+			let canvasRiveObj: CanvasRiveObj | null = null;
 			if(def.classType)
 			{
-				return new def.classType(def, artboard);
+				canvasRiveObj = new def.classType(def, artboard);
 			}
 			else
 			{
 				switch (def.objectType)
 				{
-					case RIVE_OBJECT_TYPE.ANIMATION: return new RiveAnimationObject(def,artboard);
-					case RIVE_OBJECT_TYPE.PHYSICS: return new RivePhysicsObject(def,artboard);
+					case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def,artboard);
+					case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def,artboard);
 				}
 			}
+
+			canvasRiveObj?.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
+
+			return canvasRiveObj;
 		});
 
 		return riveObjects.filter(Boolean) as CanvasRiveObj[];
@@ -272,7 +279,7 @@ export class RiveController
 	}
 
 
-	public dispose()
+	public Dispose()
 	{
 		console.log("RiveController - Dispose !!!!!!! ");
 

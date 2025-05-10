@@ -10,15 +10,15 @@ export class PixiGraphicsObject extends CanvasPixiShapeObj
 		super(canvasDef);
 	}
 
-	public update(time:number,frameCount:number,onceSecond:boolean)
+	public Update(time:number,frameCount:number,onceSecond:boolean)
 	{
 		if(this.enabled === false) return;
 
-		super.update(time,frameCount,onceSecond);
+		super.Update(time,frameCount,onceSecond);
 	}
 
-	public dispose(): void
+	public Dispose(): void
 	{
-		super.dispose();
+		super.Dispose();
 	}
 }

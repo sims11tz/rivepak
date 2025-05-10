@@ -20,22 +20,28 @@ export class PixiController
 	private _pixiInstance: PIXI.Application | null = null;
 	public get Pixi() { return this._pixiInstance!; }
 
-	public async init(width?:number, height?:number)
+	private _canvas: HTMLCanvasElement | null = null;
+	//public get Canvas() { return this._canvas!; }
+
+	private _canvasContainer: HTMLDivElement | null = null;
+	//public get CanvasContainer() { return this._canvasContainer!; }
+
+	public async Init(width?:number, height?:number)
 	{
-		if (this._pixiInstance) this.dispose();
+		if (this._pixiInstance) this.Dispose();
 
 		let oldCanvas = document.getElementById('pixiCanvas');
 
-		const parentElement = document.getElementById('pixiCanvasContainer') as HTMLDivElement;
+		this._canvasContainer = document.getElementById('pixiCanvasContainer') as HTMLDivElement;
 
 		if (oldCanvas) oldCanvas.remove();
 
-		const newCanvas = document.createElement('canvas');
-		newCanvas.id = 'pixiCanvas';
-		newCanvas.width = width || 800;
-		newCanvas.height = height || 500;
+		this._canvas = document.createElement('canvas');
+		this._canvas.id = 'pixiCanvas';
+		this._canvas.width = width || 800;
+		this._canvas.height = height || 500;
 
-		parentElement.appendChild(newCanvas); // Add to the same parent
+		this._canvasContainer.appendChild(this._canvas); // Add to the same parent
 
 		this._pixiInstance = new PIXI.Application();
 
@@ -43,7 +49,7 @@ export class PixiController
 			width: width || 800,
 			height: height || 500,
 			backgroundAlpha: 0,
-			canvas: newCanvas,
+			canvas: this._canvas,
 		});
 
 		this._pixiInstance.stage.eventMode = 'static';
@@ -51,7 +57,7 @@ export class PixiController
 
 		this._pixiInstance.stage.on('pointermove', (e: PIXI.FederatedPointerEvent) =>
 		{
-			const canvasBounds = newCanvas.getBoundingClientRect();
+			const canvasBounds = this._canvas!.getBoundingClientRect();
 			const x = e.clientX - canvasBounds.left;
 			const y = e.clientY - canvasBounds.top;
 			RiveController.get().SetMousePos(x, y);
@@ -68,7 +74,28 @@ export class PixiController
 		});
 	}
 
-	public dispose()
+	public SetSize(width: number, height: number)
+	{
+		if (!this._pixiInstance || !this._pixiInstance.renderer)
+		{
+			console.warn("PixiController.SetSize --- COCK BLOCK");
+			return;
+		}
+		console.log("PixiController.SetSize --- "+width+":"+height);
+
+		this._pixiInstance.renderer.resize(width, height);
+		this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;
+
+		this._canvasContainer?.setAttribute("width", `${width}`);
+		this._canvasContainer?.setAttribute("height", `${height}`);
+		//this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
+
+		this._canvas?.setAttribute("width", `${width}`);
+		this._canvas?.setAttribute("height", `${height}`);
+		//this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
+	}
+
+	public Dispose()
 	{
 		try
 		{

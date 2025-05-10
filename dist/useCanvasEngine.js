@@ -20,15 +20,17 @@ export var CANVAS_ENGINE_RUN_STATE;
     CANVAS_ENGINE_RUN_STATE["PAUSED"] = "PAUSED";
 })(CANVAS_ENGINE_RUN_STATE || (CANVAS_ENGINE_RUN_STATE = {}));
 export class CanvasSettingsDef {
-    constructor({ usePhysics = false, width = 800, height = 500, debugMode = false, }) {
+    constructor({ usePhysics = false, width = 800, height = 500, autoScale = false, debugMode = false, }) {
         this.usePhysics = usePhysics;
         this.width = width;
         this.height = height;
+        this.autoScale = autoScale;
         this.debugMode = debugMode;
     }
 }
 export class CanvasEngine {
     constructor() {
+        this.canvasContainerRef = null;
         this.canvasRef = null;
         this.pixiCanvasRef = null;
         this.debugContainerRef = null;
@@ -41,30 +43,92 @@ export class CanvasEngine {
         this.riveInstance = null;
         this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
         this.engine = null;
+        this._canvasSettings = null;
+        this._canvasWidth = 0;
+        this._canvasHeight = 0;
         this.fpsValue = 0;
+        this._resizeDebounceTimeout = null;
+        this.ResizeWindowEvent = () => {
+            if (this._resizeDebounceTimeout !== null) {
+                clearTimeout(this._resizeDebounceTimeout);
+            }
+            this.runState = CANVAS_ENGINE_RUN_STATE.PAUSED;
+            this._resizeDebounceTimeout = window.setTimeout(() => {
+                this.ResizeCanvasToWindow();
+                this._resizeDebounceTimeout = null;
+                this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
+            }, 250);
+        };
+        this._currentCanvasScale = 1;
+        this.ResizeCanvasToWindow = () => {
+            var _a, _b;
+            console.log("CanvasEngine - ResizeCanvasToWindow()");
+            //const canvas = this.canvasRef;
+            //const pixiCanvas = this.pixiCanvasRef;
+            if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height)
+                return;
+            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const dpr = window.devicePixelRatio || 1;
+            this._currentCanvasScale = Math.min(screenWidth / this._canvasSettings.width, screenHeight / this._canvasSettings.height);
+            const newWidth = Math.floor(this._canvasSettings.width * this._currentCanvasScale);
+            const newHeight = Math.floor(this._canvasSettings.height * this._currentCanvasScale);
+            // 🧠 Buffer (actual pixel size) for crispness
+            //canvas.width = newWidth * dpr;
+            //canvas.height = newHeight * dpr;
+            const horizMargin = (screenWidth - newWidth) / 2;
+            const vertMargin = (screenHeight - newHeight) / 2;
+            this.canvasContainerRef.style.width = `${screenWidth}px`;
+            this.canvasContainerRef.style.height = `${screenHeight}px`;
+            this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
+            // 📐 Update Rive's WebGL viewport (optional but safe)
+            //const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
+            //if (gl)
+            //{
+            //	console.log("GL STUFF");
+            //	gl.viewport(0, 0, canvas.width, canvas.height);
+            //}
+            console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
+            // Notify Rive of resize
+            (_a = RiveController.get().Canvas) === null || _a === void 0 ? void 0 : _a.setAttribute("width", `${newWidth}`);
+            (_b = RiveController.get().Canvas) === null || _b === void 0 ? void 0 : _b.setAttribute("height", `${newHeight}`);
+            PixiController.get().SetSize(newWidth, newHeight);
+            console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => " + this._currentCanvasScale);
+            // Apply canvas scale to all objects
+            //this.canvasObjects.forEach((group) =>
+            //{
+            //	group.forEach((obj) =>
+            //	{
+            //		obj.ApplyResolutionScale(this._currentCanvasScale);
+            //	});
+            //});
+        };
     }
     static get() { if (!CanvasEngine._instance)
         CanvasEngine._instance = new CanvasEngine(); return CanvasEngine._instance; }
+    get EngineSettings() { return this._canvasSettings; }
+    get width() { return this._canvasWidth; }
+    get height() { return this._canvasHeight; }
     Init(canvasSettings, onInitComplete) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("CanvasEngine - Initializing...... canvasSettings=", canvasSettings);
+            //console.log("CanvasEngine - Initializing...... canvasSettings=",canvasSettings);
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
+            this._canvasSettings = canvasSettings;
             this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
             if (this.runStateLabel) {
-                console.log("CanvasEngine - Setting runStateLabel to RUNNING");
                 this.runStateLabel.innerText = this.runState;
             }
-            else {
-                console.warn("CanvasEngine - runStateLabel not set");
-            }
             const canvas = this.canvasRef;
-            canvas.width = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
-            canvas.height = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
-            PixiController.get().init(canvasSettings.width, canvasSettings.height);
-            yield RiveController.get().init(canvas);
+            this._canvasWidth = canvas.width = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
+            this._canvasHeight = canvas.height = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
+            console.log("!! SET DAT SHIT BITCH !!");
+            PixiController.get().Init(this._canvasWidth, this._canvasHeight);
+            yield RiveController.get().Init(canvas);
             const riveInstance = RiveController.get().Rive;
+            //riveInstance.resizeDrawingSurfaceToCanvas?.();
             this.rive = riveInstance;
             this.riveInstance = riveInstance;
             const riveRenderer = RiveController.get().Renderer;
@@ -75,7 +139,7 @@ export class CanvasEngine {
                 //if (this.fpsCallback) this.fpsCallback(this.fpsValue);
             });
             if (canvasSettings.usePhysics)
-                PhysicsController.get().init(canvas, this.debugContainerRef, canvasSettings.debugMode);
+                PhysicsController.get().Init(canvas, this.debugContainerRef, canvasSettings.debugMode);
             let lastTime = 0;
             let accumulatedTime = 0;
             let skipsPerSecond = 0;
@@ -119,15 +183,20 @@ export class CanvasEngine {
                     lastLogTime = time;
                 }
                 if (canvasSettings.usePhysics)
-                    PhysicsController.get().update(elapsedTimeSec, frameCount, onceSecond);
+                    PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
                 riveRenderer.clear();
-                this.canvasObjects.forEach((objects) => objects.forEach((obj) => obj.update(elapsedTimeSec, frameCount, onceSecond)));
+                this.canvasObjects.forEach((objects) => objects.forEach((obj) => obj.Update(elapsedTimeSec, frameCount, onceSecond)));
                 riveRenderer.flush();
                 this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             };
             this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             if (onInitComplete)
                 onInitComplete();
+            window.removeEventListener("resize", this.ResizeWindowEvent);
+            if (canvasSettings.autoScale) {
+                window.addEventListener("resize", this.ResizeWindowEvent);
+                this.ResizeCanvasToWindow();
+            }
         });
     }
     ToggleRunState() {
@@ -139,38 +208,18 @@ export class CanvasEngine {
             this.runStateLabel.innerText = this.runState;
         }
     }
-    setFpsCallback(cb) {
+    SetFpsCallback(cb) {
         this.fpsCallback = cb;
     }
-    getFPS() {
+    GetFPS() {
         return this.fpsValue.toString();
-    }
-    Dispose() {
-        this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
-        if (this.engine) {
-            Matter.Events.off(this.engine, "collisionStart");
-            Matter.World.clear(this.engine.world, false);
-            Matter.Engine.clear(this.engine);
-        }
-        this.canvasObjects.forEach((objs) => objs.forEach((o) => o.dispose()));
-        this.canvasObjects.clear();
-        if (this.animationFrameId && this.riveInstance) {
-            this.riveInstance.cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
-        RiveController.get().dispose();
-        PixiController.get().dispose();
-        if (this.rive)
-            this.rive = null;
-        if (this.engine)
-            this.engine = null;
     }
     AddCanvasObjects(objs, group = "main") {
         const cObjs = Array.isArray(objs) ? objs : [objs];
         if (!this.canvasObjects.has(group))
             this.canvasObjects.set(group, []);
         const groupArray = this.canvasObjects.get(group);
-        cObjs.forEach((obj) => (obj.onZIndexChanged = this.updateZIndex.bind(this)));
+        cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
         groupArray.push(...cObjs);
         groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
     }
@@ -189,7 +238,34 @@ export class CanvasEngine {
             groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
         }
     }
-    SetRefs({ canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }) {
+    get CurrentCanvasScale() { return this._currentCanvasScale; }
+    Dispose() {
+        this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
+        if (this.engine) {
+            Matter.Events.off(this.engine, "collisionStart");
+            Matter.World.clear(this.engine.world, false);
+            Matter.Engine.clear(this.engine);
+        }
+        this.canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
+        this.canvasObjects.clear();
+        if (this.animationFrameId && this.riveInstance) {
+            this.riveInstance.cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+        RiveController.get().Dispose();
+        PixiController.get().Dispose();
+        window.removeEventListener("resize", this.ResizeWindowEvent);
+        if (this._resizeDebounceTimeout !== null) {
+            clearTimeout(this._resizeDebounceTimeout);
+            this._resizeDebounceTimeout = null;
+        }
+        if (this.rive)
+            this.rive = null;
+        if (this.engine)
+            this.engine = null;
+    }
+    SetRefs({ canvasContainerRef, canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }) {
+        this.canvasContainerRef = canvasContainerRef;
         this.canvasRef = canvasRef;
         this.pixiCanvasRef = pixiCanvasRef || null;
         this.debugContainerRef = debugContainerRef || null;
@@ -201,6 +277,7 @@ export class CanvasEngine {
 export function UseCanvasEngineHook(settings = {}, onInit) {
     const canvasSettings = new CanvasSettingsDef(settings);
     const canvasRef = useRef(null);
+    const canvasContainerRef = useRef(null);
     const pixiCanvasRef = useRef(null);
     const debugContainerRef = useRef(null);
     const runStateLabel = useRef(null);
@@ -208,34 +285,29 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const fpsRef = useRef(null);
     const ToggleRunState = () => CanvasEngine.get().ToggleRunState();
     const SetRunState = (state) => CanvasEngine.get().SetRunState(state);
-    const RivePakCanvas = () => {
-        //if(canvasRef.current) return canvasRef.current;
-        return (_jsxs("div", { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: {
-                        display: canvasSettings.debugMode ? "flex" : "none",
-                        gap: "10px",
-                        marginBottom: "10px",
-                        width: "100%",
-                        alignItems: "center",
-                        justifyContent: "center"
-                    } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ style: { position: "relative" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black" } }), _jsx("div", Object.assign({ id: "pixiCanvasContainer", style: { position: "absolute", top: 0, left: 0, zIndex: 2 } }, { children: _jsx("canvas", { id: "pixiCanvas", ref: pixiCanvasRef }) })), _jsx("div", { ref: debugContainerRef, style: {
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                pointerEvents: "none",
-                                opacity: 0.25,
-                            } })] }))] }));
-    };
+    const canvasJSXRef = useRef(null);
+    if (!canvasJSXRef.current) {
+        canvasJSXRef.current = (_jsxs("div", { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", gap: "10px", marginBottom: "10px", width: "100%", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ ref: canvasContainerRef, style: { position: "relative" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black" } }), _jsx("div", Object.assign({ id: "pixiCanvasContainer", style: { position: "absolute", top: 0, left: 0, zIndex: 2 } }, { children: _jsx("canvas", { id: "pixiCanvas", ref: pixiCanvasRef }) })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] }));
+    }
+    console.log("...........CUNT CHECK1........");
+    const hasEngineInitialized = useRef(false);
     useEffect(() => {
         const engine = CanvasEngine.get();
+        if (hasEngineInitialized.current) {
+            console.log("⚠️ CanvasEngine already initialized, skipping Init()");
+            return;
+        }
+        hasEngineInitialized.current = true;
         requestAnimationFrame(() => {
             if (!canvasRef.current) {
                 console.warn("[RivePak] canvasRef is still null after mount. Did you forget to render CanvasView or call SetRefs?");
                 return;
             }
-            engine.setFpsCallback((fps) => {
+            engine.SetFpsCallback((fps) => {
                 fpsRef.current.innerText = `${fps}`;
             });
             engine.SetRefs({
+                canvasContainerRef: canvasContainerRef.current,
                 canvasRef: canvasRef.current,
                 pixiCanvasRef: pixiCanvasRef.current,
                 debugContainerRef: debugContainerRef.current,
@@ -245,10 +317,13 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
             });
             engine.Init(canvasSettings, onInit);
         });
-        return () => CanvasEngine.get().Dispose();
+        return () => {
+            CanvasEngine.get().Dispose();
+        };
     }, []);
+    console.log("...........CUNT CHECK2........");
     return {
-        RivePakCanvas,
+        RivePakCanvas: () => canvasJSXRef.current,
         canvasRef,
         pixiCanvasRef,
         debugContainerRef,

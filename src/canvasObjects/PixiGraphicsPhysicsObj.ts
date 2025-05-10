@@ -10,7 +10,7 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj
 	{
 		super(canvasDef);
 
-		this.initPhysics();
+		this.InitPhysics();
 	}
 
 	public update(time: number, frameCount: number, onceSecond: boolean): void
@@ -28,12 +28,12 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj
 			}
 		}
 
-		CanvasPixiShapeObj.prototype.update.call(this, time, frameCount, onceSecond);
+		CanvasPixiShapeObj.prototype.Update.call(this, time, frameCount, onceSecond);
 	}
 
 	public dispose(): void
 	{
-		super.dispose();
-		CanvasPixiShapeObj.prototype.dispose.call(this);
+		super.Dispose();
+		CanvasPixiShapeObj.prototype.Dispose.call(this);
 	}
 }

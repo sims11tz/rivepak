@@ -2,6 +2,7 @@ import { RiveController } from "../controllers/RiveController";
 import { CanvasObj } from "./CanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
+import { CanvasEngine } from "../useCanvasEngine";
 export class CanvasRiveObj extends CanvasObj {
     constructor(riveDef, artboard) {
         super(riveDef);
@@ -28,6 +29,10 @@ export class CanvasRiveObj extends CanvasObj {
         this.yScale = (_f = this.defObj.yScale) !== null && _f !== void 0 ? _f : 0;
         if (this.yScale > 0)
             this.height = this.height * this.yScale;
+        console.log("");
+        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.width + "x" + this.height + " --- " + this.xScale + "x" + this.yScale);
+        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.x + "|" + this.y);
+        this.UpdateBaseProps();
         if (this.defObj.interactive)
             this.initInteractive();
         //console.log("");
@@ -71,6 +76,10 @@ export class CanvasRiveObj extends CanvasObj {
             return null;
         }
     }
+    RandomInput() {
+        const randomIndex = Math.floor(Math.random() * this._inputs.size);
+        return Array.from(this._inputs.values())[randomIndex];
+    }
     RandomInputByName(searchTerm) {
         const matchingInputs = [];
         this._inputs.forEach((input) => {
@@ -85,7 +94,8 @@ export class CanvasRiveObj extends CanvasObj {
         const randomIndex = Math.floor(Math.random() * matchingInputs.length);
         return matchingInputs[randomIndex];
     }
-    update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond) {
+        var _a;
         if (this.enabled === false)
             return;
         this._animations.forEach((animation) => {
@@ -132,27 +142,81 @@ export class CanvasRiveObj extends CanvasObj {
                 this._lastMouseDown = mouseDown;
             }
         }
+        const debug = false;
+        if (debug) {
+            if (frameCount == 5 || frameCount == 10) {
+                console.log("");
+                console.log("<" + frameCount + ">__ " + this._label + " " + CanvasEngine.get().CurrentCanvasScale);
+                console.log("<" + frameCount + "> ox=" + this.x + "   oy=" + this.y + "   ow=" + this.width + "   oh=" + this.height);
+                console.log("<" + frameCount + "> bx=" + this.baseX + "   by=" + this.baseY + "   bw=" + this.baseWidth + "   bh=" + this.baseHeight);
+                console.log("<" + frameCount + "> oxS=" + this.xScale + "   oyS=" + this.yScale + "");
+                console.log("<" + frameCount + "> bxS=" + this.baseXScale + "   byS=" + this.baseYScale + "");
+            }
+        }
         this.artboard.advance(time);
+        let objBounds;
+        if ((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) {
+            let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+            let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+            let transformedWidth = this.width * CanvasEngine.get().CurrentCanvasScale;
+            let transformedHeight = this.height * CanvasEngine.get().CurrentCanvasScale;
+            if (debug) {
+                if (frameCount == 5 || frameCount == 10) {
+                    //console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
+                    console.log("<" + frameCount + ">________________________________");
+                    console.log("<" + frameCount + "> tx=" + transformedX + "   ty=" + transformedY + "");
+                    console.log("<" + frameCount + "> tw=" + transformedWidth + "   th=" + transformedHeight + "");
+                }
+            }
+            objBounds =
+                {
+                    minX: transformedX,
+                    minY: transformedY,
+                    maxX: transformedX + transformedWidth,
+                    maxY: transformedY + transformedHeight,
+                };
+        }
+        else {
+            if (debug) {
+                if (frameCount == 5 || frameCount == 10) {
+                    //console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
+                    console.log("<" + frameCount + ">________________________________");
+                    console.log("<" + frameCount + "> tx=" + this.x + "   ty=" + this.y + "");
+                    console.log("<" + frameCount + "> tw=" + (this.x + (this.width)) + "   th=" + (this.y + this.height) + "");
+                }
+            }
+            objBounds = {
+                minX: this.x,
+                minY: this.y,
+                maxX: this.x + (this.width),
+                maxY: this.y + (this.height),
+            };
+        }
         this.Renderer.save();
-        this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, {
-            minX: this.x - (this.width / 2),
-            minY: this.y - (this.height / 2),
-            maxX: this.x + (this.width / 2),
-            maxY: this.y + (this.height / 2),
-        }, this.artboard.bounds);
+        this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, objBounds, this.artboard.bounds);
         if (this._interactiveGraphics) {
-            this._interactiveGraphics.x = this.x;
-            this._interactiveGraphics.y = this.y;
+            this._interactiveGraphics.x = objBounds.minX;
+            this._interactiveGraphics.y = objBounds.minY;
+            this._interactiveGraphics.width = objBounds.maxX - objBounds.minX;
+            this._interactiveGraphics.height = objBounds.maxY - objBounds.minY;
+            //this._interactiveGraphics.rect(0, 0, this._interactiveGraphics.width, this._interactiveGraphics.height);
+            if (frameCount == 5 || frameCount == 10) {
+                //console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
+                console.log("<" + frameCount + ">________________________________");
+                console.log("<" + frameCount + "> tx=" + this.x + "   ty=" + this.y + "");
+            }
         }
         this.artboard.draw(this.Renderer);
         this.Renderer.restore();
     }
     initInteractive() {
+        console.log("   INIT INTERACTIVE RIVE OBJECT -- " + this._label);
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
-        this._interactiveGraphics.rect(-(this.width / 2), -(this.height / 2), this.width, this.height);
-        this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0 });
+        this._interactiveGraphics.rect(0, 0, this.width, this.height);
+        this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0.75 });
         this._interactiveGraphics.stroke({ width: 0, color: 0xfeeb77 });
+        console.log("interactive --- this.x:" + this.x + " : this.y:" + this.y);
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";
@@ -173,9 +237,9 @@ export class CanvasRiveObj extends CanvasObj {
             this._interactiveGraphics.tint = 0xffffff;
         }
     }
-    dispose() {
+    Dispose() {
         var _a;
-        super.dispose();
+        super.Dispose();
         this._animations.forEach((animation) => animation.delete());
         (_a = this._stateMachine) === null || _a === void 0 ? void 0 : _a.delete();
         this._animations = [];

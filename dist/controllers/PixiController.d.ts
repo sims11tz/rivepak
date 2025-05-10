@@ -12,6 +12,9 @@ export declare class PixiController {
     static get(): PixiController;
     private _pixiInstance;
     get Pixi(): PIXI.Application<PIXI.Renderer<HTMLCanvasElement>>;
-    init(width?: number, height?: number): Promise<void>;
-    dispose(): void;
+    private _canvas;
+    private _canvasContainer;
+    Init(width?: number, height?: number): Promise<void>;
+    SetSize(width: number, height: number): void;
+    Dispose(): void;
 }

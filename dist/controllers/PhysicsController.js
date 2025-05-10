@@ -12,20 +12,17 @@ export class PhysicsController {
                 const objB = (_d = (_c = bodyB.parent) === null || _c === void 0 ? void 0 : _c.plugin) === null || _d === void 0 ? void 0 : _d.object;
                 if (objA && objB) {
                     const impactForce = Matter.Vector.magnitude(pair.collision.penetration);
-                    objA.onCollision(objB, impactForce);
-                    objB.onCollision(objA, impactForce);
+                    objA.OnCollision(objB, impactForce);
+                    objB.OnCollision(objA, impactForce);
                 }
             });
         };
     }
-    static get() {
-        if (PhysicsController.myInstance == null) {
-            PhysicsController.myInstance = new PhysicsController();
-        }
-        return this.myInstance;
-    }
+    static get() { if (PhysicsController.myInstance == null) {
+        PhysicsController.myInstance = new PhysicsController();
+    } return this.myInstance; }
     get engine() { return this._engine; }
-    init(canvas, debugRenderDiv, debug = false) {
+    Init(canvas, debugRenderDiv, debug = false) {
         if (this._debugRender) {
             Matter.Render.stop(this._debugRender);
             this._debugRender.canvas.remove();
@@ -60,18 +57,18 @@ export class PhysicsController {
         ];
         Matter.World.add(this._engine.world, walls);
     }
-    addBody(body) {
+    AddBody(body) {
         if (this._engine) {
             Matter.World.add(this._engine.world, body);
         }
     }
-    update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond) {
         if (this._engine) {
             const fixedTimeStep = Math.min(time * 1000, 16.667);
             Matter.Engine.update(this._engine, fixedTimeStep);
         }
     }
-    dispose() {
+    Dispose() {
         if (this._engine) {
             Matter.Events.off(this._engine, "collisionStart", this.handleCollision);
             Matter.World.clear(this._engine.world, false);

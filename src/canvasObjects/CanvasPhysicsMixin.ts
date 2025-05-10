@@ -7,10 +7,10 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 
 interface iCollisionMixin
 {
-	initPhysics(): void;
-	onCollision(other: CanvasObj, impactForce: number): void;
-	updatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
-	dispose(): void;
+	InitPhysics(): void;
+	OnCollision(other: CanvasObj, impactForce: number): void;
+	UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
+	Dispose(): void;
 }
 
 interface PhysicsPluginData { object: CanvasObj; }
@@ -21,7 +21,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 	{
 		public _body: Matter.Body | null = null;
 
-		public initPhysics(): void
+		public InitPhysics(): void
 		{
 			this._body = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, {
 				friction: 0,
@@ -34,7 +34,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 			//(this._body as any).plugin = { object: this };
 			(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: this };
 
-			PhysicsController.get().addBody(this._body);
+			PhysicsController.get().AddBody(this._body);
 
 			let initialXSpeed = 0;
 			let initialYSpeed = 0;
@@ -56,17 +56,17 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 			}
 		}
 
-		public updatePhysics(time: number, frameCount: number, onceSecond: boolean): void
+		public UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void
 		{
 
 		}
 
-		public update(time: number, frameCount: number, onceSecond: boolean): void
+		public Update(time: number, frameCount: number, onceSecond: boolean): void
 		{
-			this.updatePhysics(time, frameCount, onceSecond);
+			this.UpdatePhysics(time, frameCount, onceSecond);
 		}
 
-		public onCollision(other: CanvasObj, impactForce: number): void
+		public OnCollision(other: CanvasObj, impactForce: number): void
 		{
 			//console.log(`💥💥💥💥💥💥 MIXIN Collision! ${this.label} hit ${other.label} with force ${impactForce}`);
 
@@ -78,9 +78,9 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 			}
 		}
 
-		public dispose(): void
+		public Dispose(): void
 		{
-			super.dispose();
+			super.Dispose();
 
 			try
 			{
@@ -91,12 +91,12 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 						Matter.World.remove(PhysicsController.get().engine.world, this._body);
 					}
 
-					//(this._body as any).plugin.object = null;
 					(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: null };
 					this._body = null;
 				}
 			}
-			catch (error) {
+			catch (error)
+			{
 				console.error("Error physics mixin during dispose:", error);
 			}
 		}

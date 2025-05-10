@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import RiveCanvas from "@rive-app/webgl-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
+import { CanvasEngine } from "../useCanvasEngine";
 export var RIVE_OBJECT_TYPE;
 (function (RIVE_OBJECT_TYPE) {
     RIVE_OBJECT_TYPE["ANIMATION"] = "ANIMATION";
@@ -42,7 +43,7 @@ export class RiveController {
     get Canvas() { return this._canvas; }
     get CanvasBounds() { return this._canvasBounds; }
     get CanvasGlobalBounds() { return this._canvasBounds; }
-    init(canvas) {
+    Init(canvas) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (this._initCalled) {
@@ -90,6 +91,8 @@ export class RiveController {
                 //debug name artboards
                 //for (let x = 0; x < riveFile.artboardCount(); x++) { const artboard = riveFile.artboardByIndex(x); if (artboard) { console.log(`Artboard ${x}:`, artboard.name); } }
                 let artboard = riveFile.artboardByName(def.artboardName);
+                if (artboard)
+                    artboard.devicePixelRatioUsed = window.devicePixelRatio;
                 if (!artboard) {
                     if (riveFile.artboardCount() > 0) {
                         artboard = riveFile.artboardByIndex(0);
@@ -99,15 +102,18 @@ export class RiveController {
                         }
                     }
                 }
+                let canvasRiveObj = null;
                 if (def.classType) {
-                    return new def.classType(def, artboard);
+                    canvasRiveObj = new def.classType(def, artboard);
                 }
                 else {
                     switch (def.objectType) {
-                        case RIVE_OBJECT_TYPE.ANIMATION: return new RiveAnimationObject(def, artboard);
-                        case RIVE_OBJECT_TYPE.PHYSICS: return new RivePhysicsObject(def, artboard);
+                        case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def, artboard);
+                        case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def, artboard);
                     }
                 }
+                canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
+                return canvasRiveObj;
             });
             return riveObjects.filter(Boolean);
         });
@@ -226,7 +232,7 @@ export class RiveController {
             artboardY /= (_k = entity.yScale) !== null && _k !== void 0 ? _k : 1;
         return { x: artboardX, y: artboardY };
     }
-    dispose() {
+    Dispose() {
         console.log("RiveController - Dispose !!!!!!! ");
         window.removeEventListener("mousemove", this.SetMouseGlobalPos);
         try {

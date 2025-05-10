@@ -6,7 +6,7 @@ export class GlobalUIDGenerator
 
 	public static generateUID():string
 	{
-		return `obj_${++this.currentId}}`;
+		return `obj_${++this.currentId}`;
 	}
 
 	private static uniqueIds: Record<string, number> = {};
@@ -62,6 +62,11 @@ export interface CanvasObjectDef
 	y?: number;
 	z?: number;
 
+	baseX?: number;
+	baseY?: number;
+	baseXScale?: number;
+	baseYScale?: number;
+
 	group?:string;
 
 	randomSpeed?: boolean;
@@ -75,12 +80,6 @@ export interface CanvasObjectDef
 
 export abstract class CanvasObj
 {
-	public abstract update(time: number, frameCount: number, onceSecond: boolean): void;
-	public dispose():void
-	{
-
-	}
-
 	public _uuid: string = "";
 	public get uuid(): string { return this._uuid; }
 
@@ -98,6 +97,13 @@ export abstract class CanvasObj
 	public height: number = 0;
 	public xScale: number = 0;
 	public yScale: number = 0;
+
+	public baseX: number;
+	public baseY: number;
+	public baseWidth: number;
+	public baseHeight: number;
+	public baseXScale: number;
+	public baseYScale: number;
 
 	public _body: Matter.Body | null = null;
 
@@ -119,6 +125,15 @@ export abstract class CanvasObj
 		this.xScale = this.defObj.xScale ?? 0;
 		this.yScale = this.defObj.yScale ?? 0;
 
+		this.baseX = defObj.x ?? 0;
+		this.baseY = defObj.y ?? 0;
+		this.baseWidth = defObj.width ?? 1;
+		this.baseHeight = defObj.height ?? 1;
+		this.baseXScale = defObj.xScale ?? 1;
+		this.baseYScale = defObj.yScale ?? 1;
+
+		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
+
 		this._state = new Proxy(this._state,
 		{
 			set: (target, key, value) =>
@@ -134,6 +149,17 @@ export abstract class CanvasObj
 		});
 	}
 
+	public UpdateBaseProps()
+	{
+		this.baseX = this._state.x;
+		this.baseY = this._state.y;
+		this.baseWidth = this.width;
+		this.baseHeight = this.height;
+		this.baseXScale = this.xScale;
+		this.baseYScale = this.yScale;
+		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
+	}
+
 	public get x(): number { return this._state.x; }
 	public set x(value: number) { this._state.x = value; }
 
@@ -147,11 +173,48 @@ export abstract class CanvasObj
 		{
 			const oldZ = this._state.z;
 			this._state.z = value;
-			this._onZIndexChanged?.(this, oldZ, this._state.z);
+			this._OnZIndexChanged?.(this, oldZ, this._state.z);
 		}
 	}
 
-	public swapDepths(other: CanvasObj)
+	public ApplyResolutionScale(scale: number)
+	{
+		//console.log("ApplyResolutionScale["+this._uuid+"]", scale);
+		//console.log("ApplyResolutionScale["+this._uuid+"]  PRE = ", this.x, this.y, this.width, this.height);
+
+		// Optional: recompute width/height if used elsewhere
+		//this.width = this.baseWidth * (this.baseXScale * scale);
+		//this.height = this.baseHeight * (this.baseYScale * scale);
+/*************************** */
+
+
+
+		//this.xScale = this.baseXScale * scale;
+		//this.yScale = this.baseYScale * scale;
+
+		//// Optional: recompute width/height if used elsewhere
+		//this.width = this.baseWidth * this.xScale;
+		//this.height = this.baseHeight * this.yScale;
+
+/*************************** */
+
+
+
+		//this.x = this.baseX * scale;
+		//this.y = this.baseY * scale;
+		//this.xScale = this.baseXScale * scale;
+		//this.yScale = this.baseYScale * scale;
+
+		//// 👇 FIX: Don't apply scale twice!
+		//this.width = this.baseWidth * this.baseXScale * scale;
+		//this.height = this.baseHeight * this.baseYScale * scale;
+
+		//console.log("ApplyResolutionScale["+this._uuid+"] POST = ", this.x, this.y, this.width, this.height);
+	}
+
+	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
+
+	public SwapDepths(other: CanvasObj)
 	{
 		const temp = this.z;
 		this.z = other.z;
@@ -159,20 +222,27 @@ export abstract class CanvasObj
 	}
 
 	// ✅ Function to selectively bind to x, y, or z changes
-	public bindPropertyChange(property: "x" | "y" | "z", callback: (oldValue: number, newValue: number) => void)
+	public BindPropertyChange(property: "x" | "y" | "z", callback: (oldValue: number, newValue: number) => void)
 	{
 		this._propertyChangeListeners.set(property, callback);
 	}
 
 	// ✅ Function to unbind property change listener
-	public unbindPropertyChange(property: "x" | "y" | "z")
+	public UnbindPropertyChange(property: "x" | "y" | "z")
 	{
 		this._propertyChangeListeners.delete(property);
 	}
 
-	public set onZIndexChanged(func: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
+	public set OnZIndexChanged(func: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
 	{
-		this._onZIndexChanged = func;
+		this._OnZIndexChanged = func;
 	}
-	public _onZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
+	public _OnZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
+
+	public Dispose():void
+	{
+		this._propertyChangeListeners.clear();
+		this._defObj = null;
+		this._OnZIndexChanged = null;
+	}
 }

@@ -26,7 +26,7 @@ export declare class RiveController {
     get CanvasGlobalBounds(): DOMRect;
     private _initCalled;
     private _cache;
-    init(canvas: HTMLCanvasElement): Promise<void>;
+    Init(canvas: HTMLCanvasElement): Promise<void>;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>;
     private loadRiveFiles;
     private _mousePos;
@@ -48,5 +48,5 @@ export declare class RiveController {
         x: number;
         y: number;
     };
-    dispose(): void;
+    Dispose(): void;
 }

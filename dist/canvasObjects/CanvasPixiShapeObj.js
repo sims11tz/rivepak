@@ -6,9 +6,9 @@ export class CanvasPixiShapeObj extends CanvasObj {
     constructor(canvasDef) {
         super(canvasDef);
         this._graphics = null;
-        this.initPixiObject();
+        this.InitPixiObject();
     }
-    initPixiObject() {
+    InitPixiObject() {
         var _a, _b, _c, _d;
         // ✅ Create a new PIXI Graphics object
         this._graphics = new PIXI.Graphics();
@@ -31,8 +31,9 @@ export class CanvasPixiShapeObj extends CanvasObj {
         this._graphics.on("pointerdown", this.onClick, this);
         this._graphics.on("pointerover", this.onHover, this);
         this._graphics.on("pointerout", this.onHoverOut, this);
+        this.UpdateBaseProps();
     }
-    update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond) {
         if (this.enabled === false)
             return;
         //if(onceSecond) console.log("PixiShapeObject update",frameCount);
@@ -55,8 +56,8 @@ export class CanvasPixiShapeObj extends CanvasObj {
             this._graphics.tint = 0xffffff;
         }
     }
-    dispose() {
-        super.dispose();
+    Dispose() {
+        super.Dispose();
         if (this._graphics) {
             PixiController.get().Pixi.stage.removeChild(this._graphics);
             this._graphics.destroy();

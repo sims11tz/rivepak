@@ -5,7 +5,7 @@ class BaseShapePhysicsObj extends CanvasPhysicsMixin(CanvasPixiShapeObj) {
 export class PixiShapePhysicsObj extends BaseShapePhysicsObj {
     constructor(canvasDef) {
         super(canvasDef);
-        this.initPhysics();
+        this.InitPhysics();
     }
     update(time, frameCount, onceSecond) {
         if (this.enabled === false)
@@ -17,10 +17,10 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj {
                 //console.log("🎉 ShapePhysicsObj "+frameCount+"  "+this.x+"/"+this.y);
             }
         }
-        CanvasPixiShapeObj.prototype.update.call(this, time, frameCount, onceSecond);
+        CanvasPixiShapeObj.prototype.Update.call(this, time, frameCount, onceSecond);
     }
     dispose() {
-        super.dispose();
-        CanvasPixiShapeObj.prototype.dispose.call(this);
+        super.Dispose();
+        CanvasPixiShapeObj.prototype.Dispose.call(this);
     }
 }

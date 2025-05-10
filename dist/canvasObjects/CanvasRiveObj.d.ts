@@ -30,14 +30,15 @@ export declare class CanvasRiveObj extends CanvasObj {
     private _entityObj;
     protected initRiveObject(): void;
     InputByName(name: string): SMIInput | null;
+    RandomInput(): SMIInput | null;
     RandomInputByName(searchTerm: string): SMIInput | null;
-    update(time: number, frameCount: number, onceSecond: boolean): void;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
     private _interactiveGraphics;
     private initInteractive;
     protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch): void;
     protected onHover(): void;
     protected onHoverOut(): void;
-    dispose(): void;
+    Dispose(): void;
     protected get Rive(): Awaited<ReturnType<typeof RiveCanvas>>;
     protected get Renderer(): Renderer;
     get artboard(): Artboard;

@@ -11,10 +11,10 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		super(canvasDef);
 
-		this.initPixiObject();
+		this.InitPixiObject();
 	}
 
-	public initPixiObject(): void
+	public InitPixiObject(): void
 	{
 		// ✅ Create a new PIXI Graphics object
 		this._graphics = new PIXI.Graphics();
@@ -44,9 +44,11 @@ export class CanvasPixiShapeObj extends CanvasObj
 		this._graphics.on("pointerdown", this.onClick, this);
 		this._graphics.on("pointerover", this.onHover, this);
 		this._graphics.on("pointerout", this.onHoverOut, this);
+
+		this.UpdateBaseProps();
 	}
 
-	public update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time: number, frameCount: number, onceSecond: boolean): void
 	{
 		if(this.enabled === false) return;
 
@@ -81,9 +83,9 @@ export class CanvasPixiShapeObj extends CanvasObj
 		}
 	}
 
-	public dispose(): void
+	public Dispose(): void
 	{
-		super.dispose();
+		super.Dispose();
 
 		if (this._graphics)
 		{
