@@ -21,6 +21,8 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
             y: number;
             z: number;
         };
+        centerLocally: boolean;
+        centerGlobally: boolean;
         group: string;
         width: number;
         height: number;

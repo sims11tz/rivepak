@@ -197,7 +197,7 @@ export class RiveController
 		return this._mouseDown;
 	}
 
-	public CanvasToArtboard(entity: CanvasObjectEntity, interactiveCheck:boolean=false): { x: number, y: number }
+	public CanvasToArtboard(entity:CanvasObjectEntity, interactiveCheck:boolean=false): { x: number, y: number }
 	{
 		const width = entity.width ?? 1;
 		const height = entity.height ?? 1;
@@ -236,15 +236,18 @@ export class RiveController
 		const width = entity.width ?? 1;
 		const height = entity.height ?? 1;
 
-		const objLeft = (entity.x ?? 0) - (width / 2);
-		const objTop = (entity.y ?? 0) - (height / 2);
+		//const objLeft = (entity.x ?? 0) - (width / 2);
+		//const objTop = (entity.y ?? 0) - (height / 2);
+		const objLeft = (entity.x ?? 0);
+		const objTop = (entity.y ?? 0);
 
 		// Get absolute window mouse position
 		const mouseX = this._mouseGlobalPos.x;
 		const mouseY = this._mouseGlobalPos.y;
 
 		// Get canvas bounds relative to the screen
-		if (!this._canvasGlobalBounds && this._canvas) {
+		if (!this._canvasGlobalBounds && this._canvas)
+		{
 			this._canvasGlobalBounds = this._canvas.getBoundingClientRect();
 		}
 

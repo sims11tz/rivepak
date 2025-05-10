@@ -22,7 +22,7 @@ export class PhysicsController {
         PhysicsController.myInstance = new PhysicsController();
     } return this.myInstance; }
     get engine() { return this._engine; }
-    Init(canvas, debugRenderDiv, debug = false) {
+    Init(canvas, physicsWalls = false, debugRenderDiv, debug = false) {
         if (this._debugRender) {
             Matter.Render.stop(this._debugRender);
             this._debugRender.canvas.remove();
@@ -48,14 +48,16 @@ export class PhysicsController {
             debugRenderDiv.style.display = "none";
         }
         Matter.Events.on(this._engine, "collisionStart", this.handleCollision); // ✅ now correctly bound
-        const wallOptions = { isStatic: true, restitution: 0, friction: 0, wallThickness: 45 };
-        const walls = [
-            Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-            Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-            Matter.Bodies.rectangle(0, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
-            Matter.Bodies.rectangle(canvas.width, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
-        ];
-        Matter.World.add(this._engine.world, walls);
+        if (physicsWalls) {
+            const wallOptions = { isStatic: true, restitution: 0, friction: 0, wallThickness: 45 };
+            const walls = [
+                Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
+                Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
+                Matter.Bodies.rectangle(0, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
+                Matter.Bodies.rectangle(canvas.width, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
+            ];
+            Matter.World.add(this._engine.world, walls);
+        }
     }
     AddBody(body) {
         if (this._engine) {

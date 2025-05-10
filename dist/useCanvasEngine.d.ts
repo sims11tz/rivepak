@@ -7,13 +7,15 @@ export declare enum CANVAS_ENGINE_RUN_STATE {
     PAUSED = "PAUSED"
 }
 export declare class CanvasSettingsDef {
-    usePhysics?: boolean;
+    physicsEnabled?: boolean;
+    physicsWalls?: boolean;
     width?: number;
     height?: number;
     autoScale?: boolean;
     debugMode?: boolean;
-    constructor({ usePhysics, width, height, autoScale, debugMode, }: {
-        usePhysics?: boolean | undefined;
+    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, }: {
+        physicsEnabled?: boolean | undefined;
+        physicsWalls?: boolean | undefined;
         width?: number | undefined;
         height?: number | undefined;
         autoScale?: boolean | undefined;

@@ -28,7 +28,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 		this.width = this.defObj.width ?? 100;
 		this.height = this.defObj.height ?? 100;
 
-		this._graphics.rect(-(this.width/2), -(this.height/2), this.width, this.height);
+		this._graphics.rect(0, 0, this.width, this.height);
 		this._graphics.fill({color: 0x650a5a, alpha: 0.3});
 		this._graphics.stroke({ width: 2, color: 0xfeeb77 });
 

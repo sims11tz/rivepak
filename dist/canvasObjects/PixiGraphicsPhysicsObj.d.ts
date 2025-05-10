@@ -21,6 +21,8 @@ declare const BaseShapePhysicsObj_base: {
             y: number;
             z: number;
         };
+        centerLocally: boolean;
+        centerGlobally: boolean;
         group: string;
         width: number;
         height: number;
@@ -49,7 +51,7 @@ declare class BaseShapePhysicsObj extends BaseShapePhysicsObj_base {
 }
 export declare class PixiShapePhysicsObj extends BaseShapePhysicsObj {
     constructor(canvasDef: CanvasObjectDef);
-    update(time: number, frameCount: number, onceSecond: boolean): void;
-    dispose(): void;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Dispose(): void;
 }
 export {};

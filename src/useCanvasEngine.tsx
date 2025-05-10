@@ -16,20 +16,23 @@ export enum CANVAS_ENGINE_RUN_STATE
 
 export class CanvasSettingsDef
 {
-	public usePhysics?:boolean;
+	public physicsEnabled?:boolean;
+	public physicsWalls?:boolean;
 	public width?:number;
 	public height?:number;
 	public autoScale?:boolean;
 	public debugMode?:boolean;
 
 	constructor({
-		usePhysics=false,
+		physicsEnabled=false,
+		physicsWalls=false,
 		width=800,
 		height=500,
 		autoScale=false,
 		debugMode=false,
 	}) {
-		this.usePhysics = usePhysics;
+		this.physicsEnabled = physicsEnabled;
+		this.physicsWalls = physicsWalls;
 		this.width = width;
 		this.height = height;
 		this.autoScale = autoScale;
@@ -97,7 +100,7 @@ export class CanvasEngine
 			//if (this.fpsCallback) this.fpsCallback(this.fpsValue);
 		});
 
-		if(canvasSettings.usePhysics) PhysicsController.get().Init(canvas, this.debugContainerRef!, canvasSettings.debugMode);
+		if(canvasSettings.physicsEnabled) PhysicsController.get().Init(canvas, canvasSettings.physicsWalls, this.debugContainerRef!, canvasSettings.debugMode);
 
 		let lastTime = 0;
 		let accumulatedTime = 0;
@@ -131,7 +134,6 @@ export class CanvasEngine
 			lastTime = time;
 			accumulatedTime += elapsedTimeSec;
 
-
 			if (accumulatedTime < MIN_TIME_STEP)
 			{
 				skipsPerSecond++;
@@ -156,13 +158,18 @@ export class CanvasEngine
 				lastLogTime = time;
 			}
 
-			if (canvasSettings.usePhysics) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+			if (canvasSettings.physicsEnabled) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
 
 			riveRenderer.clear();
 
 			this.canvasObjects.forEach((objects) =>
-				objects.forEach((obj) => obj.Update(elapsedTimeSec, frameCount, onceSecond))
-			);
+			{
+				objects.forEach((obj) =>
+				{
+					//console.log("UPDATE OBJ "+obj.label);
+					obj.Update(elapsedTimeSec, frameCount, onceSecond);
+				});
+			});
 			riveRenderer.flush();
 
 			this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
@@ -258,9 +265,6 @@ export class CanvasEngine
 	{
 		console.log("CanvasEngine - ResizeCanvasToWindow()");
 
-		//const canvas = this.canvasRef;
-		//const pixiCanvas = this.pixiCanvasRef;
-
 		if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height) return;
 
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
@@ -271,17 +275,6 @@ export class CanvasEngine
 		const screenHeight = rect2.height;
 		console.log("Width:", rect2.width, "Height:", rect2.height);
 
-		const screenWidth2 = window.innerWidth;
-		const screenHeight2 = window.innerHeight;
-
-		const rect = this.canvasAreaRef!.getBoundingClientRect();
-		const screenWidth3 = rect.width;
-		const screenHeight3 = rect.height;
-
-		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth=", screenWidth, "screenHeight=", screenHeight);
-		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth2=", screenWidth2, "screenHeight2=", screenHeight2);
-		console.log("CanvasEngine - ResizeCanvasToWindow() screenWidth3=", rect.width, "screenHeight3=", rect.height);
-
 		const dpr = window.devicePixelRatio || 1;
 
 		this._currentCanvasScale = Math.min(screenWidth / this._canvasSettings.width!, screenHeight / this._canvasSettings.height!);
@@ -290,13 +283,7 @@ export class CanvasEngine
 		let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
 
 		let horizMargin = 0;
-		console.log('');
-		console.log('...');
-		console.log('>> vertMargin -- screenHeight:'+screenHeight+' newHeight:'+newHeight);
-		console.log('...');
-		console.log('');
 		let vertMargin = (screenHeight - newHeight) / 2;
-		//const vertMargin = 0;
 
 		if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
 		{
@@ -334,15 +321,15 @@ export class CanvasEngine
 		//	gl.viewport(0, 0, canvas.width, canvas.height);
 		//}
 
-		console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
-		console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
+		//console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
+		//console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
 
 		// Notify Rive of resize
 		RiveController.get().Canvas?.setAttribute("width", `${newWidth}`);
 		RiveController.get().Canvas?.setAttribute("height", `${newHeight}`);
 		PixiController.get().SetSize(newWidth, newHeight);
 
-		console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => "+this._currentCanvasScale);
+		//console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => "+this._currentCanvasScale);
 
 		// Apply canvas scale to all objects
 		//this.canvasObjects.forEach((group) =>

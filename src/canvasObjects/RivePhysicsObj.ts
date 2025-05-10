@@ -25,8 +25,8 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 
 		if (this._body)
 		{
-			this.x = this._body.position.x;
-			this.y = this._body.position.y;
+			this.x = this._body.position.x - this.width / 2;
+			this.y = this._body.position.y - this.height / 2;
 		}
 
 		CanvasRiveObj.prototype.Update.call(this, time, frameCount, onceSecond);

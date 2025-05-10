@@ -8,7 +8,8 @@ export function CanvasPhysicsMixin(Base) {
         }
         InitPhysics() {
             var _a, _b;
-            this._body = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, {
+            //console.log("InitPhysics::"+this.label+" "+this.x+"/"+this.y+" :: "+this.width+"x"+this.height);
+            this._body = Matter.Bodies.rectangle(this.x + (this.width / 2), this.y + (this.height / 2), this.width, this.height, {
                 friction: 0,
                 frictionAir: 0,
                 restitution: 1,
@@ -29,6 +30,8 @@ export function CanvasPhysicsMixin(Base) {
                 initialYSpeed = (Math.random() > 0.5 ? 1 : -1) * 2;
             }
             if (initialXSpeed !== 0 || initialYSpeed !== 0) {
+                //initialXSpeed = 0.05;
+                //initialYSpeed = 0.05;
                 Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
             }
         }

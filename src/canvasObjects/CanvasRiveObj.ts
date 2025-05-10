@@ -41,7 +41,6 @@ export class CanvasRiveObj extends CanvasObj
 		this._renderer = RiveController.get().Renderer!;
 		this._riveInstance = RiveController.get().Rive!;
 		this._artboard = artboard;
-
 		this._animations = [];
 	}
 
@@ -55,14 +54,41 @@ export class CanvasRiveObj extends CanvasObj
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
 
-		this.width = this.defObj.width ?? this.artboard.width;
-		this.height = this.defObj.height ?? this.artboard.height;
+		//you cant set both width/height and xScale/yScale
+		if(this.defObj.width && this.defObj.width > 0 && this.defObj.height && this.defObj.height > 0)
+		{
+			this.width = this.defObj.width;
+			this.xScale = this.width / this.artboard.width;
 
-		this.xScale = this.defObj.xScale ?? 0;
-		if(this.xScale > 0) this.width = this.width * this.xScale;
+			this.height = this.defObj.height;
+			this.yScale = this.height / this.artboard.height;
+		}
+		else
+		{
+			this.width = this.artboard.width;
+			this.height = this.artboard.height;
 
-		this.yScale = this.defObj.yScale ?? 0;
-		if(this.yScale > 0) this.height = this.height * this.yScale;
+			this.xScale = this.defObj.xScale ?? 1;
+			if(this.xScale > 0) this.width = this.width * this.xScale;
+
+			this.yScale = this.defObj.yScale ?? 1;
+			if(this.yScale > 0) this.height = this.height * this.yScale;
+		}
+
+		if(this.centerGlobally)
+		{
+			this.x = CanvasEngine.get().width / 2;
+			this.y = CanvasEngine.get().height / 2;
+		}
+
+		if(this.centerGlobally || this.centerLocally)
+		{
+			this.x -= (this.width / 2);
+			this.y -= (this.height / 2);
+		}
+
+		//console.log("RObj >>> "+this._label+" --- dimensions::"+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
+		//console.log("RObj >>> "+this._label+" --- artboard::"+this.artboard.width+"x"+this.artboard.height);
 
 		//console.log("");
 		//console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
@@ -210,7 +236,6 @@ export class CanvasRiveObj extends CanvasObj
 
 				if (mousePosChanged)
 				{
-					//console.log('----mousePosChanged() '+artboardMoveSpace.x+'--'+artboardMoveSpace.y);
 					this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y);
 				}
 
@@ -323,10 +348,9 @@ export class CanvasRiveObj extends CanvasObj
 		PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
 
 		this._interactiveGraphics.rect(0, 0, this.width, this.height);
-		this._interactiveGraphics.fill({color:0x650a5a, alpha:0.75});
+		this._interactiveGraphics.fill({color:0x650a5a, alpha:0});
 		this._interactiveGraphics.stroke({ width: 0, color: 0xfeeb77 });
 
-		console.log("interactive --- this.x:"+this.x+" : this.y:"+this.y);
 		this._interactiveGraphics.x = this.x;
 		this._interactiveGraphics.y = this.y;
 

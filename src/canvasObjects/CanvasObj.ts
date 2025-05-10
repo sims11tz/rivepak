@@ -62,6 +62,9 @@ export interface CanvasObjectDef
 	y?: number;
 	z?: number;
 
+	centerLocally?:boolean;
+	centerGlobally?:boolean;
+
 	baseX?: number;
 	baseY?: number;
 	baseXScale?: number;
@@ -90,7 +93,10 @@ export abstract class CanvasObj
 	public get defObj(): CanvasObjectDef { return this._defObj!; }
 
 	public enabled: boolean = true;
-	public _state: { x: number; y: number; z: number }; // Internal state
+	public _state: { x: number; y: number; z: number };
+
+	public centerLocally: boolean=false;
+	public centerGlobally: boolean=false;
 
 	public group: string = "main";
 	public width: number = 0;
@@ -117,6 +123,9 @@ export abstract class CanvasObj
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
 
 		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0 };
+
+		this.centerLocally = defObj.centerLocally ?? false;
+		this.centerGlobally = defObj.centerGlobally ?? false;
 
 		this.group = this.defObj.group ?? "main";
 		this.width = this.defObj.width ?? 0;

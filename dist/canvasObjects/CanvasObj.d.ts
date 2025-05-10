@@ -28,6 +28,8 @@ export interface CanvasObjectDef {
     x?: number;
     y?: number;
     z?: number;
+    centerLocally?: boolean;
+    centerGlobally?: boolean;
     baseX?: number;
     baseY?: number;
     baseXScale?: number;
@@ -53,6 +55,8 @@ export declare abstract class CanvasObj {
         y: number;
         z: number;
     };
+    centerLocally: boolean;
+    centerGlobally: boolean;
     group: string;
     width: number;
     height: number;

@@ -22,6 +22,8 @@ declare const BaseRivePhysicsObject_base: {
             y: number;
             z: number;
         };
+        centerLocally: boolean;
+        centerGlobally: boolean;
         group: string;
         width: number;
         height: number;

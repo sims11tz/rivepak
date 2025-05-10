@@ -10,7 +10,7 @@ export class PhysicsController
 	private _engine: Matter.Engine | null = null;
 	private _debugRender: Matter.Render | null = null;
 
-	public Init(canvas: HTMLCanvasElement, debugRenderDiv: HTMLDivElement, debug: boolean = false)
+	public Init(canvas: HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv: HTMLDivElement, debug: boolean = false)
 	{
 		if (this._debugRender)
 		{
@@ -43,15 +43,17 @@ export class PhysicsController
 		}
 
 		Matter.Events.on(this._engine, "collisionStart", this.handleCollision); // ✅ now correctly bound
-		const wallOptions = { isStatic: true, restitution: 0, friction: 0, wallThickness: 45 };
-		const walls = [
-			Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-			Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-			Matter.Bodies.rectangle(0, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
-			Matter.Bodies.rectangle(canvas.width, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
-		];
-
-		Matter.World.add(this._engine.world, walls);
+		if(physicsWalls)
+		{
+			const wallOptions = { isStatic: true, restitution: 0, friction: 0, wallThickness: 45 };
+			const walls = [
+				Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
+				Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
+				Matter.Bodies.rectangle(0, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
+				Matter.Bodies.rectangle(canvas.width, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
+			];
+			Matter.World.add(this._engine.world, walls);
+		}
 	}
 
 	public AddBody(body: Matter.Body)

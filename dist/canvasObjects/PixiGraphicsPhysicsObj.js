@@ -7,19 +7,20 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj {
         super(canvasDef);
         this.InitPhysics();
     }
-    update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond) {
         if (this.enabled === false)
             return;
         if (this._body) {
-            this.x = this._body.position.x;
-            this.y = this._body.position.y;
-            if (onceSecond) {
-                //console.log("🎉 ShapePhysicsObj "+frameCount+"  "+this.x+"/"+this.y);
-            }
+            this.x = this._body.position.x - (this.width / 2);
+            this.y = this._body.position.y - (this.height / 2);
+            //if(onceSecond)
+            //{
+            //	console.log("🎉 ShapePhysicsObj "+frameCount+"  "+this.x+"/"+this.y);
+            //}
         }
         CanvasPixiShapeObj.prototype.Update.call(this, time, frameCount, onceSecond);
     }
-    dispose() {
+    Dispose() {
         super.Dispose();
         CanvasPixiShapeObj.prototype.Dispose.call(this);
     }

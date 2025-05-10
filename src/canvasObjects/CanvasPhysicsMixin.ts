@@ -23,7 +23,8 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 
 		public InitPhysics(): void
 		{
-			this._body = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height, {
+			//console.log("InitPhysics::"+this.label+" "+this.x+"/"+this.y+" :: "+this.width+"x"+this.height);
+			this._body = Matter.Bodies.rectangle(this.x+(this.width/2), this.y+(this.height/2), this.width, this.height, {
 				friction: 0,
 				frictionAir: 0,
 				restitution: 1, // Bounciness
@@ -52,6 +53,8 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 
 			if(initialXSpeed !== 0 || initialYSpeed !== 0)
 			{
+				//initialXSpeed = 0.05;
+				//initialYSpeed = 0.05;
 				Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
 			}
 		}

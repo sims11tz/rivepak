@@ -19,7 +19,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
         //bunny.anchor.set(0.5);
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
-        this._graphics.rect(-(this.width / 2), -(this.height / 2), this.width, this.height);
+        this._graphics.rect(0, 0, this.width, this.height);
         this._graphics.fill({ color: 0x650a5a, alpha: 0.3 });
         this._graphics.stroke({ width: 2, color: 0xfeeb77 });
         this.x = (_c = this.defObj.x) !== null && _c !== void 0 ? _c : Math.random() * RiveController.get().Canvas.width;
