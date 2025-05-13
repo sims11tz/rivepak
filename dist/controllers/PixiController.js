@@ -66,15 +66,12 @@ export class PixiController {
         var _a, _b, _c, _d;
         if (!this._pixiInstance || !this._pixiInstance.renderer)
             return;
-        console.log("PixiController.SetSize --- " + width + ":" + height);
         this._pixiInstance.renderer.resize(width, height);
         this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;
         (_a = this._canvasContainer) === null || _a === void 0 ? void 0 : _a.setAttribute("width", `${width}`);
         (_b = this._canvasContainer) === null || _b === void 0 ? void 0 : _b.setAttribute("height", `${height}`);
-        //this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
         (_c = this._canvas) === null || _c === void 0 ? void 0 : _c.setAttribute("width", `${width}`);
         (_d = this._canvas) === null || _d === void 0 ? void 0 : _d.setAttribute("height", `${height}`);
-        //this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
     }
     Dispose() {
         try {

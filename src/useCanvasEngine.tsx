@@ -70,7 +70,6 @@ export class CanvasEngine
 
 	public async Init(canvasSettings:CanvasSettingsDef, onInitComplete?:() => void)
 	{
-		//console.log("CanvasEngine - Initializing...... canvasSettings=",canvasSettings);
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
 		this._canvasSettings = canvasSettings;
@@ -79,6 +78,7 @@ export class CanvasEngine
 		if (this.runStateLabel) { this.runStateLabel.innerText = this.runState; }
 
 		const canvas = this.canvasRef;
+		this._currentCanvasScale = -1;
 		this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
 		this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
 
@@ -265,15 +265,10 @@ export class CanvasEngine
 	public get CurrentCanvasScale(): number { return this._currentCanvasScale; }
 	public ResizeCanvasToWindow = (): void =>
 	{
-		console.log("CanvasEngine - ResizeCanvasToWindow()");
-
 		if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height) return;
-
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
 
 		const el = document.getElementById("routesContainer") as HTMLDivElement;
 		const newBounds = el.getBoundingClientRect();
-		console.log("Window  Width:"+newBounds.width+",  Height:"+newBounds.height);
 
 		const dpr = window.devicePixelRatio || 1;
 
@@ -281,10 +276,14 @@ export class CanvasEngine
 
 		let newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale)-4;
 		let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
-		console.log("New Canvas  Width:"+newWidth+",  Height:"+newHeight);
 
 		let horizMargin = 0;
 		let vertMargin = (newBounds.height - newHeight) / 2;
+		if(vertMargin < 10)
+		{
+			vertMargin = 0;
+
+		}
 
 		if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
 		{
@@ -293,36 +292,15 @@ export class CanvasEngine
 			//newWidth = this._canvasSettings.width-10;
 			//newHeight = this._canvasSettings.height-10;
 		}
-		//if it snaps one you gotta change the other one.... lol
-
-		// 🧠 Buffer (actual pixel size) for crispness
-		//canvas.width = newWidth * dpr;
-		//canvas.height = newHeight * dpr;
-
-		//const horizMargin = (screenWidth - newWidth) / 2;
 
 		this.canvasContainerRef!.style.width = `${newWidth}px`;
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
 
-
-		// 📐 Update Rive's WebGL viewport (optional but safe)
-		//const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
-		//if (gl)
-		//{
-		//	console.log("GL STUFF");
-		//	gl.viewport(0, 0, canvas.width, canvas.height);
-		//}
-
-		//console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
-		//console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
-
 		// Notify Rive of resize
 		RiveController.get().SetSize(newWidth, newHeight);
 		PixiController.get().SetSize(newWidth, newHeight);
 		PhysicsController.get().SetSize(newWidth, newHeight);
-
-		//console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => "+this._currentCanvasScale);
 
 		// Apply canvas scale to all objects
 		this.canvasObjects.forEach((group) =>

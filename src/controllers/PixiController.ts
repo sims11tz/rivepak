@@ -77,18 +77,15 @@ export class PixiController
 		public SetSize(width: number, height: number)
 	{
 		if (!this._pixiInstance || !this._pixiInstance.renderer) return;
-		console.log("PixiController.SetSize --- "+width+":"+height);
 
 		this._pixiInstance.renderer.resize(width, height);
 		this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;
 
 		this._canvasContainer?.setAttribute("width", `${width}`);
 		this._canvasContainer?.setAttribute("height", `${height}`);
-		//this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
 
 		this._canvas?.setAttribute("width", `${width}`);
 		this._canvas?.setAttribute("height", `${height}`);
-		//this._canvasContainer?.setAttribute("margin", `${vertMargin}px ${horizMargin}px`);
 	}
 
 	public Dispose()

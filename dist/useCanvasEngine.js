@@ -63,48 +63,32 @@ export class CanvasEngine {
         };
         this._currentCanvasScale = -1;
         this.ResizeCanvasToWindow = () => {
-            console.log("CanvasEngine - ResizeCanvasToWindow()");
             if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height)
                 return;
-            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
             const el = document.getElementById("routesContainer");
             const newBounds = el.getBoundingClientRect();
-            console.log("Window  Width:" + newBounds.width + ",  Height:" + newBounds.height);
             const dpr = window.devicePixelRatio || 1;
             this._currentCanvasScale = Math.min(newBounds.width / this._canvasSettings.width, newBounds.height / this._canvasSettings.height);
             let newWidth = Math.floor(this._canvasSettings.width * this._currentCanvasScale) - 4;
             let newHeight = Math.floor(this._canvasSettings.height * this._currentCanvasScale) - 4;
-            console.log("New Canvas  Width:" + newWidth + ",  Height:" + newHeight);
             let horizMargin = 0;
             let vertMargin = (newBounds.height - newHeight) / 2;
+            if (vertMargin < 10) {
+                vertMargin = 0;
+            }
             if (newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height) {
                 //console.log("SNAP DEEEzzzz nuts");
                 //vertMargin = 0;
                 //newWidth = this._canvasSettings.width-10;
                 //newHeight = this._canvasSettings.height-10;
             }
-            //if it snaps one you gotta change the other one.... lol
-            // 🧠 Buffer (actual pixel size) for crispness
-            //canvas.width = newWidth * dpr;
-            //canvas.height = newHeight * dpr;
-            //const horizMargin = (screenWidth - newWidth) / 2;
             this.canvasContainerRef.style.width = `${newWidth}px`;
             this.canvasContainerRef.style.height = `${newHeight}px`;
             this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
-            // 📐 Update Rive's WebGL viewport (optional but safe)
-            //const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
-            //if (gl)
-            //{
-            //	console.log("GL STUFF");
-            //	gl.viewport(0, 0, canvas.width, canvas.height);
-            //}
-            //console.log("CanvasEngine - ResizeCanvasToWindow() newWidth=", newWidth, "newHeight=", newHeight);
-            //console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
             // Notify Rive of resize
             RiveController.get().SetSize(newWidth, newHeight);
             PixiController.get().SetSize(newWidth, newHeight);
             PhysicsController.get().SetSize(newWidth, newHeight);
-            //console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => "+this._currentCanvasScale);
             // Apply canvas scale to all objects
             this.canvasObjects.forEach((group) => {
                 group.forEach((obj) => {
@@ -121,7 +105,6 @@ export class CanvasEngine {
     Init(canvasSettings, onInitComplete) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            //console.log("CanvasEngine - Initializing...... canvasSettings=",canvasSettings);
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
             this._canvasSettings = canvasSettings;
@@ -130,6 +113,7 @@ export class CanvasEngine {
                 this.runStateLabel.innerText = this.runState;
             }
             const canvas = this.canvasRef;
+            this._currentCanvasScale = -1;
             this._canvasWidth = canvas.width = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
             this._canvasHeight = canvas.height = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
             PixiController.get().Init(this._canvasWidth, this._canvasHeight);
