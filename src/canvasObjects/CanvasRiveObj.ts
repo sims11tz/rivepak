@@ -34,6 +34,8 @@ export class CanvasRiveObj extends CanvasObj
 	protected _stateMachine:StateMachineInstance | null = null;
 	protected _inputs = new Map<string, SMIInput>();
 
+	private _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+
 	constructor(riveDef: RiveObjectDef, artboard: Artboard)
 	{
 		super(riveDef);
@@ -87,8 +89,9 @@ export class CanvasRiveObj extends CanvasObj
 			this.y -= (this.height / 2);
 		}
 
-		//console.log("RObj >>> "+this._label+" --- dimensions::"+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
-		//console.log("RObj >>> "+this._label+" --- artboard::"+this.artboard.width+"x"+this.artboard.height);
+		//console.log("<"+this._label+"> CanvasRiveObj ---   position :: "+this.x+" - "+this.y+" ");
+		//console.log("<"+this._label+"> CanvasRiveObj --- dimensions :: "+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
+		//console.log("<"+this._label+"> CanvasRiveObj ---   artboard :: "+this.artboard.width+"x"+this.artboard.height);
 
 		//console.log("");
 		//console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
@@ -214,7 +217,6 @@ export class CanvasRiveObj extends CanvasObj
 			{
 				this._entityObj!.x = this.x;
 				this._entityObj!.y = this.y;
-				//const artboardMoveSpace = RiveController.get().CanvasToArtboard(this._entityObj!);
 				const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj!);
 
 				const mouseDown = RiveController.get().MouseDown;
@@ -245,94 +247,38 @@ export class CanvasRiveObj extends CanvasObj
 			}
 		}
 
-		const debug = false;
-
-		if(debug)
-		{
-		if(frameCount == 5 || frameCount == 10)
-		{
-			console.log("");
-			console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
-			console.log("<"+frameCount+"> ox="+this.x+"   oy="+this.y+"   ow="+this.width+"   oh="+this.height);
-			console.log("<"+frameCount+"> bx="+this.baseX+"   by="+this.baseY+"   bw="+this.baseWidth+"   bh="+this.baseHeight);
-			console.log("<"+frameCount+"> oxS="+this.xScale+"   oyS="+this.yScale+"");
-			console.log("<"+frameCount+"> bxS="+this.baseXScale+"   byS="+this.baseYScale+"");
-		}
-		}
-
 		this.artboard.advance(time);
 
-		let objBounds;
-		if(CanvasEngine.get().EngineSettings?.autoScale)
+		if(this._resolutionScale !== -1)
 		{
-			let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-			let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
-			let transformedWidth = this.width * CanvasEngine.get().CurrentCanvasScale;
-			let transformedHeight = this.height * CanvasEngine.get().CurrentCanvasScale;
-
-			if(debug)
-			{
-			if(frameCount == 5 || frameCount == 10)
-			{
-				//console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
-				console.log("<"+frameCount+">________________________________");
-				console.log("<"+frameCount+"> tx="+transformedX+"   ty="+transformedY+"");
-				console.log("<"+frameCount+"> tw="+transformedWidth+"   th="+transformedHeight+"");
-			}
-			}
-
-			objBounds =
-			{
-				minX: transformedX,
-				minY: transformedY,
-				maxX: transformedX + transformedWidth,
-				maxY: transformedY + transformedHeight,
-			}
+			this._objBoundsReuse.minX = this._transformedX;
+			this._objBoundsReuse.minY = this._transformedY;
+			this._objBoundsReuse.maxX = this._transformedX + this._transformedWidth;
+			this._objBoundsReuse.maxY = this._transformedY + this._transformedHeight;
 		}
 		else
 		{
-			if(debug)
-			{
-			if(frameCount == 5 || frameCount == 10)
-			{
-				//console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
-				console.log("<"+frameCount+">________________________________");
-				console.log("<"+frameCount+"> tx="+this.x+"   ty="+this.y+"");
-				console.log("<"+frameCount+"> tw="+(this.x + ( this.width))+"   th="+(this.y + this.height)+"");
-			}
-			}
-
-			objBounds = {
-				minX: this.x,
-				minY: this.y,
-				maxX: this.x + ( this.width),
-				maxY: this.y + (this.height),
-			}
+			this._objBoundsReuse.minX = this.x;
+			this._objBoundsReuse.minY = this.y;
+			this._objBoundsReuse.maxX = this.x + ( this.width);
+			this._objBoundsReuse.maxY = this.y + (this.height);
 		}
 
 		this.Renderer.save();
 		this.Renderer.align(
 			this.Rive.Fit.contain,
 			this.Rive.Alignment.topLeft,
-			objBounds,
+			this._objBoundsReuse,
 			this.artboard.bounds
 		);
 
 		if(this._interactiveGraphics)
 		{
-			this._interactiveGraphics.x = objBounds.minX;
-			this._interactiveGraphics.y = objBounds.minY;
+			this._interactiveGraphics.x = this._objBoundsReuse.minX;
+			this._interactiveGraphics.y = this._objBoundsReuse.minY;
 
-			this._interactiveGraphics.width = objBounds.maxX - objBounds.minX;
-			this._interactiveGraphics.height = objBounds.maxY - objBounds.minY;
-			//this._interactiveGraphics.rect(0, 0, this._interactiveGraphics.width, this._interactiveGraphics.height);
-
-			//if(frameCount == 5 || frameCount == 10)
-			//{
-			//	//console.log("<"+frameCount+">__ "+this._label+" "+CanvasEngine.get().CurrentCanvasScale);
-			//	console.log("<"+frameCount+">________________________________");
-			//	console.log("<"+frameCount+"> tx="+this.x+"   ty="+this.y+"");
-			//}
+			this._interactiveGraphics.width = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
+			this._interactiveGraphics.height = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
 		}
 
 		this.artboard.draw(this.Renderer);

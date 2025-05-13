@@ -74,13 +74,9 @@ export class PixiController
 		});
 	}
 
-	public SetSize(width: number, height: number)
+		public SetSize(width: number, height: number)
 	{
-		if (!this._pixiInstance || !this._pixiInstance.renderer)
-		{
-			console.warn("PixiController.SetSize --- COCK BLOCK");
-			return;
-		}
+		if (!this._pixiInstance || !this._pixiInstance.renderer) return;
 		console.log("PixiController.SetSize --- "+width+":"+height);
 
 		this._pixiInstance.renderer.resize(width, height);

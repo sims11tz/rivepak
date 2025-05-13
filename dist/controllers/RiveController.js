@@ -63,6 +63,12 @@ export class RiveController {
             }
         });
     }
+    SetSize(width, height) {
+        var _a, _b;
+        (_a = this._canvas) === null || _a === void 0 ? void 0 : _a.setAttribute("width", `${width}`);
+        (_b = this._canvas) === null || _b === void 0 ? void 0 : _b.setAttribute("height", `${height}`);
+        this._canvasBounds = this._canvas.getBoundingClientRect();
+    }
     CreateRiveObj(riveObjDefs) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -168,8 +174,8 @@ export class RiveController {
         const height = (_b = entity.height) !== null && _b !== void 0 ? _b : 1;
         const canvasX = this._mousePos.x;
         const canvasY = this._mousePos.y;
-        const objLeft = ((_c = entity.x) !== null && _c !== void 0 ? _c : 0) - (width / 2);
-        const objTop = ((_d = entity.y) !== null && _d !== void 0 ? _d : 0) - (height / 2);
+        const objLeft = ((_c = entity.x) !== null && _c !== void 0 ? _c : 0);
+        const objTop = ((_d = entity.y) !== null && _d !== void 0 ? _d : 0);
         const localX = canvasX - objLeft;
         const localY = canvasY - objTop;
         const normX = localX / width;
@@ -196,14 +202,10 @@ export class RiveController {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const width = (_a = entity.width) !== null && _a !== void 0 ? _a : 1;
         const height = (_b = entity.height) !== null && _b !== void 0 ? _b : 1;
-        //const objLeft = (entity.x ?? 0) - (width / 2);
-        //const objTop = (entity.y ?? 0) - (height / 2);
         const objLeft = ((_c = entity.x) !== null && _c !== void 0 ? _c : 0);
         const objTop = ((_d = entity.y) !== null && _d !== void 0 ? _d : 0);
-        // Get absolute window mouse position
         const mouseX = this._mouseGlobalPos.x;
         const mouseY = this._mouseGlobalPos.y;
-        // Get canvas bounds relative to the screen
         if (!this._canvasGlobalBounds && this._canvas) {
             this._canvasGlobalBounds = this._canvas.getBoundingClientRect();
         }
@@ -211,7 +213,6 @@ export class RiveController {
         const offsetY = (_h = (_g = this._canvasGlobalBounds) === null || _g === void 0 ? void 0 : _g.top) !== null && _h !== void 0 ? _h : 0;
         const canvasX = mouseX - offsetX;
         const canvasY = mouseY - offsetY;
-        // Convert to local entity space
         const localX = canvasX - objLeft;
         const localY = canvasY - objTop;
         const normX = localX / width;
@@ -235,7 +236,6 @@ export class RiveController {
         return { x: artboardX, y: artboardY };
     }
     Dispose() {
-        console.log("RiveController - Dispose !!!!!!! ");
         window.removeEventListener("mousemove", this.SetMouseGlobalPos);
         try {
             this._riveInstance.cleanup();

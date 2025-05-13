@@ -64,10 +64,8 @@ export class PixiController {
     }
     SetSize(width, height) {
         var _a, _b, _c, _d;
-        if (!this._pixiInstance || !this._pixiInstance.renderer) {
-            console.warn("PixiController.SetSize --- COCK BLOCK");
+        if (!this._pixiInstance || !this._pixiInstance.renderer)
             return;
-        }
         console.log("PixiController.SetSize --- " + width + ":" + height);
         this._pixiInstance.renderer.resize(width, height);
         this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;

@@ -10,8 +10,15 @@ export class PhysicsController
 	private _engine: Matter.Engine | null = null;
 	private _debugRender: Matter.Render | null = null;
 
+	private _physicswalls:boolean = false;
+	private _wallOptions = { isStatic: true, restitution: 1, friction: 0, frictionStatic: 0, frictionAir: 0, wallThickness: 0.035 };
+
+	private wallThickness(delta:number) { return delta*this._wallOptions.wallThickness; }
+
 	public Init(canvas: HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv: HTMLDivElement, debug: boolean = false)
 	{
+		this._physicswalls = physicsWalls;
+
 		if (this._debugRender)
 		{
 			Matter.Render.stop(this._debugRender);
@@ -42,17 +49,47 @@ export class PhysicsController
 			debugRenderDiv.style.display = "none";
 		}
 
-		Matter.Events.on(this._engine, "collisionStart", this.handleCollision); // ✅ now correctly bound
+		Matter.Events.on(this._engine, "collisionStart", this.handleCollision);
 		if(physicsWalls)
 		{
-			const wallOptions = { isStatic: true, restitution: 0, friction: 0, wallThickness: 45 };
 			const walls = [
-				Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-				Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - wallOptions.wallThickness, wallOptions.wallThickness, wallOptions),
-				Matter.Bodies.rectangle(0, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
-				Matter.Bodies.rectangle(canvas.width, canvas.height / 2, wallOptions.wallThickness, canvas.height, wallOptions),
+				Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
+				Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
+				Matter.Bodies.rectangle(0, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
+				Matter.Bodies.rectangle(canvas.width, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
 			];
+			walls.forEach(w => (w as any).isWall = true);
 			Matter.World.add(this._engine.world, walls);
+		}
+	}
+
+	public SetSize(width: number, height: number)
+	{
+		if (this._debugRender)
+		{
+			this._debugRender.canvas.width = width;
+			this._debugRender.canvas.height = height;
+			this._debugRender.options.width = width;
+			this._debugRender.options.height = height;
+		}
+
+		// Optionally, rebuild walls if they exist
+		if (this._engine && this._physicswalls)
+		{
+			const world = this._engine.world;
+
+			const wallsToRemove = world.bodies.filter(b => (b as any).isWall);
+			wallsToRemove.forEach(w => Matter.World.remove(world, w));
+
+			const newWalls = [
+				Matter.Bodies.rectangle(width / 2, 0, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
+				Matter.Bodies.rectangle(width / 2, height, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
+				Matter.Bodies.rectangle(0, height / 2, this.wallThickness(width), height, this._wallOptions),
+				Matter.Bodies.rectangle(width, height / 2, this.wallThickness(width), height, this._wallOptions),
+			];
+			newWalls.forEach(w => (w as any).isWall = true);
+
+			Matter.World.add(world, newWalls);
 		}
 	}
 

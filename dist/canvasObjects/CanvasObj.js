@@ -1,7 +1,5 @@
 export class GlobalUIDGenerator {
-    static generateUID() {
-        return `obj_${++this.currentId}`;
-    }
+    static generateUID() { return `obj_${++this.currentId}`; }
     static generateUniqueString(baseString) {
         if (!this.uniqueIds[baseString]) {
             this.uniqueIds[baseString] = 1;
@@ -22,6 +20,11 @@ export class CanvasObj {
     get uuid() { return this._uuid; }
     get label() { return this._label; }
     get defObj() { return this._defObj; }
+    get resolutionScale() { return this._resolutionScale; }
+    get transformedWidth() { return this._transformedWidth; }
+    get transformedHeight() { return this._transformedHeight; }
+    get transformedX() { return this._transformedX; }
+    get transformedY() { return this._transformedY; }
     constructor(defObj) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         this._uuid = "";
@@ -35,6 +38,15 @@ export class CanvasObj {
         this.height = 0;
         this.xScale = 0;
         this.yScale = 0;
+        this._resolutionScale = -1;
+        this._transformedWidth = -1;
+        this._transformedWidthlast = -1;
+        this._transformedHeight = -1;
+        this._transformedHeightlast = -1;
+        this._transformedX = -1;
+        this._transformedXlast = -1;
+        this._transformedY = -1;
+        this._transformedYlast = -1;
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;
@@ -68,6 +80,9 @@ export class CanvasObj {
             },
         });
     }
+    checkBody() {
+        console.log('base check body....');
+    }
     UpdateBaseProps() {
         this.baseX = this._state.x;
         this.baseY = this._state.y;
@@ -78,9 +93,17 @@ export class CanvasObj {
         //console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
     }
     get x() { return this._state.x; }
-    set x(value) { this._state.x = value; }
+    set x(value) {
+        this._state.x = value;
+        if (this._resolutionScale !== -1)
+            this.ApplyResolutionScale(this._resolutionScale, "x");
+    }
     get y() { return this._state.y; }
-    set y(value) { this._state.y = value; }
+    set y(value) {
+        this._state.y = value;
+        if (this._resolutionScale !== -1)
+            this.ApplyResolutionScale(this._resolutionScale, "y");
+    }
     get z() { return this._state.z; }
     set z(value) {
         var _a;
@@ -90,27 +113,36 @@ export class CanvasObj {
             (_a = this._OnZIndexChanged) === null || _a === void 0 ? void 0 : _a.call(this, this, oldZ, this._state.z);
         }
     }
-    ApplyResolutionScale(scale) {
-        //console.log("ApplyResolutionScale["+this._uuid+"]", scale);
-        //console.log("ApplyResolutionScale["+this._uuid+"]  PRE = ", this.x, this.y, this.width, this.height);
-        // Optional: recompute width/height if used elsewhere
-        //this.width = this.baseWidth * (this.baseXScale * scale);
-        //this.height = this.baseHeight * (this.baseYScale * scale);
-        /*************************** */
-        //this.xScale = this.baseXScale * scale;
-        //this.yScale = this.baseYScale * scale;
-        //// Optional: recompute width/height if used elsewhere
-        //this.width = this.baseWidth * this.xScale;
-        //this.height = this.baseHeight * this.yScale;
-        /*************************** */
-        //this.x = this.baseX * scale;
-        //this.y = this.baseY * scale;
-        //this.xScale = this.baseXScale * scale;
-        //this.yScale = this.baseYScale * scale;
-        //// 👇 FIX: Don't apply scale twice!
-        //this.width = this.baseWidth * this.baseXScale * scale;
-        //this.height = this.baseHeight * this.baseYScale * scale;
-        //console.log("ApplyResolutionScale["+this._uuid+"] POST = ", this.x, this.y, this.width, this.height);
+    ApplyResolutionScale(scale, property = "") {
+        if (scale !== this._resolutionScale) {
+            //console.log(""+this.label+"  1 * "+scale+" ");
+            property = "*";
+            this._resolutionScale = scale;
+        }
+        else {
+            //console.log(""+this.label+"  2 ! "+scale+" ");
+        }
+        //console.log(""+this.label+"  3 prop="+property+" ");
+        if ((property == "*") || (property == "x" && this._transformedXlast != this.x)) {
+            this._transformedX = this.x * scale;
+            this._transformedXlast = this.x;
+            //console.log(""+this.label+"APRS  4 x "+this.x+"--"+this._transformedX);
+        }
+        if ((property == "*") || (property == "y" && this._transformedYlast != this.y)) {
+            this._transformedY = this.y * scale;
+            this._transformedYlast = this.y;
+            //console.log(""+this.label+"APRS  5 y "+this.y+"--"+this._transformedY);
+        }
+        if ((property == "*") || (property == "width" && this._transformedWidthlast != this.width)) {
+            this._transformedWidth = this.width * scale;
+            this._transformedWidthlast = this.width;
+            //console.log(""+this.label+"APRS  6 width "+this.width+"--TransW:"+this._transformedWidth);
+        }
+        if ((property == "*") || (property == "height" && this._transformedHeightlast != this.height)) {
+            this._transformedHeight = this.height * scale;
+            this._transformedHeightlast = this.height;
+            //console.log(""+this.label+"APRS  7 height "+this.height+"--TransH:"+this._transformedHeight);
+        }
     }
     SwapDepths(other) {
         const temp = this.z;

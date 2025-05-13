@@ -5,7 +5,18 @@ import { CanvasRiveObj } from "./CanvasRiveObj";
 declare const BaseRivePhysicsObject_base: {
     new (...args: any[]): {
         _body: import("matter-js").Body | null;
+        _resolutionScaleMixLast: number;
+        _transformedMixWidthlast: number;
+        _transformedMixHeightlast: number;
+        _transformedMixXlast: number;
+        _transformedMixYlast: number;
         InitPhysics(): void;
+        x: number;
+        y: number;
+        checkBody(): void;
+        readonly _EPSILON: 0.0001;
+        shouldScale(scaleDelta: number): boolean;
+        ApplyResolutionScale(scale: number, property?: string): void;
         UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
         Update(time: number, frameCount: number, onceSecond: boolean): void;
         OnCollision(other: import("./CanvasObj").CanvasObj, impactForce: number): void;
@@ -35,12 +46,23 @@ declare const BaseRivePhysicsObject_base: {
         baseHeight: number;
         baseXScale: number;
         baseYScale: number;
+        readonly resolutionScale: number;
+        _resolutionScale: number;
+        readonly transformedWidth: number;
+        _transformedWidth: number;
+        _transformedWidthlast: number;
+        readonly transformedHeight: number;
+        _transformedHeight: number;
+        _transformedHeightlast: number;
+        readonly transformedX: number;
+        _transformedX: number;
+        _transformedXlast: number;
+        readonly transformedY: number;
+        _transformedY: number;
+        _transformedYlast: number;
         _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void>;
         UpdateBaseProps(): void;
-        x: number;
-        y: number;
         z: number;
-        ApplyResolutionScale(scale: number): void;
         SwapDepths(other: import("./CanvasObj").CanvasObj): void;
         BindPropertyChange(property: "x" | "y" | "z", callback: (oldValue: number, newValue: number) => void): void;
         UnbindPropertyChange(property: "x" | "y" | "z"): void;
@@ -53,6 +75,8 @@ declare class BaseRivePhysicsObject extends BaseRivePhysicsObject_base {
 export declare class RivePhysicsObject extends BaseRivePhysicsObject {
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     protected initRiveObject(): void;
+    ApplyResolutionScale(scale: number, property?: string): void;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Dispose(): void;
 }
 export {};

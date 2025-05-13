@@ -27,6 +27,7 @@ export declare class RiveController {
     private _initCalled;
     private _cache;
     Init(canvas: HTMLCanvasElement): Promise<void>;
+    SetSize(width: number, height: number): void;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>;
     private loadRiveFiles;
     private _mousePos;

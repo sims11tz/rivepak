@@ -1,24 +1,14 @@
 import Matter from "matter-js";
+import { CanvasEngine } from "../useCanvasEngine";
 
 export class GlobalUIDGenerator
 {
 	private static currentId = 0;
-
-	public static generateUID():string
-	{
-		return `obj_${++this.currentId}`;
-	}
-
+	public static generateUID():string { return `obj_${++this.currentId}`; }
 	private static uniqueIds: Record<string, number> = {};
-
 	public static generateUniqueString(baseString: string): string
 	{
-		if (!this.uniqueIds[baseString]) {
-			this.uniqueIds[baseString] = 1;
-		} else {
-			this.uniqueIds[baseString]++;
-		}
-
+		if (!this.uniqueIds[baseString]) { this.uniqueIds[baseString] = 1; } else { this.uniqueIds[baseString]++; }
 		return `${baseString}_${this.uniqueIds[baseString]}`;
 	}
 
@@ -111,10 +101,24 @@ export abstract class CanvasObj
 	public baseXScale: number;
 	public baseYScale: number;
 
+	public get resolutionScale(): number { return this._resolutionScale; }
+	public _resolutionScale: number = -1;
+	public get transformedWidth(): number { return this._transformedWidth; }
+	public _transformedWidth: number = -1;
+	public _transformedWidthlast: number = -1;
+	public get transformedHeight(): number { return this._transformedHeight; }
+	public _transformedHeight: number = -1;
+	public _transformedHeightlast: number = -1;
+	public get transformedX(): number { return this._transformedX; }
+	public _transformedX: number = -1;
+	public _transformedXlast: number = -1;
+	public get transformedY(): number { return this._transformedY; }
+	public _transformedY: number = -1;
+	public _transformedYlast: number = -1;
+
 	public _body: Matter.Body | null = null;
 
 	public _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
-
 	constructor(defObj: CanvasObjectDef)
 	{
 		this._defObj = defObj;
@@ -140,7 +144,6 @@ export abstract class CanvasObj
 		this.baseHeight = defObj.height ?? 1;
 		this.baseXScale = defObj.xScale ?? 1;
 		this.baseYScale = defObj.yScale ?? 1;
-
 		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
 
 		this._state = new Proxy(this._state,
@@ -158,6 +161,11 @@ export abstract class CanvasObj
 		});
 	}
 
+	public checkBody()
+	{
+		console.log('base check body....');
+	}
+
 	public UpdateBaseProps()
 	{
 		this.baseX = this._state.x;
@@ -170,10 +178,18 @@ export abstract class CanvasObj
 	}
 
 	public get x(): number { return this._state.x; }
-	public set x(value: number) { this._state.x = value; }
+	public set x(value: number)
+	{
+		this._state.x = value;
+		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"x");
+	}
 
-	public get y(): number { return this._state.y; }
-	public set y(value: number) { this._state.y = value; }
+	public get y(): number {  return this._state.y; }
+	public set y(value: number)
+	{
+		this._state.y = value;
+		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"y");
+	}
 
 	public get z(): number { return this._state.z; }
 	public set z(value: number)
@@ -186,39 +202,47 @@ export abstract class CanvasObj
 		}
 	}
 
-	public ApplyResolutionScale(scale: number)
+	public ApplyResolutionScale(scale:number, property:string="")
 	{
-		//console.log("ApplyResolutionScale["+this._uuid+"]", scale);
-		//console.log("ApplyResolutionScale["+this._uuid+"]  PRE = ", this.x, this.y, this.width, this.height);
+		if(scale !== this._resolutionScale)
+		{
+			//console.log(""+this.label+"  1 * "+scale+" ");
+			property = "*";
+			this._resolutionScale = scale;
+		}
+		else
+		{
+			//console.log(""+this.label+"  2 ! "+scale+" ");
+		}
 
-		// Optional: recompute width/height if used elsewhere
-		//this.width = this.baseWidth * (this.baseXScale * scale);
-		//this.height = this.baseHeight * (this.baseYScale * scale);
-/*************************** */
+		//console.log(""+this.label+"  3 prop="+property+" ");
+		if((property == "*") || (property == "x" && this._transformedXlast != this.x))
+		{
+			this._transformedX = this.x * scale;
+			this._transformedXlast = this.x;
+			//console.log(""+this.label+"APRS  4 x "+this.x+"--"+this._transformedX);
+		}
 
+		if((property == "*") || (property == "y" && this._transformedYlast != this.y))
+		{
+			this._transformedY = this.y * scale;
+			this._transformedYlast = this.y;
+			//console.log(""+this.label+"APRS  5 y "+this.y+"--"+this._transformedY);
+		}
 
+		if((property == "*") || (property == "width" && this._transformedWidthlast != this.width))
+		{
+			this._transformedWidth = this.width * scale;
+			this._transformedWidthlast = this.width;
+			//console.log(""+this.label+"APRS  6 width "+this.width+"--TransW:"+this._transformedWidth);
+		}
 
-		//this.xScale = this.baseXScale * scale;
-		//this.yScale = this.baseYScale * scale;
-
-		//// Optional: recompute width/height if used elsewhere
-		//this.width = this.baseWidth * this.xScale;
-		//this.height = this.baseHeight * this.yScale;
-
-/*************************** */
-
-
-
-		//this.x = this.baseX * scale;
-		//this.y = this.baseY * scale;
-		//this.xScale = this.baseXScale * scale;
-		//this.yScale = this.baseYScale * scale;
-
-		//// 👇 FIX: Don't apply scale twice!
-		//this.width = this.baseWidth * this.baseXScale * scale;
-		//this.height = this.baseHeight * this.baseYScale * scale;
-
-		//console.log("ApplyResolutionScale["+this._uuid+"] POST = ", this.x, this.y, this.width, this.height);
+		if((property == "*") || (property == "height" && this._transformedHeightlast != this.height))
+		{
+			this._transformedHeight = this.height * scale;
+			this._transformedHeightlast = this.height;
+			//console.log(""+this.label+"APRS  7 height "+this.height+"--TransH:"+this._transformedHeight);
+		}
 	}
 
 	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;

@@ -1,5 +1,6 @@
 import { PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
+import { CanvasEngine } from "../useCanvasEngine";
 import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
 import * as PIXI from "pixi.js";
 
@@ -52,12 +53,23 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		if(this.enabled === false) return;
 
-		//if(onceSecond) console.log("PixiShapeObject update",frameCount);
-
 		if (this._graphics)
 		{
-			this._graphics.x = this.x;
-			this._graphics.y = this.y;
+			if(CanvasEngine.get().EngineSettings?.autoScale)
+			{
+				let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+				let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+
+				this._graphics.x = transformedX;
+				this._graphics.y = transformedY;
+
+				this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale, CanvasEngine.get().CurrentCanvasScale);
+			}
+			else
+			{
+				this._graphics.x = this.x;
+				this._graphics.y = this.y;
+			}
 		}
 	}
 

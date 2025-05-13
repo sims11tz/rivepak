@@ -110,7 +110,9 @@ export class CanvasEngine
 		let lastLogTime = performance.now();
 		const spinnerFrames = [' -- ', ' \\', ' | ', ' / ', ' -- ', ' \\', ' | ', ' / '];
 		let spinnerIdx = 0;
-		const MIN_TIME_STEP = 0.012;
+		const MIN_TIME_STEP = 0.010;
+		//const MIN_TIME_STEP = 0.012;
+		//const MIN_TIME_STEP = 0.00012;
 
 		if(canvasSettings.debugMode == null || !canvasSettings.debugMode)
 		{
@@ -259,7 +261,7 @@ export class CanvasEngine
 		}, 250);
 	}
 
-	private _currentCanvasScale: number = 1;
+	private _currentCanvasScale: number = -1;
 	public get CurrentCanvasScale(): number { return this._currentCanvasScale; }
 	public ResizeCanvasToWindow = (): void =>
 	{
@@ -270,26 +272,26 @@ export class CanvasEngine
 		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!! RESIZE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
 
 		const el = document.getElementById("routesContainer") as HTMLDivElement;
-		const rect2 = el.getBoundingClientRect();
-		const screenWidth = rect2.width;
-		const screenHeight = rect2.height;
-		console.log("Width:", rect2.width, "Height:", rect2.height);
+		const newBounds = el.getBoundingClientRect();
+		console.log("Window  Width:"+newBounds.width+",  Height:"+newBounds.height);
 
 		const dpr = window.devicePixelRatio || 1;
 
-		this._currentCanvasScale = Math.min(screenWidth / this._canvasSettings.width!, screenHeight / this._canvasSettings.height!);
+		this._currentCanvasScale = Math.min(newBounds.width / this._canvasSettings.width!, newBounds.height / this._canvasSettings.height!);
 
 		let newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale)-4;
 		let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
+		console.log("New Canvas  Width:"+newWidth+",  Height:"+newHeight);
 
 		let horizMargin = 0;
-		let vertMargin = (screenHeight - newHeight) / 2;
+		let vertMargin = (newBounds.height - newHeight) / 2;
 
 		if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
 		{
-			vertMargin = 0;
-			newWidth = this._canvasSettings.width-10;
-			newHeight = this._canvasSettings.height-10;
+			//console.log("SNAP DEEEzzzz nuts");
+			//vertMargin = 0;
+			//newWidth = this._canvasSettings.width-10;
+			//newHeight = this._canvasSettings.height-10;
 		}
 		//if it snaps one you gotta change the other one.... lol
 
@@ -299,18 +301,9 @@ export class CanvasEngine
 
 		//const horizMargin = (screenWidth - newWidth) / 2;
 
-
 		this.canvasContainerRef!.style.width = `${newWidth}px`;
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
-
-		this.canvasContainerRef!.style.display = "none";
-		void this.canvasContainerRef!.offsetHeight; // force reflow
-		this.canvasContainerRef!.style.display = "";
-
-			//this.canvasContainerRef!.style.display = "none";
-			//void this.canvasContainerRef!.offsetHeight; // force reflow
-			//this.canvasContainerRef!.style.display = "";
 
 
 		// 📐 Update Rive's WebGL viewport (optional but safe)
@@ -325,20 +318,20 @@ export class CanvasEngine
 		//console.log("CanvasEngine - ResizeCanvasToWindow() horizMargin=", horizMargin, "vertMargin=", vertMargin);
 
 		// Notify Rive of resize
-		RiveController.get().Canvas?.setAttribute("width", `${newWidth}`);
-		RiveController.get().Canvas?.setAttribute("height", `${newHeight}`);
+		RiveController.get().SetSize(newWidth, newHeight);
 		PixiController.get().SetSize(newWidth, newHeight);
+		PhysicsController.get().SetSize(newWidth, newHeight);
 
 		//console.log("CanvasEngine - ResizeCanvasToWindow() : CURR-SCALE => "+this._currentCanvasScale);
 
 		// Apply canvas scale to all objects
-		//this.canvasObjects.forEach((group) =>
-		//{
-		//	group.forEach((obj) =>
-		//	{
-		//		obj.ApplyResolutionScale(this._currentCanvasScale);
-		//	});
-		//});
+		this.canvasObjects.forEach((group) =>
+		{
+			group.forEach((obj) =>
+			{
+				obj.ApplyResolutionScale(this._currentCanvasScale);
+			});
+		});
 	}
 
 	public Dispose()
@@ -439,7 +432,7 @@ export function UseCanvasEngineHook(
 	{
 		canvasJSXRef.current = (
 			<div id="canvasArea" ref={canvasAreaRef}>
-				<div id="debugTools" className="debugTools" style={{ display: canvasSettings.debugMode ? "flex" : "none", gap: "10px", marginBottom:"10px", width: "100%", alignItems: "center", justifyContent: "center" }}>
+				<div id="debugTools" className="debugTools" style={{ display: canvasSettings.debugMode ? "flex" : "none", position:"absolute", zIndex:"99999", bottom:"2px", left:"10px", gap: "10px", marginBottom:"10px", alignItems: "center", justifyContent: "center" }}>
 					<button onClick={ToggleRunState}><span ref={runStateLabel}></span></button>
 					<div className="fpsContainer" style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
 						<span className="fpsSpinner" style={{display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px"}} ref={fpsSpinner}></span><span ref={fpsRef}></span>

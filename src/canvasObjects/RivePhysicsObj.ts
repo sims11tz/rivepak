@@ -19,16 +19,23 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 		super.initRiveObject();
 	}
 
+	public ApplyResolutionScale(scale:number, property:string="")
+	{
+		CanvasRiveObj.prototype.ApplyResolutionScale.call(this, scale, property);
+		super.ApplyResolutionScale(scale, property);
+	}
+
 	public Update(time: number, frameCount: number, onceSecond: boolean)
 	{
 		if (this.enabled === false) return;
 
-		if (this._body)
-		{
-			this.x = this._body.position.x - this.width / 2;
-			this.y = this._body.position.y - this.height / 2;
-		}
-
 		CanvasRiveObj.prototype.Update.call(this, time, frameCount, onceSecond);
+		super.Update(time, frameCount, onceSecond);
+	}
+
+	public Dispose(): void
+	{
+		CanvasRiveObj.prototype.Dispose.call(this);
+		super.Dispose();
 	}
 }
