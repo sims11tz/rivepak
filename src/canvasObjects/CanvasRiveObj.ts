@@ -141,6 +141,18 @@ export class CanvasRiveObj extends CanvasObj
 		//console.log("Inputs Loaded : "+this._inputs.size);
 	}
 
+	public updateEntityObj():void
+	{
+		this._entityObj!.x = this.x;
+		this._entityObj!.y = this.y;
+		this._entityObj!.width = this.width;
+		this._entityObj!.height = this.height;
+		this._entityObj!.xScale = this.xScale;
+		this._entityObj!.yScale = this.yScale;
+		this._entityObj!.riveInteractiveLocalOnly = this.defObj.riveInteractiveLocalOnly;
+		this._entityObj!.resolutionScale = this._resolutionScale;
+	}
+
 	public InputByName(name: string):SMIInput | null
 	{
 		if (this._inputs.has(name))
@@ -215,8 +227,8 @@ export class CanvasRiveObj extends CanvasObj
 
 			if(this.defObj.riveInteractive)
 			{
-				this._entityObj!.x = this.x;
-				this._entityObj!.y = this.y;
+				this.updateEntityObj();
+
 				const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj!);
 
 				const mouseDown = RiveController.get().MouseDown;
@@ -238,6 +250,7 @@ export class CanvasRiveObj extends CanvasObj
 
 				if (mousePosChanged)
 				{
+					//console.log("Rive Interaction<"+this._label+">: MOVE ", artboardMoveSpace.x, artboardMoveSpace.y);
 					this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y);
 				}
 

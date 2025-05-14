@@ -196,6 +196,10 @@ export class RiveController {
             artboardX /= (_g = entity.xScale) !== null && _g !== void 0 ? _g : 1;
         if (entity.yScale !== 0)
             artboardY /= (_h = entity.yScale) !== null && _h !== void 0 ? _h : 1;
+        if (entity.resolutionScale != -1) {
+            artboardX /= entity.resolutionScale;
+            artboardY /= entity.resolutionScale;
+        }
         return { x: artboardX, y: artboardY };
     }
     WindowToArtboard(entity, interactiveCheck = false) {
@@ -213,8 +217,16 @@ export class RiveController {
         const offsetY = (_h = (_g = this._canvasGlobalBounds) === null || _g === void 0 ? void 0 : _g.top) !== null && _h !== void 0 ? _h : 0;
         const canvasX = mouseX - offsetX;
         const canvasY = mouseY - offsetY;
-        const localX = canvasX - objLeft;
-        const localY = canvasY - objTop;
+        let localX = 0;
+        let localY = 0;
+        if (entity.resolutionScale != -1) {
+            localX = (canvasX / entity.resolutionScale) - objLeft;
+            localY = (canvasY / entity.resolutionScale) - objTop;
+        }
+        else {
+            localX = canvasX - objLeft;
+            localY = canvasY - objTop;
+        }
         const normX = localX / width;
         const normY = localY / height;
         let artboardX = normX * width;

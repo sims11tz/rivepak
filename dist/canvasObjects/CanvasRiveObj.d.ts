@@ -30,6 +30,7 @@ export declare class CanvasRiveObj extends CanvasObj {
     private _lastMouseDown;
     private _entityObj;
     protected initRiveObject(): void;
+    updateEntityObj(): void;
     InputByName(name: string): SMIInput | null;
     RandomInput(): SMIInput | null;
     RandomInputByName(searchTerm: string): SMIInput | null;

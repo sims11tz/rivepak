@@ -88,6 +88,16 @@ export class CanvasRiveObj extends CanvasObj {
         this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale: this.xScale, yScale: this.yScale, riveInteractiveLocalOnly: this.defObj.riveInteractiveLocalOnly };
         //console.log("Inputs Loaded : "+this._inputs.size);
     }
+    updateEntityObj() {
+        this._entityObj.x = this.x;
+        this._entityObj.y = this.y;
+        this._entityObj.width = this.width;
+        this._entityObj.height = this.height;
+        this._entityObj.xScale = this.xScale;
+        this._entityObj.yScale = this.yScale;
+        this._entityObj.riveInteractiveLocalOnly = this.defObj.riveInteractiveLocalOnly;
+        this._entityObj.resolutionScale = this._resolutionScale;
+    }
     InputByName(name) {
         if (this._inputs.has(name)) {
             return this._inputs.get(name);
@@ -137,8 +147,7 @@ export class CanvasRiveObj extends CanvasObj {
                 }
             }
             if (this.defObj.riveInteractive) {
-                this._entityObj.x = this.x;
-                this._entityObj.y = this.y;
+                this.updateEntityObj();
                 const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj);
                 const mouseDown = RiveController.get().MouseDown;
                 const mousePosChanged = (this._lastMousePos.x !== artboardMoveSpace.x || this._lastMousePos.y !== artboardMoveSpace.y);
@@ -153,6 +162,7 @@ export class CanvasRiveObj extends CanvasObj {
                     }
                 }
                 if (mousePosChanged) {
+                    //console.log("Rive Interaction<"+this._label+">: MOVE ", artboardMoveSpace.x, artboardMoveSpace.y);
                     this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y);
                 }
                 this._lastMousePos.x = artboardMoveSpace.x;

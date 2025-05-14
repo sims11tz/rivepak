@@ -33,6 +33,8 @@ export interface CanvasObjectEntity
 	y?: number;
 	z?: number;
 
+	resolutionScale?: number;
+
 	riveInteractiveLocalOnly?: boolean;
 }
 

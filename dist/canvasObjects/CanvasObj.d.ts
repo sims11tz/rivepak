@@ -15,6 +15,7 @@ export interface CanvasObjectEntity {
     x?: number;
     y?: number;
     z?: number;
+    resolutionScale?: number;
     riveInteractiveLocalOnly?: boolean;
 }
 export interface CanvasObjectDef {
