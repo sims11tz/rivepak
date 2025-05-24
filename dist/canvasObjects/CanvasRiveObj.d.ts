@@ -25,6 +25,8 @@ export declare class CanvasRiveObj extends CanvasObj {
     protected _stateMachine: StateMachineInstance | null;
     protected _inputs: Map<string, SMIInput>;
     private _objBoundsReuse;
+    private _riveObjDef;
+    get riveObjDef(): RiveObjectDef;
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     private _lastMousePos;
     private _lastMouseDown;

@@ -18,6 +18,7 @@ GlobalUIDGenerator.currentId = 0;
 GlobalUIDGenerator.uniqueIds = {};
 export class CanvasObj {
     get uuid() { return this._uuid; }
+    get id() { return (this._id != '') ? this._id : this._uuid; }
     get label() { return this._label; }
     get defObj() { return this._defObj; }
     get resolutionScale() { return this._resolutionScale; }
@@ -28,6 +29,7 @@ export class CanvasObj {
     constructor(defObj) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         this._uuid = "";
+        this._id = "";
         this._label = "";
         this._defObj = null;
         this.enabled = true;

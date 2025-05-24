@@ -4,6 +4,7 @@ import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
 export class CanvasRiveObj extends CanvasObj {
+    get riveObjDef() { return this._riveObjDef; }
     constructor(riveDef, artboard) {
         super(riveDef);
         this._stateMachine = null;
@@ -13,6 +14,10 @@ export class CanvasRiveObj extends CanvasObj {
         this._lastMouseDown = false;
         this._entityObj = null;
         this._interactiveGraphics = null;
+        this._riveObjDef = riveDef;
+        if (this._riveObjDef.id != undefined && this._riveObjDef.id != "") {
+            this._id = this._riveObjDef.id;
+        }
         this._renderer = RiveController.get().Renderer;
         this._riveInstance = RiveController.get().Rive;
         this._artboard = artboard;

@@ -16,6 +16,24 @@ export var RIVE_OBJECT_TYPE;
     RIVE_OBJECT_TYPE["ANIMATION"] = "ANIMATION";
     RIVE_OBJECT_TYPE["PHYSICS"] = "PHYSICS";
 })(RIVE_OBJECT_TYPE || (RIVE_OBJECT_TYPE = {}));
+export class RiveObjectsSet {
+    constructor({ objects }) {
+        this.objects = objects;
+    }
+    GetObjectByIdx(idx) {
+        if (!this.objects || idx < 0 || idx >= this.objects.length) {
+            return null;
+        }
+        return this.objects[idx];
+    }
+    GetObjectsById(id) {
+        if (!this.objects) {
+            return null;
+        }
+        const objs = this.objects.find((o) => o.id === id);
+        return objs || null;
+    }
+}
 export class RiveController {
     constructor() {
         this._riveInstance = null;
@@ -91,37 +109,35 @@ export class RiveController {
             const riveObjects = defs.map((def) => {
                 const riveFile = riveFileMap.get(def.filePath);
                 if (!riveFile) {
-                    console.error(`Failed to create Rive object for ${def.filePath}, file did not load.`);
+                    console.error(`Failed to create Rive object for ${def.filePath}`);
                     return null;
                 }
-                //debug name artboards
-                //for (let x = 0; x < riveFile.artboardCount(); x++) { const artboard = riveFile.artboardByIndex(x); if (artboard) { console.log(`Artboard ${x}:`, artboard.name); } }
-                let artboard = riveFile.artboardByName(def.artboardName);
-                if (artboard)
-                    artboard.devicePixelRatioUsed = window.devicePixelRatio;
+                let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
                 if (!artboard) {
-                    if (riveFile.artboardCount() > 0) {
-                        artboard = riveFile.artboardByIndex(0);
-                        if (!artboard) {
-                            console.error(`Artboard ${def.artboardName} not found in ${def.filePath}`);
-                            return null;
-                        }
-                    }
+                    console.error(`Artboard not found in ${def.filePath}`);
+                    return null;
                 }
+                artboard.devicePixelRatioUsed = window.devicePixelRatio;
                 let canvasRiveObj = null;
                 if (def.classType) {
                     canvasRiveObj = new def.classType(def, artboard);
                 }
                 else {
                     switch (def.objectType) {
-                        case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def, artboard);
-                        case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def, artboard);
+                        case RIVE_OBJECT_TYPE.ANIMATION:
+                            canvasRiveObj = new RiveAnimationObject(def, artboard);
+                            break;
+                        case RIVE_OBJECT_TYPE.PHYSICS:
+                            canvasRiveObj = new RivePhysicsObject(def, artboard);
+                            break;
                     }
                 }
                 canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
                 return canvasRiveObj;
-            });
-            return riveObjects.filter(Boolean);
+            })
+                .filter((obj) => obj !== null);
+            const riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
+            return riveObjectsSet;
         });
     }
     loadRiveFiles(filenames, callback) {

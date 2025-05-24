@@ -78,6 +78,9 @@ export abstract class CanvasObj
 	public _uuid: string = "";
 	public get uuid(): string { return this._uuid; }
 
+	public _id: string = "";
+	public get id(): string { return (this._id != '') ? this._id : this._uuid; }
+
 	public _label: string = "";
 	public get label(): string { return this._label; }
 

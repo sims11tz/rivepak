@@ -9,7 +9,16 @@ export interface RiveObjectDef extends CanvasObjectDef {
     filePath: string;
     objectType: RIVE_OBJECT_TYPE;
     artboardName: string;
+    id?: string;
     classType?: new (def: RiveObjectDef, artboard: Artboard) => CanvasRiveObj;
+}
+export declare class RiveObjectsSet {
+    objects?: CanvasRiveObj[];
+    constructor({ objects }: {
+        objects?: CanvasRiveObj[];
+    });
+    GetObjectByIdx(idx: number): CanvasRiveObj | null;
+    GetObjectsById(id: string): CanvasRiveObj | null;
 }
 export declare class RiveController {
     static myInstance: RiveController;
@@ -28,7 +37,7 @@ export declare class RiveController {
     private _cache;
     Init(canvas: HTMLCanvasElement): Promise<void>;
     SetSize(width: number, height: number): void;
-    CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>;
+    CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<RiveObjectsSet>;
     private loadRiveFiles;
     private _mousePos;
     private _mouseGlobalPos;

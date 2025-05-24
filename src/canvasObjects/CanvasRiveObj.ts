@@ -26,7 +26,7 @@ export interface EntityObj
 
 export class CanvasRiveObj extends CanvasObj
 {
-	private _artboard: Artboard;
+	private _artboard:Artboard;
 	protected _renderer:Renderer;
 	protected _riveInstance: Awaited<ReturnType<typeof RiveCanvas>>;
 
@@ -36,9 +36,18 @@ export class CanvasRiveObj extends CanvasObj
 
 	private _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
-	constructor(riveDef: RiveObjectDef, artboard: Artboard)
+	private _riveObjDef:RiveObjectDef;
+	public get riveObjDef():RiveObjectDef { return this._riveObjDef; }
+
+	constructor(riveDef:RiveObjectDef, artboard: Artboard)
 	{
 		super(riveDef);
+
+		this._riveObjDef = riveDef;
+		if(this._riveObjDef.id != undefined && this._riveObjDef.id != "")
+		{
+			this._id = this._riveObjDef.id;
+		}
 
 		this._renderer = RiveController.get().Renderer!;
 		this._riveInstance = RiveController.get().Rive!;

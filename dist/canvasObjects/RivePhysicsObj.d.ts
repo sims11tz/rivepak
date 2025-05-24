@@ -23,6 +23,8 @@ declare const BaseRivePhysicsObject_base: {
         Dispose(): void;
         _uuid: string;
         readonly uuid: string;
+        _id: string;
+        readonly id: string;
         _label: string;
         readonly label: string;
         _defObj: import("./CanvasObj").CanvasObjectDef | null;

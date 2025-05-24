@@ -13,10 +13,37 @@ export enum RIVE_OBJECT_TYPE
 
 export interface RiveObjectDef extends CanvasObjectDef
 {
-	filePath: string;
-	objectType: RIVE_OBJECT_TYPE;
-	artboardName: string;
-	classType?: new (def: RiveObjectDef, artboard: Artboard) => CanvasRiveObj;
+	filePath:string;
+	objectType:RIVE_OBJECT_TYPE;
+	artboardName:string;
+	id?:string;
+	classType?: new (def:RiveObjectDef, artboard:Artboard) => CanvasRiveObj;
+}
+
+export class RiveObjectsSet
+{
+	public objects?:CanvasRiveObj[];
+
+	constructor({
+		objects
+	}: {
+		objects?:CanvasRiveObj[];
+	}) {
+		this.objects = objects;
+	}
+
+	public GetObjectByIdx(idx: number): CanvasRiveObj | null
+	{
+		if (!this.objects || idx < 0 || idx >= this.objects.length) { return null; }
+		return this.objects[idx];
+	}
+
+	public GetObjectsById(id:string):CanvasRiveObj | null
+	{
+		if (!this.objects) { return null; }
+		const objs = this.objects.find((o) => o.id === id);
+		return objs || null;
+	}
 }
 
 export class RiveController
@@ -66,10 +93,10 @@ export class RiveController
 		this._canvasBounds = this._canvas!.getBoundingClientRect();
 	}
 
-	public async CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<CanvasRiveObj[]>
+	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
-		const defs: RiveObjectDef[] = [];
-		if (Array.isArray(riveObjDefs))
+		const defs:RiveObjectDef[] = [];
+		if(Array.isArray(riveObjDefs))
 		{
 			riveObjDefs.forEach(def => { for (let i = 0; i < (def.count ?? 1); i++) defs.push(def); });
 		}
@@ -93,45 +120,41 @@ export class RiveController
 		const riveObjects = defs.map((def) =>
 		{
 			const riveFile = riveFileMap.get(def.filePath);
-			if (!riveFile) { console.error(`Failed to create Rive object for ${def.filePath}, file did not load.`); return null; }
-
-		//debug name artboards
-			//for (let x = 0; x < riveFile.artboardCount(); x++) { const artboard = riveFile.artboardByIndex(x); if (artboard) { console.log(`Artboard ${x}:`, artboard.name); } }
-
-			let artboard: Artboard | null = riveFile.artboardByName(def.artboardName);
-			if(artboard) artboard.devicePixelRatioUsed = window.devicePixelRatio;
-			if (!artboard)
-			{
-				if(riveFile.artboardCount() > 0)
-				{
-					artboard = riveFile.artboardByIndex(0);
-					if (!artboard)
-					{
-						console.error(`Artboard ${def.artboardName} not found in ${def.filePath}`); return null;
-					}
-				}
+			if (!riveFile) {
+				console.error(`Failed to create Rive object for ${def.filePath}`);
+				return null;
 			}
+
+			let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
+			if (!artboard) {
+				console.error(`Artboard not found in ${def.filePath}`);
+				return null;
+			}
+
+			artboard.devicePixelRatioUsed = window.devicePixelRatio;
 
 			let canvasRiveObj: CanvasRiveObj | null = null;
-			if(def.classType)
-			{
+			if (def.classType) {
 				canvasRiveObj = new def.classType(def, artboard);
-			}
-			else
-			{
-				switch (def.objectType)
-				{
-					case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def,artboard);
-					case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def,artboard);
+			} else {
+				switch (def.objectType) {
+					case RIVE_OBJECT_TYPE.ANIMATION:
+						canvasRiveObj = new RiveAnimationObject(def, artboard);
+						break;
+					case RIVE_OBJECT_TYPE.PHYSICS:
+						canvasRiveObj = new RivePhysicsObject(def, artboard);
+						break;
 				}
 			}
 
 			canvasRiveObj?.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
-
 			return canvasRiveObj;
-		});
+		})
+		.filter((obj): obj is CanvasRiveObj => obj !== null);
 
-		return riveObjects.filter(Boolean) as CanvasRiveObj[];
+		const riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
+
+		return riveObjectsSet
 	}
 
 	private async loadRiveFiles( filenames: string | string[], callback: (data: Array<{ filename: string; riveFile: RiveFile | null }>, error?: Error) => void)

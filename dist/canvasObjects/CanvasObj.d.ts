@@ -46,6 +46,8 @@ export interface CanvasObjectDef {
 export declare abstract class CanvasObj {
     _uuid: string;
     get uuid(): string;
+    _id: string;
+    get id(): string;
     _label: string;
     get label(): string;
     _defObj: CanvasObjectDef | null;
