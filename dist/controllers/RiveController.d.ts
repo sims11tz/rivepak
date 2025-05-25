@@ -13,12 +13,14 @@ export interface RiveObjectDef extends CanvasObjectDef {
     classType?: new (def: RiveObjectDef, artboard: Artboard) => CanvasRiveObj;
 }
 export declare class RiveObjectsSet {
-    objects?: CanvasRiveObj[];
+    objects: CanvasRiveObj[];
     constructor({ objects }: {
-        objects?: CanvasRiveObj[];
+        objects: CanvasRiveObj[];
     });
     GetObjectByIdx(idx: number): CanvasRiveObj | null;
-    GetObjectsById(id: string): CanvasRiveObj | null;
+    GetObjectById(id: string): CanvasRiveObj | null;
+    GetObjectByArtboardName(artboardByName: string): CanvasRiveObj | null;
+    GetObjectByFilePath(filePath: string): CanvasRiveObj | null;
 }
 export declare class RiveController {
     static myInstance: RiveController;
@@ -33,6 +35,8 @@ export declare class RiveController {
     private _canvasGlobalBounds;
     get CanvasBounds(): DOMRect;
     get CanvasGlobalBounds(): DOMRect;
+    private _riveObjectsSet;
+    get RiveObjectsSet(): RiveObjectsSet;
     private _initCalled;
     private _cache;
     Init(canvas: HTMLCanvasElement): Promise<void>;

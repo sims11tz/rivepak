@@ -5,11 +5,16 @@ import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
 export class CanvasRiveObj extends CanvasObj {
     get riveObjDef() { return this._riveObjDef; }
+    get artboardName() { return this._artboardName; }
+    get filePath() { return this._filePath; }
     constructor(riveDef, artboard) {
+        var _a, _b;
         super(riveDef);
         this._stateMachine = null;
         this._inputs = new Map();
         this._objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+        this._artboardName = "";
+        this._filePath = "";
         this._lastMousePos = { x: -1, y: -1 };
         this._lastMouseDown = false;
         this._entityObj = null;
@@ -18,6 +23,8 @@ export class CanvasRiveObj extends CanvasObj {
         if (this._riveObjDef.id != undefined && this._riveObjDef.id != "") {
             this._id = this._riveObjDef.id;
         }
+        this._artboardName = (_a = this._riveObjDef.artboardName) !== null && _a !== void 0 ? _a : "";
+        this._filePath = (_b = this._riveObjDef.filePath) !== null && _b !== void 0 ? _b : "";
         this._renderer = RiveController.get().Renderer;
         this._riveInstance = RiveController.get().Rive;
         this._artboard = artboard;

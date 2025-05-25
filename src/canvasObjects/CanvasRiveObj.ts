@@ -39,6 +39,12 @@ export class CanvasRiveObj extends CanvasObj
 	private _riveObjDef:RiveObjectDef;
 	public get riveObjDef():RiveObjectDef { return this._riveObjDef; }
 
+	private _artboardName: string = "";
+	public get artboardName(): string { return this._artboardName; }
+
+	private _filePath: string = "";
+	public get filePath(): string { return this._filePath; }
+
 	constructor(riveDef:RiveObjectDef, artboard: Artboard)
 	{
 		super(riveDef);
@@ -48,6 +54,9 @@ export class CanvasRiveObj extends CanvasObj
 		{
 			this._id = this._riveObjDef.id;
 		}
+
+		this._artboardName = this._riveObjDef.artboardName ?? "";
+		this._filePath = this._riveObjDef.filePath ?? "";
 
 		this._renderer = RiveController.get().Renderer!;
 		this._riveInstance = RiveController.get().Rive!;

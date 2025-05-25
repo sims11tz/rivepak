@@ -4,7 +4,7 @@ import { PixiController } from "./controllers/PixiController";
 import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX, useEffect, useRef } from "react";
 import { CanvasObj } from "./canvasObjects/CanvasObj";
-import { RiveController } from "./controllers/RiveController";
+import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 
 export enum CANVAS_ENGINE_RUN_STATE
@@ -216,9 +216,23 @@ export class CanvasEngine
 		return this.fpsValue.toString();
 	}
 
-	public AddCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
+	public AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
 	{
-		const cObjs = Array.isArray(objs) ? objs : [objs];
+		let cObjs: CanvasObj[] = [];
+
+		if (objs instanceof RiveObjectsSet)
+		{
+			cObjs = objs.objects ?? [];
+		}
+		else if (Array.isArray(objs))
+		{
+			cObjs = objs;
+		}
+		else
+		{
+			cObjs = [objs];
+		}
+
 		if (!this.canvasObjects.has(group)) this.canvasObjects.set(group, []);
 
 		const groupArray = this.canvasObjects.get(group)!;
@@ -386,7 +400,7 @@ export function UseCanvasEngineHook(
 	pixiCanvasRef:React.RefObject<HTMLCanvasElement>;
 	canvasObjects:Map<string, CanvasObj[]>;
 	debugContainerRef:React.RefObject<HTMLDivElement>;
-	addCanvasObjects:(objs: CanvasObj | CanvasObj[], group?: string) => void;
+	addCanvasObjects:(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;
 	fpsRef:React.RefObject<HTMLDivElement>;
 	runStateLabel:React.RefObject<HTMLDivElement>;
 	ToggleRunState:() => void;

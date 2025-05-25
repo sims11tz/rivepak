@@ -27,6 +27,10 @@ export declare class CanvasRiveObj extends CanvasObj {
     private _objBoundsReuse;
     private _riveObjDef;
     get riveObjDef(): RiveObjectDef;
+    private _artboardName;
+    get artboardName(): string;
+    private _filePath;
+    get filePath(): string;
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     private _lastMousePos;
     private _lastMouseDown;

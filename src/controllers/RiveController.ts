@@ -22,12 +22,12 @@ export interface RiveObjectDef extends CanvasObjectDef
 
 export class RiveObjectsSet
 {
-	public objects?:CanvasRiveObj[];
+	public objects:CanvasRiveObj[];
 
 	constructor({
 		objects
 	}: {
-		objects?:CanvasRiveObj[];
+		objects:CanvasRiveObj[];
 	}) {
 		this.objects = objects;
 	}
@@ -38,10 +38,24 @@ export class RiveObjectsSet
 		return this.objects[idx];
 	}
 
-	public GetObjectsById(id:string):CanvasRiveObj | null
+	public GetObjectById(id:string):CanvasRiveObj | null
 	{
 		if (!this.objects) { return null; }
 		const objs = this.objects.find((o) => o.id === id);
+		return objs || null;
+	}
+
+	public GetObjectByArtboardName(artboardByName:string):CanvasRiveObj | null
+	{
+		if (!this.objects) { return null; }
+		const objs = this.objects.find((o) => o.artboardName === artboardByName);
+		return objs || null;
+	}
+
+	public GetObjectByFilePath(filePath:string):CanvasRiveObj | null
+	{
+		if (!this.objects) { return null; }
+		const objs = this.objects.find((o) => o.filePath === filePath);
 		return objs || null;
 	}
 }
@@ -62,6 +76,9 @@ export class RiveController
 	private _canvasGlobalBounds:DOMRect | null = null;
 	public get CanvasBounds() { return this._canvasBounds!; }
 	public get CanvasGlobalBounds() { return this._canvasBounds!; }
+
+	private _riveObjectsSet:RiveObjectsSet | null = null;
+	public get RiveObjectsSet() { return this._riveObjectsSet!; }
 
 	private _initCalled: boolean = false;
 	private _cache: Map<string, Uint8Array> = new Map();
@@ -106,27 +123,24 @@ export class RiveController
 		}
 
 		const filePaths = defs.map((def) => def.filePath);
-		const loadPromise = new Promise<{ filename: string; riveFile: RiveFile | null }[]>((resolve) =>
-			this.loadRiveFiles(filePaths, resolve)
-		);
+		const loadPromise = new Promise<{ filename: string; riveFile: RiveFile | null }[]>((resolve) => this.loadRiveFiles(filePaths, resolve) );
 
 		const loadedFiles = await loadPromise;
-
 		const riveFileMap = new Map<string, RiveFile | null>();
-		loadedFiles.forEach(({ filename, riveFile }) => {
-			riveFileMap.set(filename, riveFile);
-		});
+		loadedFiles.forEach(({ filename, riveFile }) => { riveFileMap.set(filename, riveFile); });
 
 		const riveObjects = defs.map((def) =>
 		{
 			const riveFile = riveFileMap.get(def.filePath);
-			if (!riveFile) {
+			if (!riveFile)
+			{
 				console.error(`Failed to create Rive object for ${def.filePath}`);
 				return null;
 			}
 
 			let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
-			if (!artboard) {
+			if (!artboard)
+			{
 				console.error(`Artboard not found in ${def.filePath}`);
 				return null;
 			}
@@ -134,10 +148,14 @@ export class RiveController
 			artboard.devicePixelRatioUsed = window.devicePixelRatio;
 
 			let canvasRiveObj: CanvasRiveObj | null = null;
-			if (def.classType) {
+			if (def.classType)
+			{
 				canvasRiveObj = new def.classType(def, artboard);
-			} else {
-				switch (def.objectType) {
+			}
+			else
+			{
+				switch (def.objectType)
+				{
 					case RIVE_OBJECT_TYPE.ANIMATION:
 						canvasRiveObj = new RiveAnimationObject(def, artboard);
 						break;
@@ -152,9 +170,9 @@ export class RiveController
 		})
 		.filter((obj): obj is CanvasRiveObj => obj !== null);
 
-		const riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
+		this._riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
 
-		return riveObjectsSet
+		return this._riveObjectsSet;
 	}
 
 	private async loadRiveFiles( filenames: string | string[], callback: (data: Array<{ filename: string; riveFile: RiveFile | null }>, error?: Error) => void)

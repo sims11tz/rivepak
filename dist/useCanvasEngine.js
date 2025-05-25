@@ -11,7 +11,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { useEffect, useRef } from "react";
-import { RiveController } from "./controllers/RiveController";
+import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 export var CANVAS_ENGINE_RUN_STATE;
 (function (CANVAS_ENGINE_RUN_STATE) {
@@ -213,7 +213,17 @@ export class CanvasEngine {
         return this.fpsValue.toString();
     }
     AddCanvasObjects(objs, group = "main") {
-        const cObjs = Array.isArray(objs) ? objs : [objs];
+        var _a;
+        let cObjs = [];
+        if (objs instanceof RiveObjectsSet) {
+            cObjs = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
+        }
+        else if (Array.isArray(objs)) {
+            cObjs = objs;
+        }
+        else {
+            cObjs = [objs];
+        }
         if (!this.canvasObjects.has(group))
             this.canvasObjects.set(group, []);
         const groupArray = this.canvasObjects.get(group);

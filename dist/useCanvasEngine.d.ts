@@ -1,6 +1,7 @@
 import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX } from "react";
 import { CanvasObj } from "./canvasObjects/CanvasObj";
+import { RiveObjectsSet } from "./controllers/RiveController";
 export declare enum CANVAS_ENGINE_RUN_STATE {
     STOPPED = "STOPPED",
     RUNNING = "RUNNING",
@@ -52,7 +53,7 @@ export declare class CanvasEngine {
     private fpsCallback?;
     SetFpsCallback(cb: (fps: string) => void): void;
     GetFPS(): string;
-    AddCanvasObjects(objs: CanvasObj | CanvasObj[], group?: string): void;
+    AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string): void;
     private updateZIndex;
     private _resizeDebounceTimeout;
     ResizeWindowEvent: () => void;
@@ -77,7 +78,7 @@ export declare function UseCanvasEngineHook(settings?: Partial<ConstructorParame
     pixiCanvasRef: React.RefObject<HTMLCanvasElement>;
     canvasObjects: Map<string, CanvasObj[]>;
     debugContainerRef: React.RefObject<HTMLDivElement>;
-    addCanvasObjects: (objs: CanvasObj | CanvasObj[], group?: string) => void;
+    addCanvasObjects: (objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;
     fpsRef: React.RefObject<HTMLDivElement>;
     runStateLabel: React.RefObject<HTMLDivElement>;
     ToggleRunState: () => void;
