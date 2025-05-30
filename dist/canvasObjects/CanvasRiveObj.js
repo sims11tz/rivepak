@@ -31,25 +31,45 @@ export class CanvasRiveObj extends CanvasObj {
         this._animations = [];
     }
     initRiveObject() {
+        //console.log('%c initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
+        //console.log('%c initRiveObj(*) defObj:','color:#00FF88; font-weight:bold;',this.defObj);
         var _a, _b, _c, _d;
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
-        //you cant set both width/height and xScale/yScale
-        if (this.defObj.width && this.defObj.width > 0 && this.defObj.height && this.defObj.height > 0) {
+        const artboardWidth = this.artboard.width;
+        const artboardHeight = this.artboard.height;
+        const aspectRatio = artboardWidth / artboardHeight;
+        if (this.defObj.width && this.defObj.height) {
+            // CASE 1: Fully specified
             this.width = this.defObj.width;
-            this.xScale = this.width / this.artboard.width;
             this.height = this.defObj.height;
-            this.yScale = this.height / this.artboard.height;
+            this.xScale = this.width / artboardWidth;
+            this.yScale = this.height / artboardHeight;
+        }
+        else if (this.defObj.constrainProportions && this.defObj.width && !this.defObj.height) {
+            // CASE 2: width specified, calculate height
+            this.width = this.defObj.width;
+            this.height = this.defObj.width / aspectRatio;
+            this.xScale = this.width / artboardWidth;
+            this.yScale = this.height / artboardHeight;
+        }
+        else if (this.defObj.constrainProportions && this.defObj.height && !this.defObj.width) {
+            // CASE 3: height specified, calculate width
+            this.height = this.defObj.height;
+            this.width = this.defObj.height * aspectRatio;
+            this.xScale = this.width / artboardWidth;
+            this.yScale = this.height / artboardHeight;
         }
         else {
-            this.width = this.artboard.width;
-            this.height = this.artboard.height;
+            // CASE 4: fallback to xScale/yScale or defaults
+            this.width = artboardWidth;
+            this.height = artboardHeight;
             this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
             if (this.xScale > 0)
-                this.width = this.width * this.xScale;
+                this.width = artboardWidth * this.xScale;
             this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
             if (this.yScale > 0)
-                this.height = this.height * this.yScale;
+                this.height = artboardHeight * this.yScale;
         }
         if (this.centerGlobally) {
             this.x = CanvasEngine.get().width / 2;
@@ -211,8 +231,8 @@ export class CanvasRiveObj extends CanvasObj {
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
         this._interactiveGraphics.rect(0, 0, this.width, this.height);
-        this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0 });
-        this._interactiveGraphics.stroke({ width: 0, color: 0xfeeb77 });
+        this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0.05 });
+        this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 0.5 });
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";

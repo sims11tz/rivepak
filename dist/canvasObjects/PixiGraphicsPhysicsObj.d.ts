@@ -41,6 +41,7 @@ declare const BaseShapePhysicsObj_base: {
         height: number;
         xScale: number;
         yScale: number;
+        constrainProportions: boolean;
         baseX: number;
         baseY: number;
         baseWidth: number;

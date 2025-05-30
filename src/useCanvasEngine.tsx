@@ -68,6 +68,17 @@ export class CanvasEngine
 	private _canvasHeight: number = 0;
 	public get height(): number { return this._canvasHeight; }
 
+	private updateListeners: Set<(dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
+	public AddUpdateListener(listener: (dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	{
+		this.updateListeners.add(listener);
+	}
+
+	public RemoveUpdateListener(listener: (dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	{
+		this.updateListeners.delete(listener);
+	}
+
 	public async Init(canvasSettings:CanvasSettingsDef, onInitComplete?:() => void)
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
@@ -160,6 +171,12 @@ export class CanvasEngine
 				lastLogTime = time;
 			}
 
+			//Hmmmmmmmmm before or after.............
+			this.updateListeners.forEach((listener) =>
+			{
+				listener(elapsedTimeSec, frameCount, onceSecond);
+			});
+
 			if (canvasSettings.physicsEnabled) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
 
 			riveRenderer.clear();
@@ -188,6 +205,8 @@ export class CanvasEngine
 			this.ResizeCanvasToWindow();
 		}
 	}
+
+	public get RunState():CANVAS_ENGINE_RUN_STATE { return this.runState; }
 
 	public ToggleRunState()
 	{
@@ -356,6 +375,7 @@ export class CanvasEngine
 			this._resizeDebounceTimeout = null;
 		}
 
+		if(this.updateListeners != null) this.updateListeners.clear();
 
 		if (this.rive) this.rive = null;
 		if (this.engine) this.engine = null;
@@ -405,6 +425,7 @@ export function UseCanvasEngineHook(
 	runStateLabel:React.RefObject<HTMLDivElement>;
 	ToggleRunState:() => void;
 	SetRunState:(state: CANVAS_ENGINE_RUN_STATE) => void;
+	RunState:() => CANVAS_ENGINE_RUN_STATE;
 } {
 	const canvasSettings = new CanvasSettingsDef(settings);
 	const canvasRef = useRef<HTMLCanvasElement>(null!);
@@ -417,6 +438,7 @@ export function UseCanvasEngineHook(
 	const fpsRef = useRef<HTMLDivElement>(null!);
 	const ToggleRunState = () => CanvasEngine.get().ToggleRunState();
 	const SetRunState = (state: CANVAS_ENGINE_RUN_STATE) => CanvasEngine.get().SetRunState(state);
+	const RunState = () => CanvasEngine.get().RunState;
 
 	const canvasJSXRef = useRef<JSX.Element | null>(null);
 
@@ -489,6 +511,7 @@ export function UseCanvasEngineHook(
 		addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),
 		ToggleRunState,
 		SetRunState,
+		RunState,
 		runStateLabel,
 		fpsRef:fpsRef
 	};

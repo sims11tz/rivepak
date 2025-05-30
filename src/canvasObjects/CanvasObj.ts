@@ -47,6 +47,8 @@ export interface CanvasObjectDef
 	width?: number;
 	height?: number;
 
+	constrainProportions?: boolean;
+
 	xScale?: number;
 	yScale?: number;
 
@@ -99,6 +101,8 @@ export abstract class CanvasObj
 	public xScale: number = 0;
 	public yScale: number = 0;
 
+	public constrainProportions: boolean = false;
+
 	public baseX: number;
 	public baseY: number;
 	public baseWidth: number;
@@ -130,6 +134,7 @@ export abstract class CanvasObj
 
 		this._uuid = GlobalUIDGenerator.generateUID();
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
+		//console.log('%c CanvasObj() label:'+this._label+', uuid:'+this._uuid,'color:#00FF88; font-weight:bold;',this.defObj);
 
 		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0 };
 
@@ -139,6 +144,8 @@ export abstract class CanvasObj
 		this.group = this.defObj.group ?? "main";
 		this.width = this.defObj.width ?? 0;
 		this.height = this.defObj.height ?? 0;
+
+		this.constrainProportions = this.defObj.constrainProportions ?? false;
 
 		this.xScale = this.defObj.xScale ?? 0;
 		this.yScale = this.defObj.yScale ?? 0;

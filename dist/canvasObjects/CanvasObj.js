@@ -27,7 +27,7 @@ export class CanvasObj {
     get transformedX() { return this._transformedX; }
     get transformedY() { return this._transformedY; }
     constructor(defObj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
         this._uuid = "";
         this._id = "";
         this._label = "";
@@ -40,6 +40,7 @@ export class CanvasObj {
         this.height = 0;
         this.xScale = 0;
         this.yScale = 0;
+        this.constrainProportions = false;
         this._resolutionScale = -1;
         this._transformedWidth = -1;
         this._transformedWidthlast = -1;
@@ -55,20 +56,22 @@ export class CanvasObj {
         this._defObj = defObj;
         this._uuid = GlobalUIDGenerator.generateUID();
         this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
+        //console.log('%c CanvasObj() label:'+this._label+', uuid:'+this._uuid,'color:#00FF88; font-weight:bold;',this.defObj);
         this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0 };
         this.centerLocally = (_e = defObj.centerLocally) !== null && _e !== void 0 ? _e : false;
         this.centerGlobally = (_f = defObj.centerGlobally) !== null && _f !== void 0 ? _f : false;
         this.group = (_g = this.defObj.group) !== null && _g !== void 0 ? _g : "main";
         this.width = (_h = this.defObj.width) !== null && _h !== void 0 ? _h : 0;
         this.height = (_j = this.defObj.height) !== null && _j !== void 0 ? _j : 0;
-        this.xScale = (_k = this.defObj.xScale) !== null && _k !== void 0 ? _k : 0;
-        this.yScale = (_l = this.defObj.yScale) !== null && _l !== void 0 ? _l : 0;
-        this.baseX = (_m = defObj.x) !== null && _m !== void 0 ? _m : 0;
-        this.baseY = (_o = defObj.y) !== null && _o !== void 0 ? _o : 0;
-        this.baseWidth = (_p = defObj.width) !== null && _p !== void 0 ? _p : 1;
-        this.baseHeight = (_q = defObj.height) !== null && _q !== void 0 ? _q : 1;
-        this.baseXScale = (_r = defObj.xScale) !== null && _r !== void 0 ? _r : 1;
-        this.baseYScale = (_s = defObj.yScale) !== null && _s !== void 0 ? _s : 1;
+        this.constrainProportions = (_k = this.defObj.constrainProportions) !== null && _k !== void 0 ? _k : false;
+        this.xScale = (_l = this.defObj.xScale) !== null && _l !== void 0 ? _l : 0;
+        this.yScale = (_m = this.defObj.yScale) !== null && _m !== void 0 ? _m : 0;
+        this.baseX = (_o = defObj.x) !== null && _o !== void 0 ? _o : 0;
+        this.baseY = (_p = defObj.y) !== null && _p !== void 0 ? _p : 0;
+        this.baseWidth = (_q = defObj.width) !== null && _q !== void 0 ? _q : 1;
+        this.baseHeight = (_r = defObj.height) !== null && _r !== void 0 ? _r : 1;
+        this.baseXScale = (_s = defObj.xScale) !== null && _s !== void 0 ? _s : 1;
+        this.baseYScale = (_t = defObj.yScale) !== null && _t !== void 0 ? _t : 1;
         //console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
         this._state = new Proxy(this._state, {
             set: (target, key, value) => {

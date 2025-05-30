@@ -48,6 +48,7 @@ export class CanvasEngine {
         this._canvasSettings = null;
         this._canvasWidth = 0;
         this._canvasHeight = 0;
+        this.updateListeners = new Set();
         this.fpsValue = 0;
         this._resizeDebounceTimeout = null;
         this.ResizeWindowEvent = () => {
@@ -102,6 +103,12 @@ export class CanvasEngine {
     get EngineSettings() { return this._canvasSettings; }
     get width() { return this._canvasWidth; }
     get height() { return this._canvasHeight; }
+    AddUpdateListener(listener) {
+        this.updateListeners.add(listener);
+    }
+    RemoveUpdateListener(listener) {
+        this.updateListeners.delete(listener);
+    }
     Init(canvasSettings, onInitComplete) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
@@ -175,6 +182,10 @@ export class CanvasEngine {
                     iterationCount = 0;
                     lastLogTime = time;
                 }
+                //Hmmmmmmmmm before or after.............
+                this.updateListeners.forEach((listener) => {
+                    listener(elapsedTimeSec, frameCount, onceSecond);
+                });
                 if (canvasSettings.physicsEnabled)
                     PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
                 riveRenderer.clear();
@@ -197,6 +208,7 @@ export class CanvasEngine {
             }
         });
     }
+    get RunState() { return this.runState; }
     ToggleRunState() {
         this.SetRunState(this.runState === CANVAS_ENGINE_RUN_STATE.RUNNING ? CANVAS_ENGINE_RUN_STATE.STOPPED : CANVAS_ENGINE_RUN_STATE.RUNNING);
     }
@@ -267,6 +279,8 @@ export class CanvasEngine {
             clearTimeout(this._resizeDebounceTimeout);
             this._resizeDebounceTimeout = null;
         }
+        if (this.updateListeners != null)
+            this.updateListeners.clear();
         if (this.rive)
             this.rive = null;
         if (this.engine)
@@ -295,6 +309,7 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const fpsRef = useRef(null);
     const ToggleRunState = () => CanvasEngine.get().ToggleRunState();
     const SetRunState = (state) => CanvasEngine.get().SetRunState(state);
+    const RunState = () => CanvasEngine.get().RunState;
     const canvasJSXRef = useRef(null);
     if (!canvasJSXRef.current) {
         canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ ref: canvasContainerRef, style: { position: "relative" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black" } }), _jsx("div", Object.assign({ id: "pixiCanvasContainer", style: { position: "absolute", top: 0, left: 0, zIndex: 2 } }, { children: _jsx("canvas", { id: "pixiCanvas", ref: pixiCanvasRef }) })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
@@ -340,6 +355,7 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
         addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),
         ToggleRunState,
         SetRunState,
+        RunState,
         runStateLabel,
         fpsRef: fpsRef
     };

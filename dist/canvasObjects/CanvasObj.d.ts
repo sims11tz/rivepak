@@ -24,6 +24,7 @@ export interface CanvasObjectDef {
     count?: number;
     width?: number;
     height?: number;
+    constrainProportions?: boolean;
     xScale?: number;
     yScale?: number;
     x?: number;
@@ -65,6 +66,7 @@ export declare abstract class CanvasObj {
     height: number;
     xScale: number;
     yScale: number;
+    constrainProportions: boolean;
     baseX: number;
     baseY: number;
     baseWidth: number;
