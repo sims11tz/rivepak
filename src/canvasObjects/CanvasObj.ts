@@ -21,17 +21,17 @@ export class GlobalUIDGenerator
 
 export interface CanvasObjectEntity
 {
-	width?: number;
-	height?: number;
+	width?:number;
+	height?:number;
 
-	xScale?: number;
-	yScale?: number;
+	xScale?:number;
+	yScale?:number;
 
-	xSpeed?: number;
+	xSpeed?:number;
 
-	x?: number;
-	y?: number;
-	z?: number;
+	x?:number;
+	y?:number;
+	z?:number;
 
 	resolutionScale?: number;
 
@@ -40,35 +40,37 @@ export interface CanvasObjectEntity
 
 export interface CanvasObjectDef
 {
-	uuid?: string;
-	label?: string;
+	uuid?:string;
+	label?:string;
 
-	count?: number;
-	width?: number;
-	height?: number;
+	text?:string;
+
+	count?:number;
+	width?:number;
+	height?:number;
 
 	constrainProportions?: boolean;
 
-	xScale?: number;
-	yScale?: number;
+	xScale?:number;
+	yScale?:number;
 
-	x?: number;
-	y?: number;
-	z?: number;
+	x?:number;
+	y?:number;
+	z?:number;
 
 	centerLocally?:boolean;
 	centerGlobally?:boolean;
 
-	baseX?: number;
-	baseY?: number;
-	baseXScale?: number;
-	baseYScale?: number;
+	baseX?:number;
+	baseY?:number;
+	baseXScale?:number;
+	baseYScale?:number;
 
 	group?:string;
 
-	randomSpeed?: boolean;
-	xSpeed?: number;
-	ySpeed?: number;
+	randomSpeed?:boolean;
+	xSpeed?:number;
+	ySpeed?:number;
 
 	interactive?: boolean;
 	riveInteractive?: boolean;

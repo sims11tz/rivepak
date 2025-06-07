@@ -41,8 +41,18 @@ export declare class CanvasRiveObj extends CanvasObj {
     RandomInput(): SMIInput | null;
     RandomInputByName(searchTerm: string): SMIInput | null;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
+    private _textLabel;
+    private drawTextLabel;
     private _interactiveGraphics;
     private initInteractive;
+    protected _onClickCallback?: (event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj: CanvasRiveObj) => void;
+    protected _onHoverCallback?: (sourceObj: CanvasRiveObj) => void;
+    protected _onHoverOutCallback?: (sourceObj: CanvasRiveObj) => void;
+    SetEventHandlers({ onClick, onHover, onHoverOut, }: {
+        onClick?: (e: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj: CanvasRiveObj) => void;
+        onHover?: (sourceObj: CanvasRiveObj) => void;
+        onHoverOut?: (sourceObj: CanvasRiveObj) => void;
+    }): void;
     protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch): void;
     protected onHover(): void;
     protected onHoverOut(): void;

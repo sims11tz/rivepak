@@ -6,12 +6,31 @@ import React, { JSX, useEffect, useRef } from "react";
 import { CanvasObj } from "./canvasObjects/CanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
+import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
 
 export enum CANVAS_ENGINE_RUN_STATE
 {
 	STOPPED = "STOPPED",
 	RUNNING = "RUNNING",
 	PAUSED = "PAUSED",
+}
+
+export class ResizeCanvasObj
+{
+	public width:number;
+	public height:number;
+	public scale:number;
+	public margin:string;
+	public canvasRef: HTMLCanvasElement | null = null;
+
+	constructor(width:number, height:number, scale:number, margin:string, canvasRef: HTMLCanvasElement | null = null)
+	{
+		this.width = width;
+		this.height = height;
+		this.scale = scale;
+		this.margin = margin;
+		this.canvasRef = canvasRef;
+	}
 }
 
 export class CanvasSettingsDef
@@ -260,6 +279,29 @@ export class CanvasEngine
 		groupArray.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
 	}
 
+	public RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
+	{
+		const groupArray = this.canvasObjects.get(group);
+		if (!groupArray) return;
+
+		const objsToRemove = Array.isArray(objs) ? objs : [objs];
+
+		for (const obj of objsToRemove)
+		{
+			const index = groupArray.indexOf(obj);
+			if (index !== -1)
+			{
+				groupArray.splice(index, 1);
+				obj.Dispose();
+			}
+		}
+
+		if (groupArray.length === 0)
+		{
+			this.canvasObjects.delete(group);
+		}
+	}
+
 	private updateZIndex(canvasObj: CanvasObj, newZIndex: number)
 	{
 		if (canvasObj.z === newZIndex) return;
@@ -286,6 +328,7 @@ export class CanvasEngine
 		}
 
 		this.runState = CANVAS_ENGINE_RUN_STATE.PAUSED;
+		CanvasEngineStartResizePubSub.Publish({});
 		this._resizeDebounceTimeout = window.setTimeout(() =>
 		{
 			this.ResizeCanvasToWindow();
@@ -343,6 +386,8 @@ export class CanvasEngine
 				obj.ApplyResolutionScale(this._currentCanvasScale);
 			});
 		});
+
+		CanvasEngineResizePubSub.Publish({width:newWidth, height:newHeight, scale:this._currentCanvasScale, margin:`${vertMargin}px ${horizMargin}px`, canvasRef:this.canvasRef} as ResizeCanvasObj);
 	}
 
 	public Dispose()

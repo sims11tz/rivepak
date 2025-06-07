@@ -4,6 +4,7 @@ import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
 import { CanvasEngine } from "../useCanvasEngine";
+import * as PIXI from "pixi.js";
 
 export enum RIVE_OBJECT_TYPE
 {
@@ -17,6 +18,9 @@ export interface RiveObjectDef extends CanvasObjectDef
 	objectType:RIVE_OBJECT_TYPE;
 	artboardName:string;
 	id?:string;
+	onClickCallback?:(event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj:CanvasRiveObj) => void;
+	onHoverCallback?:(sourceObj:CanvasRiveObj) => void;
+	onHoverOutCallback?:(sourceObj:CanvasRiveObj) => void;
 	classType?: new (def:RiveObjectDef, artboard:Artboard) => CanvasRiveObj;
 }
 
@@ -32,7 +36,7 @@ export class RiveObjectsSet
 		this.objects = objects;
 	}
 
-	public GetObjectByIdx(idx: number): CanvasRiveObj | null
+	public GetObjectByIdx(idx:number): CanvasRiveObj | null
 	{
 		if (!this.objects || idx < 0 || idx >= this.objects.length) { return null; }
 		return this.objects[idx];
@@ -97,8 +101,6 @@ export class RiveController
 			console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
 
 			window.addEventListener("mousemove", this.SetMouseGlobalPos);
-
-
 		} catch (error) { console.error("Failed to initialize Rive:", error); }
 	}
 

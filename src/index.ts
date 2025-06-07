@@ -9,3 +9,4 @@ export * from "./controllers/PhysicsController";
 export * from "./controllers/PixiController";
 export * from "./controllers/RiveController";
 export * from "./useCanvasEngine";
+export * from "./CanvasEngineEventBus"

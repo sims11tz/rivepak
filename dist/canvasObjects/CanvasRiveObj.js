@@ -18,6 +18,7 @@ export class CanvasRiveObj extends CanvasObj {
         this._lastMousePos = { x: -1, y: -1 };
         this._lastMouseDown = false;
         this._entityObj = null;
+        this._textLabel = null;
         this._interactiveGraphics = null;
         this._riveObjDef = riveDef;
         if (this._riveObjDef.id != undefined && this._riveObjDef.id != "") {
@@ -79,6 +80,12 @@ export class CanvasRiveObj extends CanvasObj {
             this.x -= (this.width / 2);
             this.y -= (this.height / 2);
         }
+        if (this.defObj.onClickCallback)
+            this._onClickCallback = this.defObj.onClickCallback;
+        if (this.defObj.onHoverCallback)
+            this._onHoverCallback = this.defObj.onHoverCallback;
+        if (this.defObj.onHoverOutCallback)
+            this._onHoverOutCallback = this.defObj.onHoverOutCallback;
         //console.log("<"+this._label+"> CanvasRiveObj ---   position :: "+this.x+" - "+this.y+" ");
         //console.log("<"+this._label+"> CanvasRiveObj --- dimensions :: "+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
         //console.log("<"+this._label+"> CanvasRiveObj ---   artboard :: "+this.artboard.width+"x"+this.artboard.height);
@@ -88,6 +95,8 @@ export class CanvasRiveObj extends CanvasObj {
         this.UpdateBaseProps();
         if (this.defObj.interactive)
             this.initInteractive();
+        if (this.defObj.text && this.defObj.text.length > 0)
+            this.drawTextLabel();
         //console.log("");
         //console.log("___________________ INIT RIVE OBJECT ________________________");
         //console.log("");
@@ -223,8 +232,38 @@ export class CanvasRiveObj extends CanvasObj {
             this._interactiveGraphics.width = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
             this._interactiveGraphics.height = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
         }
+        if (this._textLabel) {
+            this._textLabel.x = this._objBoundsReuse.minX;
+            this._textLabel.y = this._objBoundsReuse.maxY - this._textLabel.height - 5;
+            if (this._textLabel.scale.x !== this._resolutionScale) {
+                this._textLabel.scale.set(this._resolutionScale);
+            }
+        }
         this.artboard.draw(this.Renderer);
         this.Renderer.restore();
+    }
+    drawTextLabel() {
+        if (this._textLabel) {
+            this._textLabel.destroy();
+            this._textLabel = null;
+        }
+        if (this.defObj.text && this.defObj.text.length > 0) {
+            const style = new PIXI.TextStyle({
+                fontFamily: "Verdana",
+                fontSize: 32,
+                fill: "#ffcc00",
+                stroke: "#000000",
+                dropShadow: true,
+                align: "center",
+                fontWeight: "bold",
+            });
+            this._textLabel = new PIXI.Text(this.defObj.text, style);
+            this._textLabel.interactive = false;
+            this._textLabel.eventMode = 'none';
+            this._textLabel.x = this._objBoundsReuse.minX;
+            this._textLabel.y = this._objBoundsReuse.maxY - this._textLabel.height - 5;
+            PixiController.get().Pixi.stage.addChild(this._textLabel);
+        }
     }
     initInteractive() {
         //console.log("   INIT INTERACTIVE RIVE OBJECT -- "+this._label);
@@ -241,17 +280,31 @@ export class CanvasRiveObj extends CanvasObj {
         this._interactiveGraphics.on("pointerover", this.onHover, this);
         this._interactiveGraphics.on("pointerout", this.onHoverOut, this);
     }
+    SetEventHandlers({ onClick, onHover, onHoverOut, }) {
+        this._onClickCallback = onClick;
+        this._onHoverCallback = onHover;
+        this._onHoverOutCallback = onHoverOut;
+    }
     onClick(event) {
+        var _a;
+        if (this._onClickCallback)
+            (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
     }
     onHover() {
+        var _a;
         if (this._interactiveGraphics) {
             this._interactiveGraphics.tint = 0x00ff00;
         }
+        if (this._onHoverCallback)
+            (_a = this._onHoverCallback) === null || _a === void 0 ? void 0 : _a.call(this, this);
     }
     onHoverOut() {
+        var _a;
         if (this._interactiveGraphics) {
             this._interactiveGraphics.tint = 0xffffff;
         }
+        if (this._onHoverOutCallback)
+            (_a = this._onHoverOutCallback) === null || _a === void 0 ? void 0 : _a.call(this, this);
     }
     Dispose() {
         var _a;
@@ -270,6 +323,11 @@ export class CanvasRiveObj extends CanvasObj {
             PixiController.get().Pixi.stage.removeChild(this._interactiveGraphics);
             this._interactiveGraphics.destroy();
             this._interactiveGraphics = null;
+        }
+        if (this._textLabel) {
+            PixiController.get().Pixi.stage.removeChild(this._textLabel);
+            this._textLabel.destroy();
+            this._textLabel = null;
         }
     }
     get Rive() {

@@ -1,6 +1,7 @@
 import { Artboard, Renderer } from "@rive-app/webgl-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
+import * as PIXI from "pixi.js";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",
     PHYSICS = "PHYSICS"
@@ -10,6 +11,9 @@ export interface RiveObjectDef extends CanvasObjectDef {
     objectType: RIVE_OBJECT_TYPE;
     artboardName: string;
     id?: string;
+    onClickCallback?: (event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj: CanvasRiveObj) => void;
+    onHoverCallback?: (sourceObj: CanvasRiveObj) => void;
+    onHoverOutCallback?: (sourceObj: CanvasRiveObj) => void;
     classType?: new (def: RiveObjectDef, artboard: Artboard) => CanvasRiveObj;
 }
 export declare class RiveObjectsSet {

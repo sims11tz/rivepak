@@ -13,12 +13,23 @@ import { PixiController } from "./controllers/PixiController";
 import { useEffect, useRef } from "react";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
+import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
 export var CANVAS_ENGINE_RUN_STATE;
 (function (CANVAS_ENGINE_RUN_STATE) {
     CANVAS_ENGINE_RUN_STATE["STOPPED"] = "STOPPED";
     CANVAS_ENGINE_RUN_STATE["RUNNING"] = "RUNNING";
     CANVAS_ENGINE_RUN_STATE["PAUSED"] = "PAUSED";
 })(CANVAS_ENGINE_RUN_STATE || (CANVAS_ENGINE_RUN_STATE = {}));
+export class ResizeCanvasObj {
+    constructor(width, height, scale, margin, canvasRef = null) {
+        this.canvasRef = null;
+        this.width = width;
+        this.height = height;
+        this.scale = scale;
+        this.margin = margin;
+        this.canvasRef = canvasRef;
+    }
+}
 export class CanvasSettingsDef {
     constructor({ physicsEnabled = false, physicsWalls = false, width = 800, height = 500, autoScale = false, debugMode = false, }) {
         this.physicsEnabled = physicsEnabled;
@@ -56,6 +67,7 @@ export class CanvasEngine {
                 clearTimeout(this._resizeDebounceTimeout);
             }
             this.runState = CANVAS_ENGINE_RUN_STATE.PAUSED;
+            CanvasEngineStartResizePubSub.Publish({});
             this._resizeDebounceTimeout = window.setTimeout(() => {
                 this.ResizeCanvasToWindow();
                 this._resizeDebounceTimeout = null;
@@ -96,6 +108,7 @@ export class CanvasEngine {
                     obj.ApplyResolutionScale(this._currentCanvasScale);
                 });
             });
+            CanvasEngineResizePubSub.Publish({ width: newWidth, height: newHeight, scale: this._currentCanvasScale, margin: `${vertMargin}px ${horizMargin}px`, canvasRef: this.canvasRef });
         };
     }
     static get() { if (!CanvasEngine._instance)
@@ -242,6 +255,22 @@ export class CanvasEngine {
         cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
         groupArray.push(...cObjs);
         groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
+    }
+    RemoveCanvasObjects(objs, group = "main") {
+        const groupArray = this.canvasObjects.get(group);
+        if (!groupArray)
+            return;
+        const objsToRemove = Array.isArray(objs) ? objs : [objs];
+        for (const obj of objsToRemove) {
+            const index = groupArray.indexOf(obj);
+            if (index !== -1) {
+                groupArray.splice(index, 1);
+                obj.Dispose();
+            }
+        }
+        if (groupArray.length === 0) {
+            this.canvasObjects.delete(group);
+        }
     }
     updateZIndex(canvasObj, newZIndex) {
         var _a;

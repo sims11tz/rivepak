@@ -7,6 +7,14 @@ export declare enum CANVAS_ENGINE_RUN_STATE {
     RUNNING = "RUNNING",
     PAUSED = "PAUSED"
 }
+export declare class ResizeCanvasObj {
+    width: number;
+    height: number;
+    scale: number;
+    margin: string;
+    canvasRef: HTMLCanvasElement | null;
+    constructor(width: number, height: number, scale: number, margin: string, canvasRef?: HTMLCanvasElement | null);
+}
 export declare class CanvasSettingsDef {
     physicsEnabled?: boolean;
     physicsWalls?: boolean;
@@ -58,6 +66,7 @@ export declare class CanvasEngine {
     SetFpsCallback(cb: (fps: string) => void): void;
     GetFPS(): string;
     AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string): void;
+    RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group?: string): void;
     private updateZIndex;
     private _resizeDebounceTimeout;
     ResizeWindowEvent: () => void;
