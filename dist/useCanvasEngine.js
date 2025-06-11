@@ -289,6 +289,7 @@ export class CanvasEngine {
     }
     get CurrentCanvasScale() { return this._currentCanvasScale; }
     Dispose() {
+        console.log('CanvasEngine.Dispose()');
         this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
         if (this.engine) {
             Matter.Events.off(this.engine, "collisionStart");
@@ -296,6 +297,7 @@ export class CanvasEngine {
             Matter.Engine.clear(this.engine);
         }
         this.canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
+        console.log('CanvasEngine......canvasObjects.clear(*)!');
         this.canvasObjects.clear();
         if (this.animationFrameId && this.riveInstance) {
             this.riveInstance.cancelAnimationFrame(this.animationFrameId);
@@ -372,6 +374,8 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
             engine.Init(canvasSettings, onInit);
         });
         return () => {
+            console.log('........... CanvasEngine cleanup......');
+            hasEngineInitialized.current = false;
             CanvasEngine.get().Dispose();
         };
     }, []);

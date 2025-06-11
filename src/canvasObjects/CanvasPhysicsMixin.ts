@@ -15,7 +15,7 @@ interface iCollisionMixin
 
 interface PhysicsPluginData { object: CanvasObj; }
 
-export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
+export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
 {
 	return class extends Base implements iCollisionMixin
 	{
@@ -40,7 +40,6 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 				label: this.label,
 			});
 
-			//(this._body as any).plugin = { object: this };
 			(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: this };
 
 			PhysicsController.get().AddBody(this._body);
@@ -118,6 +117,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 		public ApplyResolutionScale(scale:number, property:string="")
 		{
 			if(!this._body) return;
+
 			if(scale !== this._resolutionScaleMixLast)
 			{
 				property = "*";
@@ -127,9 +127,9 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 			if((property == "*") || (property == "x" && this._transformedMixXlast != this.x))
 			{
 				this._transformedX = this.x * scale;
-				this._transformedMixXlast = this.x;
+				this._transformedMixXlast = this.x
 				//Matter.Body.setPosition(this._body, { x: this._transformedX+(this.transformedWidth/2), y: this._body.position.y });
-				//console.log("MIX<"+property+">-"+this.label+"APRS  4("+scale+") x "+this.x+"-trans="+this.transformedX+"-last="+this._transformedMixXlast);
+				//console.log("MIX<"+property+">-"+this.label+"APRS  4x("+scale+") x "+this.x+"-trans="+this.transformedX+"-last="+this._transformedMixXlast);
 				//this.checkBody();
 			}
 
@@ -160,7 +160,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 						Matter.Body.setVelocity(this._body, { x: this._body.velocity.x * scaleAmount, y: this._body.velocity.y });
 						Matter.Body.setPosition(this._body, { x: this._transformedX+(this.transformedWidth/2), y: this._body.position.y });
 						Matter.Body.setInertia(this._body, Infinity);
-						this.checkBody();
+						//this.checkBody();
 						//Matter.Body.update(this._body, 0, 1, 1);
 						//Matter.Body.setPosition(this._body, this._body.position);
 						//Matter.Bounds.update(this._body.bounds, this._body.vertices, this._body.velocity);
@@ -192,7 +192,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 						Matter.Body.setVelocity(this._body, { x: this._body.velocity.x, y: this._body.velocity.y * scaleAmount });
 						Matter.Body.setPosition(this._body, { x: this._body.position.x, y: this.transformedY+(this.transformedHeight/2) });
 						Matter.Body.setInertia(this._body, Infinity);
-						this.checkBody();
+						//this.checkBody();
 						//Matter.Body.update(this._body, 0, 1, 1);
 						//Matter.Bounds.update(this._body.bounds, this._body.vertices, this._body.velocity);
 					}
@@ -206,8 +206,6 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 					//console.log("MIX-"+this.label+"APRS h NO SCALE NEEDED");
 				}
 			}
-
-
 		}
 
 		public UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void
@@ -224,15 +222,15 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T)
 			{
 				if(this._resolutionScale !== -1)
 				{
-					//if(onceSecond)
-					//{
-					//	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update START');
-					//	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update START');
-					//	console.log('MIXIN.<'+this.x+'/'+this.y+'> this._resolutionScale='+this._resolutionScale+'........... update update update update update update update START');
-					//	this.checkBody();
-					//	console.log(' LOL ok try this1 :: '+(this._body.position.x/this._resolutionScale));
-					//	console.log(' LOL ok try this2 :: '+(this.width / 2));
-					//}
+					if(onceSecond)
+					{
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update START');
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update START');
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'> this._resolutionScale='+this._resolutionScale+'........... update update update update update update update START');
+						this.checkBody();
+						//console.log(' LOL ok try this1 :: '+(this._body.position.x/this._resolutionScale));
+						//console.log(' LOL ok try this2 :: '+(this.width / 2));
+					}
 					this.x = (this._body.position.x/this._resolutionScale) - (this.width / 2);
 					this.y = (this._body.position.y/this._resolutionScale) - (this.height / 2);
 					//if(onceSecond)

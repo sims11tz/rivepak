@@ -5,4 +5,5 @@ export declare class RiveAnimationObject extends CanvasRiveObj {
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     protected initRiveObject(): void;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Dispose(): void;
 }

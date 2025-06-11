@@ -61,39 +61,39 @@ export class CanvasSettingsDef
 
 export class CanvasEngine
 {
-	private static _instance: CanvasEngine; static get(): CanvasEngine { if (!CanvasEngine._instance) CanvasEngine._instance = new CanvasEngine(); return CanvasEngine._instance; }
+	private static _instance:CanvasEngine; static get():CanvasEngine { if (!CanvasEngine._instance) CanvasEngine._instance = new CanvasEngine(); return CanvasEngine._instance; }
 
-	public canvasContainerRef: HTMLDivElement | null = null;
-	public canvasAreaRef: HTMLDivElement | null = null;
-	public canvasRef: HTMLCanvasElement | null = null;
-	public pixiCanvasRef: HTMLCanvasElement | null = null;
-	public debugContainerRef: HTMLDivElement | null = null;
-	public runStateLabel: HTMLDivElement | null = null;
-	public fpsLabel: HTMLDivElement | null = null;
-	public fpsSpinner: HTMLDivElement | null = null;
+	public canvasContainerRef:HTMLDivElement | null = null;
+	public canvasAreaRef:HTMLDivElement | null = null;
+	public canvasRef:HTMLCanvasElement | null = null;
+	public pixiCanvasRef:HTMLCanvasElement | null = null;
+	public debugContainerRef:HTMLDivElement | null = null;
+	public runStateLabel:HTMLDivElement | null = null;
+	public fpsLabel:HTMLDivElement | null = null;
+	public fpsSpinner:HTMLDivElement | null = null;
 
-	public rive: RiveInstance | null = null;
-	public canvasObjects: Map<string, CanvasObj[]> = new Map();
+	public rive:RiveInstance | null = null;
+	public canvasObjects:Map<string, CanvasObj[]> = new Map();
 
-	private animationFrameId: number | null = null;
-	private riveInstance: RiveInstance | null = null;
-	private runState: CANVAS_ENGINE_RUN_STATE = CANVAS_ENGINE_RUN_STATE.STOPPED;
-	private engine: Matter.Engine | null = null;
-	public get EngineSettings(): CanvasSettingsDef | null { return this._canvasSettings; }
-	private _canvasSettings: CanvasSettingsDef | null = null;
+	private animationFrameId:number | null = null;
+	private riveInstance:RiveInstance | null = null;
+	private runState:CANVAS_ENGINE_RUN_STATE = CANVAS_ENGINE_RUN_STATE.STOPPED;
+	private engine:Matter.Engine | null = null;
+	public get EngineSettings():CanvasSettingsDef | null { return this._canvasSettings; }
+	private _canvasSettings:CanvasSettingsDef | null = null;
 
-	private _canvasWidth: number = 0;
-	public get width(): number { return this._canvasWidth; }
-	private _canvasHeight: number = 0;
-	public get height(): number { return this._canvasHeight; }
+	private _canvasWidth:number = 0;
+	public get width():number { return this._canvasWidth; }
+	private _canvasHeight:number = 0;
+	public get height():number { return this._canvasHeight; }
 
-	private updateListeners: Set<(dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
-	public AddUpdateListener(listener: (dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	private updateListeners:Set<(dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
+	public AddUpdateListener(listener:(dt:number, frameCount:number, oncePerSecond:boolean) => void)
 	{
 		this.updateListeners.add(listener);
 	}
 
-	public RemoveUpdateListener(listener: (dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	public RemoveUpdateListener(listener:(dt:number, frameCount:number, oncePerSecond:boolean) => void)
 	{
 		this.updateListeners.delete(listener);
 	}
@@ -392,6 +392,7 @@ export class CanvasEngine
 
 	public Dispose()
 	{
+		console.log('CanvasEngine.Dispose()');
 		this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
 
 		if (this.engine)
@@ -402,6 +403,7 @@ export class CanvasEngine
 		}
 
 		this.canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
+		console.log('CanvasEngine......canvasObjects.clear(*)!');
 		this.canvasObjects.clear();
 
 		if (this.animationFrameId && this.riveInstance)
@@ -543,6 +545,8 @@ export function UseCanvasEngineHook(
 
 		return () =>
 		{
+			console.log('........... CanvasEngine cleanup......');
+			hasEngineInitialized.current = false;
 			CanvasEngine.get().Dispose();
 		};
 	}, []);

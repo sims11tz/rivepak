@@ -71,8 +71,7 @@ export class CanvasRiveObj extends CanvasObj
 
 	protected initRiveObject():void
 	{
-		//console.log('%c initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
-		//console.log('%c initRiveObj(*) defObj:','color:#00FF88; font-weight:bold;',this.defObj);
+		//console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
 
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
@@ -185,7 +184,6 @@ export class CanvasRiveObj extends CanvasObj
 		}
 
 		this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale:this.xScale, yScale:this.yScale, riveInteractiveLocalOnly:this.defObj.riveInteractiveLocalOnly};
-		//console.log("Inputs Loaded : "+this._inputs.size);
 	}
 
 	public updateEntityObj():void
@@ -452,7 +450,7 @@ export class CanvasRiveObj extends CanvasObj
 
 	public Dispose(): void
 	{
-		super.Dispose();
+		console.log('%c CanvasRiveObj.Dispose() ---------'+this._label, 'color: #FF69B4; font-weight: bold;',this.defObj);
 
 		this._animations.forEach((animation) => animation.delete());
 		this._stateMachine?.delete();
@@ -461,7 +459,6 @@ export class CanvasRiveObj extends CanvasObj
 
 		this._renderer = undefined as unknown as Renderer;
 		this._artboard = undefined as unknown as Artboard;
-		this._defObj = undefined as unknown as RiveObjectDef;
 
 		if(this._interactiveGraphics)
 		{
@@ -480,6 +477,8 @@ export class CanvasRiveObj extends CanvasObj
 			this._textLabel.destroy();
 			this._textLabel = null;
 		}
+
+		super.Dispose();
 	}
 
 	protected get Rive(): Awaited<ReturnType<typeof RiveCanvas>>

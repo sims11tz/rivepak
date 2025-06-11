@@ -130,13 +130,14 @@ export abstract class CanvasObj
 	public _body: Matter.Body | null = null;
 
 	public _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
-	constructor(defObj: CanvasObjectDef)
+	constructor(defObj:CanvasObjectDef)
 	{
+		console.log("CanvasObj.constructor() -- defObj=", defObj);
 		this._defObj = defObj;
+		console.log("CanvasObj.constructor() -- defObj=", this.defObj);
 
 		this._uuid = GlobalUIDGenerator.generateUID();
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
-		//console.log('%c CanvasObj() label:'+this._label+', uuid:'+this._uuid,'color:#00FF88; font-weight:bold;',this.defObj);
 
 		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0 };
 
@@ -173,11 +174,6 @@ export abstract class CanvasObj
 				return true;
 			},
 		});
-	}
-
-	public checkBody()
-	{
-		console.log('base check body....');
 	}
 
 	public UpdateBaseProps()
@@ -218,6 +214,7 @@ export abstract class CanvasObj
 
 	public ApplyResolutionScale(scale:number, property:string="")
 	{
+		//console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);
 		if(scale !== this._resolutionScale)
 		{
 			//console.log(""+this.label+"  1 * "+scale+" ");
@@ -288,8 +285,10 @@ export abstract class CanvasObj
 
 	public Dispose():void
 	{
+		console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% START ',this.defObj);
 		this._propertyChangeListeners.clear();
 		this._defObj = null;
 		this._OnZIndexChanged = null;
+		console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END');
 	}
 }

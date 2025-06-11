@@ -346,6 +346,8 @@ export class RiveController
 
 	public Dispose()
 	{
+		console.log("RiveController - Dispose!!!!!!!!!!!!!!!!!");
+
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
 
 		try
@@ -356,6 +358,8 @@ export class RiveController
 		{
 			//console.log("RiveController - Error cleaning up Rive Renderer:", error);
 		}
+
+		this._riveObjectsSet = null
 
 		this._riveRenderer = null;
 		this._canvas = null;

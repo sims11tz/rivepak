@@ -15,7 +15,7 @@ export class PhysicsController
 
 	private wallThickness(delta:number) { return delta*this._wallOptions.wallThickness; }
 
-	public Init(canvas: HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv: HTMLDivElement, debug: boolean = false)
+	public Init(canvas:HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv:HTMLDivElement, debug:boolean = false)
 	{
 		this._physicswalls = physicsWalls;
 

@@ -53,10 +53,11 @@ export class CanvasObj {
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;
+        console.log("CanvasObj.constructor() -- defObj=", defObj);
         this._defObj = defObj;
+        console.log("CanvasObj.constructor() -- defObj=", this.defObj);
         this._uuid = GlobalUIDGenerator.generateUID();
         this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
-        //console.log('%c CanvasObj() label:'+this._label+', uuid:'+this._uuid,'color:#00FF88; font-weight:bold;',this.defObj);
         this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0 };
         this.centerLocally = (_e = defObj.centerLocally) !== null && _e !== void 0 ? _e : false;
         this.centerGlobally = (_f = defObj.centerGlobally) !== null && _f !== void 0 ? _f : false;
@@ -84,9 +85,6 @@ export class CanvasObj {
                 return true;
             },
         });
-    }
-    checkBody() {
-        console.log('base check body....');
     }
     UpdateBaseProps() {
         this.baseX = this._state.x;
@@ -119,6 +117,7 @@ export class CanvasObj {
         }
     }
     ApplyResolutionScale(scale, property = "") {
+        //console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);
         if (scale !== this._resolutionScale) {
             //console.log(""+this.label+"  1 * "+scale+" ");
             property = "*";
@@ -166,8 +165,10 @@ export class CanvasObj {
         this._OnZIndexChanged = func;
     }
     Dispose() {
+        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% START ', this.defObj);
         this._propertyChangeListeners.clear();
         this._defObj = null;
         this._OnZIndexChanged = null;
+        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END');
     }
 }

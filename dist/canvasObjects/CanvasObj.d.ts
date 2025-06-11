@@ -20,7 +20,6 @@ export interface CanvasObjectEntity {
 }
 export interface CanvasObjectDef {
     uuid?: string;
-    label?: string;
     text?: string;
     count?: number;
     width?: number;
@@ -91,7 +90,6 @@ export declare abstract class CanvasObj {
     _body: Matter.Body | null;
     _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void>;
     constructor(defObj: CanvasObjectDef);
-    checkBody(): void;
     UpdateBaseProps(): void;
     get x(): number;
     set x(value: number);

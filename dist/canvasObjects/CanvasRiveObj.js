@@ -32,8 +32,7 @@ export class CanvasRiveObj extends CanvasObj {
         this._animations = [];
     }
     initRiveObject() {
-        //console.log('%c initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
-        //console.log('%c initRiveObj(*) defObj:','color:#00FF88; font-weight:bold;',this.defObj);
+        //console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
         var _a, _b, _c, _d;
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
@@ -127,7 +126,6 @@ export class CanvasRiveObj extends CanvasObj {
             //console.log("No State Machine found");
         }
         this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale: this.xScale, yScale: this.yScale, riveInteractiveLocalOnly: this.defObj.riveInteractiveLocalOnly };
-        //console.log("Inputs Loaded : "+this._inputs.size);
     }
     updateEntityObj() {
         this._entityObj.x = this.x;
@@ -308,14 +306,13 @@ export class CanvasRiveObj extends CanvasObj {
     }
     Dispose() {
         var _a;
-        super.Dispose();
+        console.log('%c CanvasRiveObj.Dispose() ---------' + this._label, 'color: #FF69B4; font-weight: bold;', this.defObj);
         this._animations.forEach((animation) => animation.delete());
         (_a = this._stateMachine) === null || _a === void 0 ? void 0 : _a.delete();
         this._animations = [];
         this._stateMachine = null;
         this._renderer = undefined;
         this._artboard = undefined;
-        this._defObj = undefined;
         if (this._interactiveGraphics) {
             this._interactiveGraphics.off("pointerdown", this.onClick, this);
             this._interactiveGraphics.off("pointerover", this.onHover, this);
@@ -329,6 +326,7 @@ export class CanvasRiveObj extends CanvasObj {
             this._textLabel.destroy();
             this._textLabel = null;
         }
+        super.Dispose();
     }
     get Rive() {
         return this._riveInstance;
