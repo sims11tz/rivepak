@@ -450,8 +450,6 @@ export class CanvasRiveObj extends CanvasObj
 
 	public Dispose(): void
 	{
-		console.log('%c CanvasRiveObj.Dispose() ---------'+this._label, 'color: #FF69B4; font-weight: bold;',this.defObj);
-
 		this._animations.forEach((animation) => animation.delete());
 		this._stateMachine?.delete();
 		this._animations = [];

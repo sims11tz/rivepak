@@ -25,7 +25,6 @@ export class RiveAnimationObject extends CanvasRiveObj
 
 	public Dispose(): void
 	{
-		console.log("RiveAnimationObject Dispose called :: ",this.defObj);
 		super.Dispose();
 	}
 }

@@ -132,9 +132,7 @@ export abstract class CanvasObj
 	public _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
-		console.log("CanvasObj.constructor() -- defObj=", defObj);
 		this._defObj = defObj;
-		console.log("CanvasObj.constructor() -- defObj=", this.defObj);
 
 		this._uuid = GlobalUIDGenerator.generateUID();
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
@@ -285,10 +283,8 @@ export abstract class CanvasObj
 
 	public Dispose():void
 	{
-		console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% START ',this.defObj);
 		this._propertyChangeListeners.clear();
 		this._defObj = null;
 		this._OnZIndexChanged = null;
-		console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END');
 	}
 }

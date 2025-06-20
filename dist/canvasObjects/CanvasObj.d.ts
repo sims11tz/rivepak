@@ -20,6 +20,7 @@ export interface CanvasObjectEntity {
 }
 export interface CanvasObjectDef {
     uuid?: string;
+    label?: string;
     text?: string;
     count?: number;
     width?: number;

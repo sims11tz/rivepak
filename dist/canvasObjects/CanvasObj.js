@@ -53,9 +53,7 @@ export class CanvasObj {
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;
-        console.log("CanvasObj.constructor() -- defObj=", defObj);
         this._defObj = defObj;
-        console.log("CanvasObj.constructor() -- defObj=", this.defObj);
         this._uuid = GlobalUIDGenerator.generateUID();
         this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
         this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0 };
@@ -165,10 +163,8 @@ export class CanvasObj {
         this._OnZIndexChanged = func;
     }
     Dispose() {
-        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% START ', this.defObj);
         this._propertyChangeListeners.clear();
         this._defObj = null;
         this._OnZIndexChanged = null;
-        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END');
     }
 }
