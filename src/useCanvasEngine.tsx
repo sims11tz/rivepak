@@ -223,6 +223,8 @@ export class CanvasEngine
 			window.addEventListener("resize", this.ResizeWindowEvent);
 			this.ResizeCanvasToWindow();
 		}
+
+		setTimeout(() => this.ResizeCanvasToWindow(), 1000);
 	}
 
 	public get RunState():CANVAS_ENGINE_RUN_STATE { return this.runState; }
