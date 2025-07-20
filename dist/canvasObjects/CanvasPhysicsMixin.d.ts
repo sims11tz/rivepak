@@ -1,9 +1,9 @@
-import Matter from "matter-js";
 import { CanvasObj } from "./CanvasObj";
+import { RivePakBody } from "../types/physics.types";
 type Constructor<T = {}> = new (...args: any[]) => T;
 export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T): {
     new (...args: any[]): {
-        _body: Matter.Body | null;
+        _body: RivePakBody | null;
         _resolutionScaleMixLast: number;
         _transformedMixWidthlast: number;
         _transformedMixHeightlast: number;

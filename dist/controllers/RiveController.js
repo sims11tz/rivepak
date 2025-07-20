@@ -11,6 +11,8 @@ import RiveCanvas from "@rive-app/webgl-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasEngine } from "../useCanvasEngine";
+import { ResourceType } from "../core/ResourceManager";
+import { LRUCache } from "../core/LRUCache";
 export var RIVE_OBJECT_TYPE;
 (function (RIVE_OBJECT_TYPE) {
     RIVE_OBJECT_TYPE["ANIMATION"] = "ANIMATION";
@@ -49,25 +51,6 @@ export class RiveObjectsSet {
     }
 }
 export class RiveController {
-    constructor() {
-        this._riveInstance = null;
-        this._riveRenderer = null;
-        this._canvas = null;
-        this._canvasBounds = null;
-        this._canvasGlobalBounds = null;
-        this._riveObjectsSet = null;
-        this._initCalled = false;
-        this._cache = new Map();
-        this._mousePos = { x: 0, y: 0 };
-        this._mouseGlobalPos = { x: 0, y: 0 };
-        this._mouseDown = false;
-        this.SetMouseGlobalPos = (e) => {
-            var _a, _b;
-            this._mouseGlobalPos.x = e.clientX;
-            this._mouseGlobalPos.y = e.clientY;
-            this._canvasGlobalBounds = (_b = (_a = this._canvas) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect()) !== null && _b !== void 0 ? _b : null;
-        };
-    }
     static get() { if (RiveController.myInstance == null) {
         RiveController.myInstance = new RiveController();
     } return this.myInstance; }
@@ -77,23 +60,69 @@ export class RiveController {
     get CanvasBounds() { return this._canvasBounds; }
     get CanvasGlobalBounds() { return this._canvasBounds; }
     get RiveObjectsSet() { return this._riveObjectsSet; }
-    Init(canvas) {
+    constructor() {
+        this._riveInstance = null;
+        this._riveRenderer = null;
+        this._canvas = null;
+        this._canvasBounds = null;
+        this._canvasGlobalBounds = null;
+        this._riveObjectsSet = null;
+        this._initCalled = false;
+        this.resourceManager = null;
+        this.eventManager = null;
+        this.mouseMoveUnsubscribe = null;
+        this._mousePos = { x: 0, y: 0 };
+        this._mouseGlobalPos = { x: 0, y: 0 };
+        this._mouseDown = false;
+        this.SetMouseGlobalPos = (e) => {
+            var _a, _b;
+            if (e instanceof MouseEvent) {
+                this._mouseGlobalPos.x = e.clientX;
+                this._mouseGlobalPos.y = e.clientY;
+                this._canvasGlobalBounds = (_b = (_a = this._canvas) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect()) !== null && _b !== void 0 ? _b : null;
+            }
+        };
+        // Initialize cache with limits
+        this._cache = new LRUCache({
+            maxEntries: 50,
+            maxSizeBytes: 100 * 1024 * 1024,
+            ttlMs: 30 * 60 * 1000,
+            onEvict: (key, entry) => {
+                console.log(`Evicting Rive file from cache: ${key} (${entry.size} bytes)`);
+            }
+        });
+    }
+    Init(canvas, resourceManager, eventManager) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (this._initCalled) {
                 return;
             }
             this._initCalled = true;
+            this.resourceManager = resourceManager || null;
+            this.eventManager = eventManager || null;
             try {
                 this._riveInstance = yield RiveCanvas({ locateFile: (file) => `/rive/${file}` });
                 this._riveRenderer = this._riveInstance.makeRenderer(canvas);
                 this._canvas = canvas;
                 this._canvasBounds = this._canvas.getBoundingClientRect();
                 console.log("🚀 Rive Renderer Type:", (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor.name);
-                window.addEventListener("mousemove", this.SetMouseGlobalPos);
+                // Use EventManager for proper cleanup
+                if (this.eventManager) {
+                    this.mouseMoveUnsubscribe = this.eventManager.addDOMListener(window, "mousemove", this.SetMouseGlobalPos);
+                }
+                else {
+                    // Fallback to direct listener
+                    window.addEventListener("mousemove", this.SetMouseGlobalPos);
+                }
+                // Register canvas with resource manager
+                if (this.resourceManager) {
+                    this.resourceManager.register('rive_canvas', ResourceType.CANVAS, canvas);
+                }
             }
             catch (error) {
                 console.error("Failed to initialize Rive:", error);
+                throw error; // Propagate error instead of silent failure
             }
         });
     }
@@ -132,6 +161,10 @@ export class RiveController {
                     return null;
                 }
                 artboard.devicePixelRatioUsed = window.devicePixelRatio;
+                // Register artboard with resource manager
+                if (this.resourceManager) {
+                    this.resourceManager.register(`rive_artboard_${def.artboardName}_${Date.now()}`, ResourceType.RIVE_ARTBOARD, artboard, () => artboard.delete());
+                }
                 let canvasRiveObj = null;
                 if (def.classType) {
                     canvasRiveObj = new def.classType(def, artboard);
@@ -290,7 +323,11 @@ export class RiveController {
         this._riveRenderer = null;
         this._canvas = null;
         this._canvasBounds = null;
+        // Clear cache
         this._cache.clear();
+        // Clear resource and event managers
+        this.resourceManager = null;
+        this.eventManager = null;
         this._riveInstance = null;
         this._initCalled = false;
         this._mousePos = { x: 0, y: 0 };

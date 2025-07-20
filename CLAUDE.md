@@ -1,8 +1,40 @@
 # RivePak - Canvas Engine Framework
 
+# IMPORTANT RULES! ALWAYS FOLLOW THESE RULES! #
+ - Ignore the /dist folder. This is not used and all of the code are .ts files.
+ - Do not generate .js files when working on the codebase.
+ - Do not consider .js files as code that will be run, only typescript is used in this codebase
+ - Do not create new .js files and if you find any don't consider them and do not modify them
+
 ## Overview
 
 RivePak is a TypeScript library that integrates HTML canvas, Pixi.js, Rive, and Matter.js into a unified visual system. It provides a powerful framework for creating interactive canvas applications with vector animations (Rive), raster graphics (Pixi), and physics simulation (Matter.js).
+
+## Recent Major Improvements
+
+### 1. **Memory Management & Resource Tracking**
+- **ResourceManager**: Centralized resource tracking prevents memory leaks
+- **LRU Cache**: Automatic eviction of old Rive files with size/TTL limits
+- **Event Manager**: Automatic cleanup of event listeners
+- **WeakMap Usage**: Prevents circular references
+
+### 2. **Performance Optimizations**
+- **Viewport Culling**: Only renders visible objects
+- **Spatial Indexing**: Grid-based culling for thousands of objects
+- **Render Optimizer**: Batching and dirty rectangle tracking
+- **Frame Skipping**: Maintains consistent timing under load
+
+### 3. **Type Safety**
+- **No More 'any' Types**: Proper TypeScript interfaces throughout
+- **Type Guards**: Runtime validation for critical paths
+- **Physics Types**: Type-safe Matter.js integration
+- **Strict Null Checks**: No more non-null assertions
+
+### 4. **Modern Architecture**
+- **Dependency Injection**: Replaced singletons with DI container
+- **Error Boundaries**: React error handling with fallbacks
+- **Modular Design**: Clear separation of concerns
+- **Clean API Surface**: Simple, intuitive public API
 
 ## Architecture
 
@@ -13,145 +45,224 @@ RivePak is a TypeScript library that integrates HTML canvas, Pixi.js, Rive, and 
 - **Matter.js**: Adds physics simulation (optional)
 - **Canvas**: Dual-canvas system with Rive on bottom layer, Pixi on top
 
-### Key Components
+### New Core Components
 
-#### 1. CanvasEngine (Singleton)
-The main orchestrator that manages all subsystems:
-- Located in: `src/CanvasEngine.tsx`
-- Manages initialization, update loops, and coordination between controllers
-- Handles canvas setup and resolution scaling
-
-#### 2. Controllers
-
-**RiveController** (`src/controllers/RiveController.tsx`)
-- Manages Rive runtime, renderer, and artboards
-- Handles Rive file loading and caching
-- Updates Rive animations and state machines
-- Processes interactive Rive objects
-
-**PixiController** (`src/controllers/PixiController.tsx`)
-- Manages Pixi.js application and stage
-- Renders on overlay canvas
-- Handles Pixi object updates
-
-**PhysicsController** (`src/controllers/PhysicsController.tsx`)
-- Manages Matter.js engine
-- Optional physics simulation
-- Configurable walls/boundaries
-- Debug visualization support
-
-#### 3. Object System
-
-Base class hierarchy:
-```
-CanvasObj (abstract)
-├── CanvasRiveObj
-│   ├── Basic Rive animations
-│   └── Physics-enabled Rive objects (via mixin)
-└── CanvasPixiShapeObj
-    ├── Basic Pixi graphics
-    └── Physics-enabled Pixi objects (via mixin)
+#### 1. ResourceManager (`src/core/ResourceManager.ts`)
+Tracks all resources (canvases, WebGL contexts, event listeners, etc.) and ensures proper cleanup:
+```typescript
+const resourceManager = new ResourceManager();
+resourceManager.register('my_resource', ResourceType.CANVAS, canvas);
+// Automatic cleanup on dispose
 ```
 
-Physics capabilities added via `CanvasPhysicsMixin` in `src/objs/CanvasPhysicsMixin.tsx`
+#### 2. EventManager (`src/core/EventManager.ts`)
+Centralized event handling with automatic cleanup:
+```typescript
+const eventManager = new EventManager(resourceManager);
+const unsubscribe = eventManager.addDOMListener(window, 'resize', handler);
+// No memory leaks!
+```
 
-#### 4. React Integration
+#### 3. LRUCache (`src/core/LRUCache.ts`)
+Prevents unbounded memory growth:
+```typescript
+const cache = new LRUCache<Uint8Array>({
+    maxEntries: 50,
+    maxSizeBytes: 100 * 1024 * 1024, // 100MB
+    ttlMs: 30 * 60 * 1000 // 30 minutes
+});
+```
 
-**UseCanvasEngineHook** (`src/hooks/useCanvasEngine.tsx`)
-Primary React hook that provides:
-- Canvas component (`RivePakCanvas`)
-- Object management functions
-- State control methods
-- Event handlers
+#### 4. RenderOptimizer (`src/core/RenderOptimizer.ts`)
+Viewport culling and render optimizations:
+```typescript
+const optimizer = new RenderOptimizer();
+const visibleObjects = optimizer.cullObjects(allObjects);
+// Only renders what's visible!
+```
+
+#### 5. DependencyContainer (`src/core/DependencyContainer.ts`)
+Modern dependency injection:
+```typescript
+container.registerSingleton(ServiceTokens.ResourceManager, () => new ResourceManager());
+const resourceManager = container.resolve(ServiceTokens.ResourceManager);
+```
+
+### Improved React Integration
+
+#### useRivePak Hook (`src/react/useRivePak.tsx`)
+New primary React hook with automatic cleanup:
+```typescript
+const {
+    RivePakCanvas,
+    addCanvasObjects,
+    isInitialized,
+    error,
+    fps,
+    renderStats
+} = useRivePak({
+    width: 800,
+    height: 600,
+    physicsEnabled: true,
+    enableOptimizations: true,
+    onInit: async (engine) => {
+        // Initialize your scene
+    }
+});
+```
+
+#### Error Boundaries (`src/react/ErrorBoundary.tsx`)
+Graceful error handling:
+```typescript
+<ErrorBoundary fallback={(error) => <ErrorDisplay error={error} />}>
+    <RivePakCanvas />
+</ErrorBoundary>
+```
+
+### Type-Safe Physics
+
+#### Physics Types (`src/types/physics.types.ts`)
+No more `any` types for physics:
+```typescript
+interface RivePakBody extends Matter.Body {
+    plugin: {
+        rivepak: {
+            object: CanvasObj | null;
+            isWall?: boolean;
+        };
+    };
+}
+```
 
 ### File Structure
 
 ```
 src/
-├── index.ts                    # Main exports
-├── CanvasEngine.tsx           # Core engine singleton
+├── core/                      # Core infrastructure
+│   ├── ResourceManager.ts     # Resource lifecycle management
+│   ├── EventManager.ts        # Event handling with cleanup
+│   ├── LRUCache.ts           # Memory-bounded caching
+│   ├── RenderOptimizer.ts    # Viewport culling & optimization
+│   └── DependencyContainer.ts # Dependency injection
+├── react/                     # React integration
+│   ├── useRivePak.tsx        # Main React hook
+│   └── ErrorBoundary.tsx     # Error handling component
+├── types/                     # TypeScript type definitions
+│   └── physics.types.ts      # Type-safe physics
 ├── controllers/               # Subsystem controllers
-│   ├── PixiController.tsx
-│   ├── PhysicsController.tsx
-│   └── RiveController.tsx
-├── objs/                      # Object classes
-│   ├── CanvasObj.tsx         # Base class
-│   ├── CanvasRiveObj.tsx     # Rive objects
-│   ├── CanvasPixiShapeObj.tsx # Pixi objects
-│   └── CanvasPhysicsMixin.tsx # Physics mixin
-├── hooks/                     # React hooks
+│   ├── PixiController.ts
+│   ├── PhysicsController.ts
+│   └── RiveController.ts
+├── canvasObjects/            # Object classes
+│   ├── CanvasObj.ts
+│   ├── CanvasRiveObj.ts
+│   └── CanvasPixiShapeObj.ts
+├── hooks/                    # Legacy React hooks
 │   └── useCanvasEngine.tsx
-├── types.tsx                  # TypeScript definitions
-└── utils/                     # Utility functions
+└── index.ts                  # Public API exports
 ```
-
-### Key Features
-
-1. **Dual Canvas System**: Rive canvas with Pixi overlay for maximum flexibility
-2. **Resolution Scaling**: Automatic handling of different screen sizes
-3. **Physics Integration**: Optional Matter.js physics with debug visualization
-4. **Interactive Objects**: Mouse/pointer tracking for both Rive and Pixi objects
-5. **Z-index Management**: Proper depth sorting for rendering order
-6. **Event System**: PubSub pattern for decoupled communication
-7. **Performance Optimized**: Frame skipping logic and efficient update cycles
 
 ### Usage Example
 
 ```typescript
-import { UseCanvasEngineHook } from '@sims11tz/rivpak';
+import { createRivePak } from '@sims11tz/rivepak';
 
-function MyCanvas()
-{
-  const {
-    RivePakCanvas,
-    addCanvasObjects,
-    ToggleRunState,
-    // ... other methods
-  } = UseCanvasEngineHook(
-    {
-      physicsEnabled: true,
-      physicsWalls: true,
-      debugMode: false,
-      autoScale: true
-    },
-    async (engine) => {
-      // Initialize your scene
-      await addCanvasObjects([
-        // Your canvas objects
-      ]);
+// Create instance with default settings
+const rivepak = createRivePak({
+    width: 1024,
+    height: 768,
+    physicsEnabled: true,
+    debugMode: false
+});
+
+// In your React component
+function MyCanvas() {
+    const {
+        RivePakCanvas,
+        addCanvasObjects,
+        isInitialized,
+        error,
+        fps,
+        renderStats
+    } = rivepak.useHook({
+        enableOptimizations: true,
+        onInit: async (engine) => {
+            // Create your objects
+            const objects = await createMyObjects();
+            await addCanvasObjects(objects);
+        },
+        onError: (error) => {
+            console.error('Canvas error:', error);
+        }
+    });
+
+    if (error) {
+        return <div>Error: {error.message}</div>;
     }
-  );
 
-  return <RivePakCanvas />;
+    return (
+        <div>
+            <RivePakCanvas />
+            {isInitialized && (
+                <div>
+                    FPS: {fps} | 
+                    Objects: {renderStats.visibleObjects}/{renderStats.totalObjects}
+                </div>
+            )}
+        </div>
+    );
 }
 ```
 
-### Development
+### Key Features
 
-- **Build**: `npm run build` - Compiles TypeScript to dist/
-- **Local Dev**: Uses `yalc` for local package development
-- **Package**: Published to GitHub Package Registry as `@sims11tz/rivpak`
-
-### Design Patterns
-
-1. **Singleton Pattern**: Controllers are singletons for global access
-2. **Mixin Pattern**: Physics behavior added via TypeScript mixins
-3. **Observer Pattern**: PubSub for event handling
-4. **Component Pattern**: Objects composed of various capabilities
-5. **Factory Pattern**: Object creation abstracted through controller methods
+1. **Automatic Resource Management**: All resources tracked and cleaned up automatically
+2. **Memory Leak Prevention**: Event listeners, animation frames, and resources properly disposed
+3. **Performance Optimized**: Viewport culling, spatial indexing, and render batching
+4. **Type Safe**: Full TypeScript support with no `any` types
+5. **Error Resilient**: Error boundaries and comprehensive error handling
+6. **Modern API**: Clean, intuitive API with React hooks
+7. **Dependency Injection**: Testable architecture with DI container
+8. **Production Ready**: Built for large-scale applications
 
 ### Performance Considerations
 
-- Uses Rive's animation frame for unified update loop
-- Frame skipping to maintain consistent timing
-- Object caching for Rive files
-- Efficient batch updates for physics bodies
-- Resolution-aware rendering
+- **Viewport Culling**: Automatically skips rendering of off-screen objects
+- **Spatial Indexing**: Efficient culling for thousands of objects
+- **Resource Limits**: Automatic cache eviction prevents memory bloat
+- **Frame Skipping**: Maintains consistent timing under heavy load
+- **Batch Operations**: Reduces draw calls for better performance
+
+### Best Practices
+
+1. **Always use the new hooks**: `useRivePak` instead of `UseCanvasEngineHook`
+2. **Enable optimizations**: Set `enableOptimizations: true` for production
+3. **Handle errors**: Provide `onError` callbacks
+4. **Monitor performance**: Use `renderStats` to track performance
+5. **Dispose properly**: The hook handles cleanup automatically
+
+### Migration from Old API
+
+```typescript
+// Old way
+const { RivePakCanvas } = UseCanvasEngineHook(settings, onInit);
+
+// New way
+const { RivePakCanvas } = useRivePak({
+    ...settings,
+    onInit,
+    enableOptimizations: true,
+    enableErrorBoundary: true
+});
+```
 
 ### Future Extensibility
 
-The architecture supports:
-- Additional object types via inheritance
-- New controllers for other libraries
-- Custom mixins for new behaviors
-- Plugin system through the controller pattern
+The new architecture supports:
+- Additional renderers via the DI container
+- Custom resource types in ResourceManager
+- Plugin system through dependency injection
+- Extended physics engines beyond Matter.js
+- Custom render pipelines via RenderOptimizer
+
+This refactored library is now production-ready with proper memory management, type safety, and performance optimizations suitable for large-scale applications.

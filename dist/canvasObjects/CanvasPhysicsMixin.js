@@ -1,5 +1,6 @@
 import Matter from "matter-js";
 import { PhysicsController } from "../controllers/PhysicsController";
+import { createRivePakBody } from "../types/physics.types";
 export function CanvasPhysicsMixin(Base) {
     return class extends Base {
         constructor() {
@@ -14,7 +15,7 @@ export function CanvasPhysicsMixin(Base) {
         }
         InitPhysics() {
             var _a, _b;
-            this._body = Matter.Bodies.rectangle(this.x + (this.width / 2), this.y + (this.height / 2), this.width, this.height, {
+            this._body = createRivePakBody(this.x + (this.width / 2), this.y + (this.height / 2), this.width, this.height, {
                 friction: 0,
                 frictionAir: 0,
                 frictionStatic: 0,
@@ -23,8 +24,8 @@ export function CanvasPhysicsMixin(Base) {
                 restitution: 1,
                 inertia: Infinity,
                 label: this.label,
+                rivepakObject: this
             });
-            this._body.plugin = { object: this };
             PhysicsController.get().AddBody(this._body);
             let initialXSpeed = 0;
             let initialYSpeed = 0;
@@ -195,7 +196,9 @@ export function CanvasPhysicsMixin(Base) {
                     if (PhysicsController.get().engine != null && PhysicsController.get().engine.world != null) {
                         Matter.World.remove(PhysicsController.get().engine.world, this._body);
                     }
-                    this._body.plugin = { object: null };
+                    if (this._body && this._body.plugin && this._body.plugin.rivepak) {
+                        this._body.plugin.rivepak.object = null;
+                    }
                     this._body = null;
                 }
             }

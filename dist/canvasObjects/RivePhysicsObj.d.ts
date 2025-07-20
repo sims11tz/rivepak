@@ -1,10 +1,9 @@
-/// <reference types="matter-js" />
 import { Artboard } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasRiveObj } from "./CanvasRiveObj";
 declare const BaseRivePhysicsObject_base: {
     new (...args: any[]): {
-        _body: import("matter-js").Body | null;
+        _body: import("..").RivePakBody | null;
         _resolutionScaleMixLast: number;
         _transformedMixWidthlast: number;
         _transformedMixHeightlast: number;

@@ -2,6 +2,8 @@ import { Artboard, Renderer } from "@rive-app/webgl-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
 import * as PIXI from "pixi.js";
+import { ResourceManager } from "../core/ResourceManager";
+import { EventManager } from "../core/EventManager";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",
     PHYSICS = "PHYSICS"
@@ -43,7 +45,11 @@ export declare class RiveController {
     get RiveObjectsSet(): RiveObjectsSet;
     private _initCalled;
     private _cache;
-    Init(canvas: HTMLCanvasElement): Promise<void>;
+    private resourceManager;
+    private eventManager;
+    private mouseMoveUnsubscribe;
+    constructor();
+    Init(canvas: HTMLCanvasElement, resourceManager?: ResourceManager, eventManager?: EventManager): Promise<void>;
     SetSize(width: number, height: number): void;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<RiveObjectsSet>;
     private loadRiveFiles;
@@ -51,7 +57,7 @@ export declare class RiveController {
     private _mouseGlobalPos;
     private _mouseDown;
     SetMousePos(x: number, y: number): void;
-    SetMouseGlobalPos: (e: MouseEvent) => void;
+    SetMouseGlobalPos: (e: Event) => void;
     get MousePos(): {
         x: number;
         y: number;

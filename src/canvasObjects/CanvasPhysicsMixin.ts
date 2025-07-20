@@ -1,6 +1,7 @@
 import Matter from "matter-js";
 import { CanvasObj } from "./CanvasObj";
 import { PhysicsController } from "../controllers/PhysicsController";
+import { RivePakBody, createRivePakBody } from "../types/physics.types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -13,13 +14,12 @@ interface iCollisionMixin
 	Dispose(): void;
 }
 
-interface PhysicsPluginData { object: CanvasObj; }
 
 export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
 {
 	return class extends Base implements iCollisionMixin
 	{
-		public _body: Matter.Body | null = null;
+		public _body: RivePakBody | null = null;
 
 		public _resolutionScaleMixLast: number = -1;
 		public _transformedMixWidthlast: number = -1;
@@ -29,18 +29,23 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
 
 		public InitPhysics(): void
 		{
-			this._body = Matter.Bodies.rectangle(this.x+(this.width/2), this.y+(this.height/2), this.width, this.height, {
-				friction: 0,
-				frictionAir: 0,
-				frictionStatic: 0,
-				angularVelocity: 0,
-				torque: 0,
-				restitution: 1,
-				inertia: Infinity,
-				label: this.label,
-			});
-
-			(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: this };
+			this._body = createRivePakBody(
+				this.x + (this.width / 2),
+				this.y + (this.height / 2),
+				this.width,
+				this.height,
+				{
+					friction: 0,
+					frictionAir: 0,
+					frictionStatic: 0,
+					angularVelocity: 0,
+					torque: 0,
+					restitution: 1,
+					inertia: Infinity,
+					label: this.label,
+					rivepakObject: this
+				}
+			);
 
 			PhysicsController.get().AddBody(this._body);
 
@@ -278,7 +283,9 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
 						Matter.World.remove(PhysicsController.get().engine.world, this._body);
 					}
 
-					(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: null };
+					if (this._body && this._body.plugin && this._body.plugin.rivepak) {
+						this._body.plugin.rivepak.object = null;
+					}
 					this._body = null;
 				}
 			}

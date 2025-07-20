@@ -1,5 +1,7 @@
 import Matter from "matter-js";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
+import { RivePakBody, createRivePakBody, isWallBody, extractCollisionData, DEFAULT_WALL_OPTIONS, PhysicsConfig } from "../types/physics.types";
+import { ResourceManager, ResourceType } from "../core/ResourceManager";
 
 export class PhysicsController
 {
@@ -11,12 +13,14 @@ export class PhysicsController
 	private _debugRender: Matter.Render | null = null;
 
 	private _physicswalls:boolean = false;
-	private _wallOptions = { isStatic: true, restitution: 1, friction: 0, frictionStatic: 0, frictionAir: 0, wallThickness: 0.035 };
+	private _wallOptions = DEFAULT_WALL_OPTIONS;
+	private resourceManager: ResourceManager | null = null;
 
 	private wallThickness(delta:number) { return delta*this._wallOptions.wallThickness; }
 
-	public Init(canvas:HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv:HTMLDivElement, debug:boolean = false)
+	public Init(canvas:HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv:HTMLDivElement, debug:boolean = false, resourceManager?: ResourceManager)
 	{
+		this.resourceManager = resourceManager || null;
 		this._physicswalls = physicsWalls;
 
 		if (this._debugRender)
@@ -52,14 +56,41 @@ export class PhysicsController
 		Matter.Events.on(this._engine, "collisionStart", this.handleCollision);
 		if(physicsWalls)
 		{
-			const walls = [
-				Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
-				Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
-				Matter.Bodies.rectangle(0, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
-				Matter.Bodies.rectangle(canvas.width, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
+			const walls: RivePakBody[] = [
+				createRivePakBody(
+					canvas.width / 2, 0,
+					canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width),
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					canvas.width / 2, canvas.height,
+					canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width),
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					0, canvas.height / 2,
+					this.wallThickness(canvas.width), canvas.height,
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					canvas.width, canvas.height / 2,
+					this.wallThickness(canvas.width), canvas.height,
+					{ ...this._wallOptions, isWall: true }
+				)
 			];
-			walls.forEach(w => (w as any).isWall = true);
 			Matter.World.add(this._engine.world, walls);
+			
+			// Register walls with resource manager
+			if (this.resourceManager) {
+				walls.forEach((wall, index) => {
+					this.resourceManager!.register(
+						`physics_wall_${index}`,
+						ResourceType.MATTER_BODY,
+						wall,
+						() => Matter.World.remove(this._engine!.world, wall)
+					);
+				});
+			}
 		}
 	}
 
@@ -78,16 +109,31 @@ export class PhysicsController
 		{
 			const world = this._engine.world;
 
-			const wallsToRemove = world.bodies.filter(b => (b as any).isWall);
+			const wallsToRemove = world.bodies.filter(b => isWallBody(b));
 			wallsToRemove.forEach(w => Matter.World.remove(world, w));
 
-			const newWalls = [
-				Matter.Bodies.rectangle(width / 2, 0, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-				Matter.Bodies.rectangle(width / 2, height, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-				Matter.Bodies.rectangle(0, height / 2, this.wallThickness(width), height, this._wallOptions),
-				Matter.Bodies.rectangle(width, height / 2, this.wallThickness(width), height, this._wallOptions),
+			const newWalls: RivePakBody[] = [
+				createRivePakBody(
+					width / 2, 0,
+					width - this.wallThickness(width), this.wallThickness(width),
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					width / 2, height,
+					width - this.wallThickness(width), this.wallThickness(width),
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					0, height / 2,
+					this.wallThickness(width), height,
+					{ ...this._wallOptions, isWall: true }
+				),
+				createRivePakBody(
+					width, height / 2,
+					this.wallThickness(width), height,
+					{ ...this._wallOptions, isWall: true }
+				)
 			];
-			newWalls.forEach(w => (w as any).isWall = true);
 
 			Matter.World.add(world, newWalls);
 		}
@@ -117,14 +163,16 @@ export class PhysicsController
 			const bodyA = pair.bodyA;
 			const bodyB = pair.bodyB;
 
-			const objA = bodyA.parent?.plugin?.object as RivePhysicsObject;
-			const objB = bodyB.parent?.plugin?.object as RivePhysicsObject;
-
-			if (objA && objB)
-			{
-				const impactForce = Matter.Vector.magnitude(pair.collision.penetration);
-				objA.OnCollision(objB, impactForce);
-				objB.OnCollision(objA, impactForce);
+			const collisionData = extractCollisionData(pair);
+			if (collisionData && collisionData.objectA && collisionData.objectB) {
+				(collisionData.objectA as RivePhysicsObject).OnCollision(
+					collisionData.objectB,
+					collisionData.impactForce
+				);
+				(collisionData.objectB as RivePhysicsObject).OnCollision(
+					collisionData.objectA,
+					collisionData.impactForce
+				);
 			}
 		});
 	};

@@ -1,9 +1,8 @@
-/// <reference types="matter-js" />
 import { CanvasObjectDef } from "./CanvasObj";
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 declare const BaseShapePhysicsObj_base: {
     new (...args: any[]): {
-        _body: import("matter-js").Body | null;
+        _body: import("..").RivePakBody | null;
         _resolutionScaleMixLast: number;
         _transformedMixWidthlast: number;
         _transformedMixHeightlast: number;
