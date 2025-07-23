@@ -1,0 +1,32 @@
+{
+  "name": "@sims11tz/rivpak",
+  "version": "0.0.17",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev:watch": "chokidar 'src/**/*' -c 'npm run build && yalc push'"
+  },
+  "dependencies": {
+    "@rive-app/canvas": "^2.27.2",
+    "@rive-app/canvas-advanced": "^2.27.2",
+    "@rive-app/webgl": "^2.27.2",
+    "@rive-app/webgl-advanced": "^2.27.2",
+    "matter-js": "^0.20.0",
+    "pixi.js": "^8.10.1",
+    "react": "^18.2.0",
+    "typescript": "4.9"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sims11tz/rivpak.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "yalcSig": "ae41e33d35fa4750062765f719a9c50f"
+}

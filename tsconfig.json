@@ -22,5 +22,5 @@
 		"outDir": "./dist",
 		"declarationDir": "./dist",
 	},
-	"include": ["src/**/*"]
+	"include": ["src/**/*", "../typers/client/src/yalc-check.ts"]
 }
