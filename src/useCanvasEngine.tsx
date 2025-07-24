@@ -102,9 +102,6 @@ export class CanvasEngine
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
-		console.log(" ");
-		console.log("CanvasEngine.Init(DAVE) ");
-
 		this._canvasSettings = canvasSettings;
 
 		this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
@@ -115,7 +112,6 @@ export class CanvasEngine
 		this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
 		this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
 
-		console.log("CanvasEngine.Ini t() - init pixicontroller canvas size: ", this._canvasWidth, this._canvasHeight);
 		PixiController.get().Init(this._canvasWidth, this._canvasHeight);
 
 		await RiveController.get().Init(canvas);
@@ -346,7 +342,6 @@ export class CanvasEngine
 	public get CurrentCanvasScale(): number { return this._currentCanvasScale; }
 	public ResizeCanvasToWindow = (): void =>
 	{
-		console.log("CanvasEngine.ResizeCanvasToWindow() 1	");
 		if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height) return;
 
 		const el = document.getElementById("routesContainer") as HTMLDivElement;
@@ -375,18 +370,13 @@ export class CanvasEngine
 			//newHeight = this._canvasSettings.height-10;
 		}
 
-		console.log("CanvasEngine.ResizeCanvasToWindow() 2 -- set canvasContainerRef ");
-
 		this.canvasContainerRef!.style.width = `${newWidth}px`;
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
 
 		// Notify Rive of resize
-		console.log("CanvasEngine.ResizeCanvasToWindow() 3 tell RiveController about resize");
 		RiveController.get().SetSize(newWidth, newHeight);
-		console.log("CanvasEngine.ResizeCanvasToWindow() 4 tell PixiController about resize");
 		PixiController.get().SetSize(newWidth, newHeight);
-		console.log("CanvasEngine.ResizeCanvasToWindow() 5 tell PhysicsController about resize");
 		PhysicsController.get().SetSize(newWidth, newHeight);
 
 		// Apply canvas scale to all objects
@@ -403,7 +393,6 @@ export class CanvasEngine
 
 	public Dispose()
 	{
-		console.log('CanvasEngine.Dispose()');
 		this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
 
 		if (this.engine)
@@ -414,7 +403,6 @@ export class CanvasEngine
 		}
 
 		this.canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
-		console.log('CanvasEngine......canvasObjects.clear(*)!');
 		this.canvasObjects.clear();
 
 		if (this.animationFrameId && this.riveInstance)

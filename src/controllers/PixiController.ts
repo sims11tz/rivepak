@@ -30,21 +30,15 @@ export class PixiController
 	{
 		if (this._pixiInstance) this.Dispose();
 
-		console.log("PixiController.Init() - Creating new Pixi Application");
-
 		let oldCanvas = document.getElementById('pixiCanvas');
-
 		this._canvasContainer = document.getElementById('pixiCanvasContainer') as HTMLDivElement;
 
 		if (oldCanvas) oldCanvas.remove();
 
-		console.log("PixiController.Init() - set canvas width/height to: ", width || 800, height || 500);
 		this._canvas = document.createElement('canvas');
 		this._canvas.id = 'pixiCanvas';
 		this._canvas.width = width || 800;
 		this._canvas.height = height || 500;
-
-		console.log("PixiController.Init() - set canvas width/height to: ", this._canvas.width, this._canvas.height);
 
 		this._canvasContainer.appendChild(this._canvas); // Add to the same parent
 
@@ -56,8 +50,6 @@ export class PixiController
 			backgroundAlpha: 0,
 			canvas: this._canvas,
 		});
-
-		console.log("PixiController.Init() - post init: ", this._canvas.width, this._canvas.height);
 
 		this._pixiInstance.stage.eventMode = 'static';
 		this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;
@@ -83,29 +75,16 @@ export class PixiController
 
 	public SetSize(width: number, height: number)
 	{
-		console.log("PixiController.SetSize() "+ width + "x" + height);
 		if (!this._pixiInstance || !this._pixiInstance.renderer) return;
 
-		console.log("this._pixiInstance.renderer.resize(width, height)");
 		this._pixiInstance.renderer.resize(width, height);
 		this._pixiInstance.stage.hitArea = this._pixiInstance.renderer.screen;
 
-		console.log(" _canvasContainer.setAttribute width/height on canvasContainer and canvas");
 		this._canvasContainer?.setAttribute("width", `${width}`);
 		this._canvasContainer?.setAttribute("height", `${height}`);
 
-		console.log(" _canvas.setAttribute width/height on canvasContainer and canvas");
 		this._canvas?.setAttribute("width", `${width}`);
 		this._canvas?.setAttribute("height", `${height}`);
-
-		console.log("PixiController SetSize: ", this._canvas!.width, this._canvas!.height);
-		console.log("PixiController SetSize: ", this._canvasContainer!.style.width, this._canvasContainer!.style.height);
-
-		console.log("PixiController.SetSize() - all done....... ");
-		//this.canvasContainerRef!.style.width = `${width}px`;
-
-		//this.canvasContainerRef!.style.width = `${newWidth}px`;
-		//this.canvasContainerRef!.style.height = `${newHeight}px`;
 	}
 
 	public Dispose()
