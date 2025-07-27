@@ -1,3 +1,4 @@
+/// <reference types="matter-js" />
 import { Artboard } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasRiveObj } from "./CanvasRiveObj";

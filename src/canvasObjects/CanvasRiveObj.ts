@@ -354,6 +354,12 @@ export class CanvasRiveObj extends CanvasObj
 		this.Renderer.restore();
 	}
 
+	public SetText(text: string): void
+	{
+		this.defObj.text = text;
+		this.drawTextLabel();
+	}
+
 	private _textLabel: PIXI.Text | null = null;
 	private drawTextLabel()
 	{

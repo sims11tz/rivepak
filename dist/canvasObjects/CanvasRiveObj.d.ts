@@ -41,6 +41,7 @@ export declare class CanvasRiveObj extends CanvasObj {
     RandomInput(): SMIInput | null;
     RandomInputByName(searchTerm: string): SMIInput | null;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
+    SetText(text: string): void;
     private _textLabel;
     private drawTextLabel;
     private _interactiveGraphics;

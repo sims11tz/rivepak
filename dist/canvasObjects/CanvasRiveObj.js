@@ -240,6 +240,10 @@ export class CanvasRiveObj extends CanvasObj {
         this.artboard.draw(this.Renderer);
         this.Renderer.restore();
     }
+    SetText(text) {
+        this.defObj.text = text;
+        this.drawTextLabel();
+    }
     drawTextLabel() {
         if (this._textLabel) {
             this._textLabel.destroy();
