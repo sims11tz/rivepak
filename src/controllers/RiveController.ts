@@ -99,6 +99,20 @@ export class RiveController
 			this._canvas = canvas;
 			this._canvasBounds = this._canvas.getBoundingClientRect();
 			console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
+			console.log(this._riveInstance);
+			console.log(this._riveRenderer);
+
+			//const dpr = window.devicePixelRatio || 1;
+			//canvas.width = canvas.clientWidth * dpr;
+			//canvas.height = canvas.clientHeight * dpr;
+
+			//// If your renderer supports setBounds or setDevicePixelRatio, do it:
+			//this._riveRenderer!.align(
+			//	0, 0, canvas.clientWidth, canvas.clientHeight,
+			//	this._riveInstance.Fit.contain,
+			//	this._riveInstance.Alignment.center
+			//);
+			//this._riveRenderer!.setDevicePixelRatio(dpr);
 
 			window.addEventListener("mousemove", this.SetMouseGlobalPos);
 		} catch (error) { console.error("Failed to initialize Rive:", error); }
