@@ -20,19 +20,26 @@ export class CanvasPixiShapeObj extends CanvasObj {
         //bunny.anchor.set(0.5);
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
-        this._graphics.rect(0, 0, this.width, this.height);
-        this._graphics.fill({ color: 0x650a5a, alpha: 0.3 });
-        this._graphics.stroke({ width: 2, color: 0xfeeb77 });
+        this.DrawVectors();
         this.x = (_c = this.defObj.x) !== null && _c !== void 0 ? _c : Math.random() * RiveController.get().Canvas.width;
         this.y = (_d = this.defObj.y) !== null && _d !== void 0 ? _d : Math.random() * RiveController.get().Canvas.height;
         this._graphics.x = this.x;
         this._graphics.y = this.y;
         this._graphics.eventMode = "static";
-        this._graphics.cursor = "pointer";
-        this._graphics.on("pointerdown", this.onClick, this);
-        this._graphics.on("pointerover", this.onHover, this);
-        this._graphics.on("pointerout", this.onHoverOut, this);
+        if (this.defObj.interactive) {
+            this._graphics.cursor = "pointer";
+            this._graphics.on("pointerdown", this.onClick, this);
+            this._graphics.on("pointerover", this.onHover, this);
+            this._graphics.on("pointerout", this.onHoverOut, this);
+        }
         this.UpdateBaseProps();
+    }
+    DrawVectors() {
+        if (this._graphics === null)
+            return;
+        this._graphics.rect(0, 0, this.width, this.height);
+        this._graphics.fill({ color: 0x650a5a, alpha: 0.3 });
+        this._graphics.stroke({ width: 2, color: 0xfeeb77 });
     }
     Update(time, frameCount, onceSecond) {
         var _a;
