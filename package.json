@@ -8,10 +8,10 @@
     "dev:watch": "chokidar 'src/**/*' -c 'npm run build && yalc push'"
   },
   "dependencies": {
-    "@rive-app/canvas": "^2.27.2",
-    "@rive-app/canvas-advanced": "^2.27.2",
-    "@rive-app/webgl": "^2.27.2",
-    "@rive-app/webgl-advanced": "^2.27.2",
+    "@rive-app/canvas": "^2.30.4",
+    "@rive-app/canvas-advanced": "^2.30.4",
+    "@rive-app/webgl": "^2.30.4",
+    "@rive-app/webgl-advanced": "^2.30.4",
     "matter-js": "^0.20.0",
     "pixi.js": "^8.10.1",
     "typescript": "4.9",
