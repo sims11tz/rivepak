@@ -66,7 +66,8 @@ export class CanvasEngine
 	public canvasContainerRef:HTMLDivElement | null = null;
 	public canvasAreaRef:HTMLDivElement | null = null;
 	public canvasRef:HTMLCanvasElement | null = null;
-	public pixiCanvasRef:HTMLCanvasElement | null = null;
+	public pixiCanvasRefTop:HTMLCanvasElement | null = null;
+	public pixiCanvasRefBottom:HTMLCanvasElement | null = null;
 	public debugContainerRef:HTMLDivElement | null = null;
 	public runStateLabel:HTMLDivElement | null = null;
 	public fpsLabel:HTMLDivElement | null = null;
@@ -429,7 +430,8 @@ export class CanvasEngine
 		canvasContainerRef,
 		canvasAreaRef,
 		canvasRef,
-		pixiCanvasRef,
+		pixiCanvasRefTop,
+		pixiCanvasRefBottom,
 		debugContainerRef,
 		runStateLabel,
 		fpsLabel,
@@ -438,7 +440,8 @@ export class CanvasEngine
 		canvasContainerRef: HTMLDivElement;
 		canvasAreaRef: HTMLDivElement;
 		canvasRef: HTMLCanvasElement;
-		pixiCanvasRef?: HTMLCanvasElement;
+		pixiCanvasRefTop?: HTMLCanvasElement;
+		pixiCanvasRefBottom?: HTMLCanvasElement;
 		debugContainerRef?: HTMLDivElement;
 		runStateLabel?: HTMLDivElement;
 		fpsLabel?: HTMLDivElement;
@@ -447,7 +450,8 @@ export class CanvasEngine
 		this.canvasContainerRef = canvasContainerRef;
 		this.canvasAreaRef = canvasAreaRef;
 		this.canvasRef = canvasRef;
-		this.pixiCanvasRef = pixiCanvasRef || null;
+		this.pixiCanvasRefTop = pixiCanvasRefTop || null;
+		this.pixiCanvasRefBottom = pixiCanvasRefBottom || null;
 		this.debugContainerRef = debugContainerRef || null;
 		this.runStateLabel = runStateLabel || null;
 		this.fpsLabel = fpsLabel || null;
@@ -461,7 +465,8 @@ export function UseCanvasEngineHook(
 ): {
 	RivePakCanvas:() => JSX.Element | null;
 	canvasRef:React.RefObject<HTMLCanvasElement>;
-	pixiCanvasRef:React.RefObject<HTMLCanvasElement>;
+	pixiCanvasRefTop:React.RefObject<HTMLCanvasElement>;
+	pixiCanvasRefBottom:React.RefObject<HTMLCanvasElement>;
 	canvasObjects:Map<string, CanvasObj[]>;
 	debugContainerRef:React.RefObject<HTMLDivElement>;
 	addCanvasObjects:(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;
@@ -475,7 +480,8 @@ export function UseCanvasEngineHook(
 	const canvasRef = useRef<HTMLCanvasElement>(null!);
 	const canvasAreaRef = useRef<HTMLDivElement>(null!);
 	const canvasContainerRef = useRef<HTMLDivElement>(null!);
-	const pixiCanvasRef = useRef<HTMLCanvasElement>(null!);
+	const pixiCanvasRefTop = useRef<HTMLCanvasElement>(null!);
+	const pixiCanvasRefBottom = useRef<HTMLCanvasElement>(null!);
 	const debugContainerRef = useRef<HTMLDivElement>(null!);
 	const runStateLabel = useRef<HTMLDivElement>(null!);
 	const fpsSpinner = useRef<HTMLDivElement>(null!);
@@ -497,9 +503,10 @@ export function UseCanvasEngineHook(
 					</div>
 				</div>
 				<div ref={canvasContainerRef} style={{ position: "relative" }}>
-					<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black" }} />
-					<div id="pixiCanvasContainer" style={{ position: "absolute", top: 0, left: 0, zIndex: 2 }}>
-						<canvas id="pixiCanvas" ref={pixiCanvasRef} />
+					<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black", position:"absolute", zIndex: 2}} />
+					<div id="pixiCanvasContainer"  /*style={{ position: "absolute", top: 0, left: 0 }}*/ >
+						<canvas id="pixiCanvasTop" ref={pixiCanvasRefTop} style={{ position: "absolute", top: 0, left: 0, zIndex:3 }} />
+						<canvas id="pixiCanvasBottom" ref={pixiCanvasRefBottom} style={{ position: "absolute", top: 0, left: 0, zIndex:1 }} />
 					</div>
 					{ canvasSettings.debugMode && <div ref={debugContainerRef} style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, }} /> }
 				</div>
@@ -530,7 +537,8 @@ export function UseCanvasEngineHook(
 				canvasContainerRef: canvasContainerRef.current!,
 				canvasAreaRef: canvasAreaRef.current!,
 				canvasRef: canvasRef.current!,
-				pixiCanvasRef: pixiCanvasRef.current!,
+				pixiCanvasRefTop: pixiCanvasRefTop.current!,
+				pixiCanvasRefBottom: pixiCanvasRefBottom.current!,
 				debugContainerRef: debugContainerRef.current!,
 				runStateLabel: runStateLabel.current!,
 				fpsLabel: fpsRef.current!,
@@ -550,7 +558,8 @@ export function UseCanvasEngineHook(
 	return {
 		RivePakCanvas: () => canvasJSXRef.current,
 		canvasRef,
-		pixiCanvasRef,
+		pixiCanvasRefTop,
+		pixiCanvasRefBottom,
 		debugContainerRef,
 		canvasObjects: CanvasEngine.get().canvasObjects,
 		addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),

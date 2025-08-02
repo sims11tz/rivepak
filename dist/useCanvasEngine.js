@@ -45,7 +45,8 @@ export class CanvasEngine {
         this.canvasContainerRef = null;
         this.canvasAreaRef = null;
         this.canvasRef = null;
-        this.pixiCanvasRef = null;
+        this.pixiCanvasRefTop = null;
+        this.pixiCanvasRefBottom = null;
         this.debugContainerRef = null;
         this.runStateLabel = null;
         this.fpsLabel = null;
@@ -314,11 +315,12 @@ export class CanvasEngine {
         if (this.engine)
             this.engine = null;
     }
-    SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRef, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }) {
+    SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefTop, pixiCanvasRefBottom, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }) {
         this.canvasContainerRef = canvasContainerRef;
         this.canvasAreaRef = canvasAreaRef;
         this.canvasRef = canvasRef;
-        this.pixiCanvasRef = pixiCanvasRef || null;
+        this.pixiCanvasRefTop = pixiCanvasRefTop || null;
+        this.pixiCanvasRefBottom = pixiCanvasRefBottom || null;
         this.debugContainerRef = debugContainerRef || null;
         this.runStateLabel = runStateLabel || null;
         this.fpsLabel = fpsLabel || null;
@@ -330,7 +332,8 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const canvasRef = useRef(null);
     const canvasAreaRef = useRef(null);
     const canvasContainerRef = useRef(null);
-    const pixiCanvasRef = useRef(null);
+    const pixiCanvasRefTop = useRef(null);
+    const pixiCanvasRefBottom = useRef(null);
     const debugContainerRef = useRef(null);
     const runStateLabel = useRef(null);
     const fpsSpinner = useRef(null);
@@ -340,7 +343,7 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const RunState = () => CanvasEngine.get().RunState;
     const canvasJSXRef = useRef(null);
     if (!canvasJSXRef.current) {
-        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ ref: canvasContainerRef, style: { position: "relative" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black" } }), _jsx("div", Object.assign({ id: "pixiCanvasContainer", style: { position: "absolute", top: 0, left: 0, zIndex: 2 } }, { children: _jsx("canvas", { id: "pixiCanvas", ref: pixiCanvasRef }) })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
+        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ ref: canvasContainerRef, style: { position: "relative" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black", position: "absolute", zIndex: 2 } }), _jsxs("div", Object.assign({ id: "pixiCanvasContainer" /*style={{ position: "absolute", top: 0, left: 0 }}*/ }, { children: [_jsx("canvas", { id: "pixiCanvasTop", ref: pixiCanvasRefTop, style: { position: "absolute", top: 0, left: 0, zIndex: 3 } }), _jsx("canvas", { id: "pixiCanvasBottom", ref: pixiCanvasRefBottom, style: { position: "absolute", top: 0, left: 0, zIndex: 1 } })] })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
     }
     const hasEngineInitialized = useRef(false);
     useEffect(() => {
@@ -362,7 +365,8 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
                 canvasContainerRef: canvasContainerRef.current,
                 canvasAreaRef: canvasAreaRef.current,
                 canvasRef: canvasRef.current,
-                pixiCanvasRef: pixiCanvasRef.current,
+                pixiCanvasRefTop: pixiCanvasRefTop.current,
+                pixiCanvasRefBottom: pixiCanvasRefBottom.current,
                 debugContainerRef: debugContainerRef.current,
                 runStateLabel: runStateLabel.current,
                 fpsLabel: fpsRef.current,
@@ -378,7 +382,8 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     return {
         RivePakCanvas: () => canvasJSXRef.current,
         canvasRef,
-        pixiCanvasRef,
+        pixiCanvasRefTop,
+        pixiCanvasRefBottom,
         debugContainerRef,
         canvasObjects: CanvasEngine.get().canvasObjects,
         addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),

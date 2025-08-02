@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import { PIXI_LAYER } from "../controllers/PixiController";
 export declare class GlobalUIDGenerator {
     private static currentId;
     static generateUID(): string;
@@ -41,6 +42,7 @@ export interface CanvasObjectDef {
     randomSpeed?: boolean;
     xSpeed?: number;
     ySpeed?: number;
+    pixiLayer?: PIXI_LAYER;
     interactive?: boolean;
     riveInteractive?: boolean;
     riveInteractiveLocalOnly?: boolean;

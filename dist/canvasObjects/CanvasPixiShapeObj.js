@@ -13,7 +13,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
         var _a, _b, _c, _d;
         // ✅ Create a new PIXI Graphics object
         this._graphics = new PIXI.Graphics();
-        PixiController.get().Pixi.stage.addChild(this._graphics);
+        PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
         //const texture = await PIXI.Assets.load('https://pixijs.com/assets/bunny.png');
         //const bunny = new PIXI.Sprite(texture);
         //PixiController.get().Pixi.stage.addChild(bunny);
@@ -76,7 +76,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
     Dispose() {
         super.Dispose();
         if (this._graphics) {
-            PixiController.get().Pixi.stage.removeChild(this._graphics);
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
             this._graphics.destroy();
             this._graphics = null;
         }

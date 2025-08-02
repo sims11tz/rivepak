@@ -19,7 +19,7 @@ export class PixiFX
 
 	public static Flash(target: CanvasRiveObj, color: number = 0xff0000, duration: number = 300, alpha: number = 0.6): void
 	{
-		const app = PixiController.get().Pixi;
+		const app = PixiController.get().GetPixiInstance(target.defObj.pixiLayer);
 		const bounds = new PIXI.Rectangle(
 			target.transformedX,
 			target.transformedY,
@@ -90,7 +90,7 @@ export class PixiFX
 	public static ParticleBurst(target: CanvasRiveObj, color: number = 0xff0000, count: number = 8): void {
 		const cx = target.transformedX + target.transformedWidth / 2;
 		const cy = target.transformedY + target.transformedHeight / 2;
-		const stage = PixiController.get().Pixi.stage;
+		const stage = PixiController.get().GetPixiInstance(target.defObj.pixiLayer).stage;
 		for (let i = 0; i < count; i++) {
 			const a = (Math.PI * 2 * i) / count;
 			const s = 3 + Math.random() * 3;

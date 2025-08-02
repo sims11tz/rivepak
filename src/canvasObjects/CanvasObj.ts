@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { CanvasEngine } from "../useCanvasEngine";
+import { PIXI_LAYER } from "../controllers/PixiController";
 
 export class GlobalUIDGenerator
 {
@@ -49,7 +49,7 @@ export interface CanvasObjectDef
 	width?:number;
 	height?:number;
 
-	constrainProportions?: boolean;
+	constrainProportions?:boolean;
 
 	xScale?:number;
 	yScale?:number;
@@ -72,9 +72,11 @@ export interface CanvasObjectDef
 	xSpeed?:number;
 	ySpeed?:number;
 
-	interactive?: boolean;
-	riveInteractive?: boolean;
-	riveInteractiveLocalOnly?: boolean;
+	pixiLayer?:PIXI_LAYER;
+
+	interactive?:boolean;
+	riveInteractive?:boolean;
+	riveInteractiveLocalOnly?:boolean;
 }
 
 export abstract class CanvasObj

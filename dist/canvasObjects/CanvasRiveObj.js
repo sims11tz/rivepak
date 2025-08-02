@@ -264,13 +264,13 @@ export class CanvasRiveObj extends CanvasObj {
             this._textLabel.eventMode = 'none';
             this._textLabel.x = this._objBoundsReuse.minX;
             this._textLabel.y = this._objBoundsReuse.maxY - this._textLabel.height - 5;
-            PixiController.get().Pixi.stage.addChild(this._textLabel);
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textLabel);
         }
     }
     initInteractive() {
         //console.log("   INIT INTERACTIVE RIVE OBJECT -- "+this._label);
         this._interactiveGraphics = new PIXI.Graphics();
-        PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
+        PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._interactiveGraphics);
         //this._interactiveGraphics.rect(0, 0, this.width, this.height);
         //this._interactiveGraphics.fill({color:0x650a5a, alpha:0.05});
         //this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 0.5 });
@@ -320,12 +320,12 @@ export class CanvasRiveObj extends CanvasObj {
             this._interactiveGraphics.off("pointerdown", this.onClick, this);
             this._interactiveGraphics.off("pointerover", this.onHover, this);
             this._interactiveGraphics.off("pointerout", this.onHoverOut, this);
-            PixiController.get().Pixi.stage.removeChild(this._interactiveGraphics);
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._interactiveGraphics);
             this._interactiveGraphics.destroy();
             this._interactiveGraphics = null;
         }
         if (this._textLabel) {
-            PixiController.get().Pixi.stage.removeChild(this._textLabel);
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textLabel);
             this._textLabel.destroy();
             this._textLabel = null;
         }

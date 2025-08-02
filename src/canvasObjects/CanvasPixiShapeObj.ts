@@ -1,4 +1,4 @@
-import { PixiController } from "../controllers/PixiController";
+import { PIXI_LAYER, PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
 import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
@@ -19,7 +19,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		// ✅ Create a new PIXI Graphics object
 		this._graphics = new PIXI.Graphics();
-		PixiController.get().Pixi.stage.addChild(this._graphics);
+		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
 
 		//const texture = await PIXI.Assets.load('https://pixijs.com/assets/bunny.png');
 		//const bunny = new PIXI.Sprite(texture);
@@ -112,7 +112,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 		if (this._graphics)
 		{
-			PixiController.get().Pixi.stage.removeChild(this._graphics);
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
 			this._graphics.destroy();
 			this._graphics = null;
 		}
