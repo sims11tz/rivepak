@@ -87,13 +87,13 @@ export class CanvasEngine
 	private _canvasHeight:number = 0;
 	public get height():number { return this._canvasHeight; }
 
-	private updateListeners:Set<(dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
-	public AddUpdateListener(listener:(dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	private updateListeners:Set<(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
+	public AddUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void)
 	{
 		this.updateListeners.add(listener);
 	}
 
-	public RemoveUpdateListener(listener:(dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	public RemoveUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void)
 	{
 		this.updateListeners.delete(listener);
 	}
@@ -148,7 +148,7 @@ export class CanvasEngine
 
 		}
 
-		const updateLoop = (time: number) =>
+		const updateLoop = (time:number) =>
 		{
 			if (this.runState !== CANVAS_ENGINE_RUN_STATE.RUNNING)
 			{
@@ -189,10 +189,9 @@ export class CanvasEngine
 				lastLogTime = time;
 			}
 
-			//Hmmmmmmmmm before or after.............
 			this.updateListeners.forEach((listener) =>
 			{
-				listener(elapsedTimeSec, frameCount, onceSecond);
+				listener(time, elapsedTimeSec, frameCount, onceSecond);
 			});
 
 			if (canvasSettings.physicsEnabled) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
@@ -203,7 +202,6 @@ export class CanvasEngine
 			{
 				objects.forEach((obj) =>
 				{
-					//console.log("UPDATE OBJ "+obj.label);
 					obj.Update(elapsedTimeSec, frameCount, onceSecond);
 				});
 			});

@@ -195,16 +195,14 @@ export class CanvasEngine {
                     iterationCount = 0;
                     lastLogTime = time;
                 }
-                //Hmmmmmmmmm before or after.............
                 this.updateListeners.forEach((listener) => {
-                    listener(elapsedTimeSec, frameCount, onceSecond);
+                    listener(time, elapsedTimeSec, frameCount, onceSecond);
                 });
                 if (canvasSettings.physicsEnabled)
                     PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
                 riveRenderer.clear();
                 this.canvasObjects.forEach((objects) => {
                     objects.forEach((obj) => {
-                        //console.log("UPDATE OBJ "+obj.label);
                         obj.Update(elapsedTimeSec, frameCount, onceSecond);
                     });
                 });
