@@ -37,8 +37,8 @@ export declare class CanvasEngine {
     canvasContainerRef: HTMLDivElement | null;
     canvasAreaRef: HTMLDivElement | null;
     canvasRef: HTMLCanvasElement | null;
-    pixiCanvasRefTop: HTMLCanvasElement | null;
-    pixiCanvasRefBottom: HTMLCanvasElement | null;
+    pixiCanvasRefAbove: HTMLCanvasElement | null;
+    pixiCanvasRefBelow: HTMLCanvasElement | null;
     debugContainerRef: HTMLDivElement | null;
     runStateLabel: HTMLDivElement | null;
     fpsLabel: HTMLDivElement | null;
@@ -75,12 +75,12 @@ export declare class CanvasEngine {
     get CurrentCanvasScale(): number;
     ResizeCanvasToWindow: () => void;
     Dispose(): void;
-    SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefTop, pixiCanvasRefBottom, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
+    SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefAbove, pixiCanvasRefBelow, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasContainerRef: HTMLDivElement;
         canvasAreaRef: HTMLDivElement;
         canvasRef: HTMLCanvasElement;
-        pixiCanvasRefTop?: HTMLCanvasElement;
-        pixiCanvasRefBottom?: HTMLCanvasElement;
+        pixiCanvasRefAbove?: HTMLCanvasElement;
+        pixiCanvasRefBelow?: HTMLCanvasElement;
         debugContainerRef?: HTMLDivElement;
         runStateLabel?: HTMLDivElement;
         fpsLabel?: HTMLDivElement;
@@ -90,8 +90,8 @@ export declare class CanvasEngine {
 export declare function UseCanvasEngineHook(settings?: Partial<ConstructorParameters<typeof CanvasSettingsDef>[0]>, onInit?: () => void): {
     RivePakCanvas: () => JSX.Element | null;
     canvasRef: React.RefObject<HTMLCanvasElement>;
-    pixiCanvasRefTop: React.RefObject<HTMLCanvasElement>;
-    pixiCanvasRefBottom: React.RefObject<HTMLCanvasElement>;
+    pixiCanvasRefAbove: React.RefObject<HTMLCanvasElement>;
+    pixiCanvasRefBelow: React.RefObject<HTMLCanvasElement>;
     canvasObjects: Map<string, CanvasObj[]>;
     debugContainerRef: React.RefObject<HTMLDivElement>;
     addCanvasObjects: (objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;

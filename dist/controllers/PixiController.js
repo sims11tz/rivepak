@@ -27,6 +27,8 @@ export class PixiController {
         this._CanvasBelow = null;
         //public get Canvas() { return this._canvas!; }
         this._canvasContainer = null;
+        //public get CanvasContainer() { return this._canvasContainer!; }
+        this._initialized = false;
     }
     static get() { if (PixiController.myInstance == null) {
         PixiController.myInstance = new PixiController();
@@ -40,16 +42,15 @@ export class PixiController {
             return this.PixiBelow;
         return this.PixiAbove;
     }
-    //public get CanvasContainer() { return this._canvasContainer!; }
     Init(width, height) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this._pixiInstanceAbove)
                 this.Dispose();
-            let oldCanvasAbove = document.getElementById('pixiCanvasAbove');
-            let oldCanvasBelow = document.getElementById('pixiCanvasBelow');
             this._canvasContainer = document.getElementById('pixiCanvasContainer');
+            let oldCanvasAbove = document.getElementById('pixiCanvasAbove');
             if (oldCanvasAbove)
                 oldCanvasAbove.remove();
+            let oldCanvasBelow = document.getElementById('pixiCanvasBelow');
             if (oldCanvasBelow)
                 oldCanvasBelow.remove();
             this._CanvasAbove = document.createElement('canvas');
@@ -60,16 +61,7 @@ export class PixiController {
             this._CanvasAbove.style.zIndex = '3';
             this._CanvasAbove.width = width || 800;
             this._CanvasAbove.height = height || 500;
-            this._CanvasBelow = document.createElement('canvas');
-            this._CanvasBelow.id = 'pixiCanvasBelow';
-            this._CanvasBelow.style.position = 'absolute';
-            this._CanvasBelow.style.top = '0';
-            this._CanvasBelow.style.left = '0';
-            this._CanvasBelow.style.zIndex = '1';
-            this._CanvasBelow.width = width || 800;
-            this._CanvasBelow.height = height || 500;
             this._canvasContainer.appendChild(this._CanvasAbove);
-            this._canvasContainer.appendChild(this._CanvasBelow);
             this._pixiInstanceAbove = new PIXI.Application();
             yield this._pixiInstanceAbove.init({
                 width: width || 800,
@@ -91,6 +83,15 @@ export class PixiController {
             this._pixiInstanceAbove.stage.on('pointerup', (e) => {
                 RiveController.get().SetMouseDown(false);
             });
+            this._CanvasBelow = document.createElement('canvas');
+            this._CanvasBelow.id = 'pixiCanvasBelow';
+            this._CanvasBelow.style.position = 'absolute';
+            this._CanvasBelow.style.top = '0';
+            this._CanvasBelow.style.left = '0';
+            this._CanvasBelow.style.zIndex = '1';
+            this._CanvasBelow.width = width || 800;
+            this._CanvasBelow.height = height || 500;
+            this._canvasContainer.appendChild(this._CanvasBelow);
             this._pixiInstanceBelow = new PIXI.Application();
             yield this._pixiInstanceBelow.init({
                 width: width || 800,
@@ -98,24 +99,31 @@ export class PixiController {
                 backgroundAlpha: 0,
                 canvas: this._CanvasBelow,
             });
-            this._pixiInstanceAbove.stage.eventMode = 'static';
+            this._pixiInstanceBelow.stage.eventMode = 'static';
+            this._initialized = true;
         });
     }
     SetSize(width, height) {
-        var _a, _b, _c, _d;
-        if (!this._pixiInstanceAbove || !this._pixiInstanceAbove.renderer)
+        var _a, _b, _c, _d, _e, _f;
+        if (!this._initialized)
             return;
-        this._pixiInstanceAbove.renderer.resize(width, height);
-        this._pixiInstanceAbove.stage.hitArea = this._pixiInstanceAbove.renderer.screen;
-        if (this._pixiInstanceBelow)
-            this._pixiInstanceBelow.renderer.resize(width, height);
         (_a = this._canvasContainer) === null || _a === void 0 ? void 0 : _a.setAttribute("width", `${width}`);
         (_b = this._canvasContainer) === null || _b === void 0 ? void 0 : _b.setAttribute("height", `${height}`);
+        if (this._pixiInstanceAbove) {
+            this._pixiInstanceAbove.renderer.resize(width, height);
+            this._pixiInstanceAbove.stage.hitArea = this._pixiInstanceAbove.renderer.screen;
+        }
         (_c = this._CanvasAbove) === null || _c === void 0 ? void 0 : _c.setAttribute("width", `${width}`);
         (_d = this._CanvasAbove) === null || _d === void 0 ? void 0 : _d.setAttribute("height", `${height}`);
+        if (this._pixiInstanceBelow) {
+            this._pixiInstanceBelow.renderer.resize(width, height);
+        }
+        (_e = this._CanvasBelow) === null || _e === void 0 ? void 0 : _e.setAttribute("width", `${width}`);
+        (_f = this._CanvasBelow) === null || _f === void 0 ? void 0 : _f.setAttribute("height", `${height}`);
     }
     Dispose() {
         try {
+            this._initialized = false;
             if (this._pixiInstanceAbove) {
                 this._pixiInstanceAbove.ticker.stop();
                 this._pixiInstanceAbove.stage.removeChildren();

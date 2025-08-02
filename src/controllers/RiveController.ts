@@ -99,8 +99,6 @@ export class RiveController
 			this._canvas = canvas;
 			this._canvasBounds = this._canvas.getBoundingClientRect();
 			console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
-			console.log(this._riveInstance);
-			console.log(this._riveRenderer);
 
 			//const dpr = window.devicePixelRatio || 1;
 			//canvas.width = canvas.clientWidth * dpr;
