@@ -271,9 +271,9 @@ export class CanvasRiveObj extends CanvasObj {
         //console.log("   INIT INTERACTIVE RIVE OBJECT -- "+this._label);
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().Pixi.stage.addChild(this._interactiveGraphics);
-        this._interactiveGraphics.rect(0, 0, this.width, this.height);
-        this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0.05 });
-        this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 0.5 });
+        //this._interactiveGraphics.rect(0, 0, this.width, this.height);
+        //this._interactiveGraphics.fill({color:0x650a5a, alpha:0.05});
+        //this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 0.5 });
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";
