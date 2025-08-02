@@ -19,7 +19,7 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj
 		super.ApplyResolutionScale(scale, property);
 	}
 
-	public Update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time: number, frameCount: number, onceSecond: boolean):void
 	{
 		if(this.enabled === false) return;
 
@@ -27,7 +27,7 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj
 		super.Update(time, frameCount, onceSecond);
 	}
 
-	public Dispose(): void
+	public Dispose():void
 	{
 		CanvasPixiShapeObj.prototype.Dispose.call(this);
 		super.Dispose();

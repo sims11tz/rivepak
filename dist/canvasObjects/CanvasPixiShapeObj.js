@@ -74,11 +74,11 @@ export class CanvasPixiShapeObj extends CanvasObj {
         }
     }
     Dispose() {
-        super.Dispose();
         if (this._graphics) {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
             this._graphics.destroy();
             this._graphics = null;
         }
+        super.Dispose();
     }
 }
