@@ -344,12 +344,15 @@ export class CanvasRiveObj extends CanvasObj
 
 		if(this._textLabel)
 		{
+			const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
+			const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+			
 			this._textLabel.x = this._objBoundsReuse.minX;
-			this._textLabel.y = this._objBoundsReuse.maxY - this._textLabel.height - 5;
+			this._textLabel.y = this._objBoundsReuse.maxY - (this._textLabel.height * combinedScaleY) - 5;
 
-			if(this._textLabel.scale.x !== this._resolutionScale)
+			if(this._textLabel.scale.x !== combinedScaleX || this._textLabel.scale.y !== combinedScaleY)
 			{
-				this._textLabel.scale.set(this._resolutionScale);
+				this._textLabel.scale.set(combinedScaleX, combinedScaleY);
 			}
 		}
 
@@ -387,8 +390,12 @@ export class CanvasRiveObj extends CanvasObj
 			this._textLabel.interactive = false;
 			this._textLabel.eventMode = 'none';
 
+			const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
+			const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+			
+			this._textLabel.scale.set(combinedScaleX, combinedScaleY);
 			this._textLabel.x = this._objBoundsReuse.minX;
-			this._textLabel.y = this._objBoundsReuse.maxY - this._textLabel.height - 5;
+			this._textLabel.y = this._objBoundsReuse.maxY - (this._textLabel.height * combinedScaleY) - 5;
 
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textLabel);
 		}
