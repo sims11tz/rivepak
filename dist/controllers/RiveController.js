@@ -288,7 +288,6 @@ export class RiveController {
         return { x: artboardX, y: artboardY };
     }
     Dispose() {
-        console.log("RiveController - Dispose!!!!!!!!!!!!!!!!!");
         window.removeEventListener("mousemove", this.SetMouseGlobalPos);
         try {
             this._riveInstance.cleanup();

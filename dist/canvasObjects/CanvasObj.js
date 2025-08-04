@@ -38,8 +38,6 @@ export class CanvasObj {
         this.group = "main";
         this.width = 0;
         this.height = 0;
-        this.xScale = 0;
-        this.yScale = 0;
         this.constrainProportions = false;
         this._resolutionScale = -1;
         this._transformedWidth = -1;
@@ -56,15 +54,13 @@ export class CanvasObj {
         this._defObj = defObj;
         this._uuid = GlobalUIDGenerator.generateUID();
         this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
-        this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0 };
-        this.centerLocally = (_e = defObj.centerLocally) !== null && _e !== void 0 ? _e : false;
-        this.centerGlobally = (_f = defObj.centerGlobally) !== null && _f !== void 0 ? _f : false;
-        this.group = (_g = this.defObj.group) !== null && _g !== void 0 ? _g : "main";
-        this.width = (_h = this.defObj.width) !== null && _h !== void 0 ? _h : 0;
-        this.height = (_j = this.defObj.height) !== null && _j !== void 0 ? _j : 0;
-        this.constrainProportions = (_k = this.defObj.constrainProportions) !== null && _k !== void 0 ? _k : false;
-        this.xScale = (_l = this.defObj.xScale) !== null && _l !== void 0 ? _l : 0;
-        this.yScale = (_m = this.defObj.yScale) !== null && _m !== void 0 ? _m : 0;
+        this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0, xScale: (_e = defObj.xScale) !== null && _e !== void 0 ? _e : 1, yScale: (_f = defObj.yScale) !== null && _f !== void 0 ? _f : 1 };
+        this.centerLocally = (_g = defObj.centerLocally) !== null && _g !== void 0 ? _g : false;
+        this.centerGlobally = (_h = defObj.centerGlobally) !== null && _h !== void 0 ? _h : false;
+        this.group = (_j = this.defObj.group) !== null && _j !== void 0 ? _j : "main";
+        this.width = (_k = this.defObj.width) !== null && _k !== void 0 ? _k : 0;
+        this.height = (_l = this.defObj.height) !== null && _l !== void 0 ? _l : 0;
+        this.constrainProportions = (_m = this.defObj.constrainProportions) !== null && _m !== void 0 ? _m : false;
         this.baseX = (_o = defObj.x) !== null && _o !== void 0 ? _o : 0;
         this.baseY = (_p = defObj.y) !== null && _p !== void 0 ? _p : 0;
         this.baseWidth = (_q = defObj.width) !== null && _q !== void 0 ? _q : 1;
@@ -89,8 +85,8 @@ export class CanvasObj {
         this.baseY = this._state.y;
         this.baseWidth = this.width;
         this.baseHeight = this.height;
-        this.baseXScale = this.xScale;
-        this.baseYScale = this.yScale;
+        this.baseXScale = this._state.xScale;
+        this.baseYScale = this._state.yScale;
         //console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
     }
     get x() { return this._state.x; }
@@ -113,6 +109,18 @@ export class CanvasObj {
             this._state.z = value;
             (_a = this._OnZIndexChanged) === null || _a === void 0 ? void 0 : _a.call(this, this, oldZ, this._state.z);
         }
+    }
+    get xScale() { return this._state.xScale; }
+    set xScale(value) {
+        this._state.xScale = value;
+        if (this._resolutionScale !== -1)
+            this.ApplyResolutionScale(this._resolutionScale, "xScale");
+    }
+    get yScale() { return this._state.yScale; }
+    set yScale(value) {
+        this._state.yScale = value;
+        if (this._resolutionScale !== -1)
+            this.ApplyResolutionScale(this._resolutionScale, "yScale");
     }
     ApplyResolutionScale(scale, property = "") {
         //console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);
@@ -145,13 +153,22 @@ export class CanvasObj {
             this._transformedHeightlast = this.height;
             //console.log(""+this.label+"APRS  7 height "+this.height+"--TransH:"+this._transformedHeight);
         }
+        // Scale changes affect width/height so trigger their updates when scale changes
+        if ((property == "*") || (property == "xScale")) {
+            this._transformedWidth = this.width * scale;
+            this._transformedWidthlast = this.width;
+        }
+        if ((property == "*") || (property == "yScale")) {
+            this._transformedHeight = this.height * scale;
+            this._transformedHeightlast = this.height;
+        }
     }
     SwapDepths(other) {
         const temp = this.z;
         this.z = other.z;
         other.z = temp;
     }
-    // ✅ Function to selectively bind to x, y, or z changes
+    // ✅ Function to selectively bind to x, y, z, xScale, or yScale changes
     BindPropertyChange(property, callback) {
         this._propertyChangeListeners.set(property, callback);
     }

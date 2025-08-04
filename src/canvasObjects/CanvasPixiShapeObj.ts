@@ -28,6 +28,8 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 		this.width = this.defObj.width ?? 100;
 		this.height = this.defObj.height ?? 100;
+		this.xScale = this.defObj.xScale ?? 1;
+		this.yScale = this.defObj.yScale ?? 1;
 
 		this.DrawVectors();
 
@@ -36,6 +38,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 		this._graphics.x = this.x;
 		this._graphics.y = this.y;
+		this._graphics.scale.set(this.xScale, this.yScale);
 
 		this._graphics.eventMode = "static";
 
@@ -74,12 +77,13 @@ export class CanvasPixiShapeObj extends CanvasObj
 				this._graphics.x = transformedX;
 				this._graphics.y = transformedY;
 
-				this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale, CanvasEngine.get().CurrentCanvasScale);
+				this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
 			}
 			else
 			{
 				this._graphics.x = this.x;
 				this._graphics.y = this.y;
+				this._graphics.scale.set(this.xScale, this.yScale);
 			}
 		}
 	}

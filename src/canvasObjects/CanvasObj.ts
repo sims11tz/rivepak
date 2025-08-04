@@ -94,7 +94,7 @@ export abstract class CanvasObj
 	public get defObj(): CanvasObjectDef { return this._defObj!; }
 
 	public enabled: boolean = true;
-	public _state: { x: number; y: number; z: number };
+	public _state: { x: number; y: number; z: number; xScale: number; yScale: number };
 
 	public centerLocally: boolean=false;
 	public centerGlobally: boolean=false;
@@ -102,8 +102,6 @@ export abstract class CanvasObj
 	public group: string = "main";
 	public width: number = 0;
 	public height: number = 0;
-	public xScale: number = 0;
-	public yScale: number = 0;
 
 	public constrainProportions: boolean = false;
 
@@ -131,7 +129,7 @@ export abstract class CanvasObj
 
 	public _body: Matter.Body | null = null;
 
-	public _propertyChangeListeners: Map<"x" | "y" | "z", (oldValue: number, newValue: number) => void> = new Map();
+	public _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
 		this._defObj = defObj;
@@ -139,7 +137,7 @@ export abstract class CanvasObj
 		this._uuid = GlobalUIDGenerator.generateUID();
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
 
-		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0 };
+		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0, xScale: defObj.xScale ?? 1, yScale: defObj.yScale ?? 1 };
 
 		this.centerLocally = defObj.centerLocally ?? false;
 		this.centerGlobally = defObj.centerGlobally ?? false;
@@ -149,9 +147,6 @@ export abstract class CanvasObj
 		this.height = this.defObj.height ?? 0;
 
 		this.constrainProportions = this.defObj.constrainProportions ?? false;
-
-		this.xScale = this.defObj.xScale ?? 0;
-		this.yScale = this.defObj.yScale ?? 0;
 
 		this.baseX = defObj.x ?? 0;
 		this.baseY = defObj.y ?? 0;
@@ -169,7 +164,7 @@ export abstract class CanvasObj
 				if (oldValue !== value)
 				{
 					target[key as keyof typeof target] = value;
-					this._propertyChangeListeners.get(key as "x" | "y" | "z")?.(oldValue, value);
+					this._propertyChangeListeners.get(key as "x" | "y" | "z" | "xScale" | "yScale")?.(oldValue, value);
 				}
 				return true;
 			},
@@ -182,8 +177,8 @@ export abstract class CanvasObj
 		this.baseY = this._state.y;
 		this.baseWidth = this.width;
 		this.baseHeight = this.height;
-		this.baseXScale = this.xScale;
-		this.baseYScale = this.yScale;
+		this.baseXScale = this._state.xScale;
+		this.baseYScale = this._state.yScale;
 		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
 	}
 
@@ -210,6 +205,20 @@ export abstract class CanvasObj
 			this._state.z = value;
 			this._OnZIndexChanged?.(this, oldZ, this._state.z);
 		}
+	}
+
+	public get xScale(): number { return this._state.xScale; }
+	public set xScale(value: number)
+	{
+		this._state.xScale = value;
+		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"xScale");
+	}
+
+	public get yScale(): number { return this._state.yScale; }
+	public set yScale(value: number)
+	{
+		this._state.yScale = value;
+		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"yScale");
 	}
 
 	public ApplyResolutionScale(scale:number, property:string="")
@@ -254,6 +263,19 @@ export abstract class CanvasObj
 			this._transformedHeightlast = this.height;
 			//console.log(""+this.label+"APRS  7 height "+this.height+"--TransH:"+this._transformedHeight);
 		}
+
+		// Scale changes affect width/height so trigger their updates when scale changes
+		if((property == "*") || (property == "xScale"))
+		{
+			this._transformedWidth = this.width * scale;
+			this._transformedWidthlast = this.width;
+		}
+
+		if((property == "*") || (property == "yScale"))
+		{
+			this._transformedHeight = this.height * scale;
+			this._transformedHeightlast = this.height;
+		}
 	}
 
 	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
@@ -265,14 +287,14 @@ export abstract class CanvasObj
 		other.z = temp;
 	}
 
-	// ✅ Function to selectively bind to x, y, or z changes
-	public BindPropertyChange(property: "x" | "y" | "z", callback: (oldValue: number, newValue: number) => void)
+	// ✅ Function to selectively bind to x, y, z, xScale, or yScale changes
+	public BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void)
 	{
 		this._propertyChangeListeners.set(property, callback);
 	}
 
 	// ✅ Function to unbind property change listener
-	public UnbindPropertyChange(property: "x" | "y" | "z")
+	public UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale")
 	{
 		this._propertyChangeListeners.delete(property);
 	}

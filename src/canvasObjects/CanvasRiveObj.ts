@@ -311,15 +311,15 @@ export class CanvasRiveObj extends CanvasObj
 		{
 			this._objBoundsReuse.minX = this._transformedX;
 			this._objBoundsReuse.minY = this._transformedY;
-			this._objBoundsReuse.maxX = this._transformedX + this._transformedWidth;
-			this._objBoundsReuse.maxY = this._transformedY + this._transformedHeight;
+			this._objBoundsReuse.maxX = this._transformedX + (this._transformedWidth * this.xScale);
+			this._objBoundsReuse.maxY = this._transformedY + (this._transformedHeight * this.yScale);
 		}
 		else
 		{
 			this._objBoundsReuse.minX = this.x;
 			this._objBoundsReuse.minY = this.y;
-			this._objBoundsReuse.maxX = this.x + (this.width);
-			this._objBoundsReuse.maxY = this.y + (this.height);
+			this._objBoundsReuse.maxX = this.x + (this.width * this.xScale);
+			this._objBoundsReuse.maxY = this.y + (this.height * this.yScale);
 		}
 
 		this.Renderer.save();
@@ -380,7 +380,7 @@ export class CanvasRiveObj extends CanvasObj
 				align: "center",
 				fontWeight: "bold",
 			});
-			this._textLabel = new PIXI.Text(this.defObj.text,style);
+			this._textLabel = new PIXI.Text({text:this.defObj.text, style:style});
 			this._textLabel.interactive = false;
 			this._textLabel.eventMode = 'none';
 

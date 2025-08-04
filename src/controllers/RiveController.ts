@@ -358,10 +358,7 @@ export class RiveController
 
 	public Dispose()
 	{
-		console.log("RiveController - Dispose!!!!!!!!!!!!!!!!!");
-
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
-
 		try
 		{
 			this._riveInstance!.cleanup();

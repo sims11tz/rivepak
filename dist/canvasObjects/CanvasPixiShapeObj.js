@@ -10,7 +10,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
         this.InitPixiObject();
     }
     InitPixiObject() {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         // ✅ Create a new PIXI Graphics object
         this._graphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
@@ -20,11 +20,14 @@ export class CanvasPixiShapeObj extends CanvasObj {
         //bunny.anchor.set(0.5);
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
+        this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
+        this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
         this.DrawVectors();
-        this.x = (_c = this.defObj.x) !== null && _c !== void 0 ? _c : Math.random() * RiveController.get().Canvas.width;
-        this.y = (_d = this.defObj.y) !== null && _d !== void 0 ? _d : Math.random() * RiveController.get().Canvas.height;
+        this.x = (_e = this.defObj.x) !== null && _e !== void 0 ? _e : Math.random() * RiveController.get().Canvas.width;
+        this.y = (_f = this.defObj.y) !== null && _f !== void 0 ? _f : Math.random() * RiveController.get().Canvas.height;
         this._graphics.x = this.x;
         this._graphics.y = this.y;
+        this._graphics.scale.set(this.xScale, this.yScale);
         this._graphics.eventMode = "static";
         if (this.defObj.interactive) {
             this._graphics.cursor = "pointer";
@@ -51,11 +54,12 @@ export class CanvasPixiShapeObj extends CanvasObj {
                 let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
                 this._graphics.x = transformedX;
                 this._graphics.y = transformedY;
-                this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale, CanvasEngine.get().CurrentCanvasScale);
+                this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
             }
             else {
                 this._graphics.x = this.x;
                 this._graphics.y = this.y;
+                this._graphics.scale.set(this.xScale, this.yScale);
             }
         }
     }

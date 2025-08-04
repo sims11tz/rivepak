@@ -213,14 +213,14 @@ export class CanvasRiveObj extends CanvasObj {
         if (this._resolutionScale !== -1) {
             this._objBoundsReuse.minX = this._transformedX;
             this._objBoundsReuse.minY = this._transformedY;
-            this._objBoundsReuse.maxX = this._transformedX + this._transformedWidth;
-            this._objBoundsReuse.maxY = this._transformedY + this._transformedHeight;
+            this._objBoundsReuse.maxX = this._transformedX + (this._transformedWidth * this.xScale);
+            this._objBoundsReuse.maxY = this._transformedY + (this._transformedHeight * this.yScale);
         }
         else {
             this._objBoundsReuse.minX = this.x;
             this._objBoundsReuse.minY = this.y;
-            this._objBoundsReuse.maxX = this.x + (this.width);
-            this._objBoundsReuse.maxY = this.y + (this.height);
+            this._objBoundsReuse.maxX = this.x + (this.width * this.xScale);
+            this._objBoundsReuse.maxY = this.y + (this.height * this.yScale);
         }
         this.Renderer.save();
         this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, this._objBoundsReuse, this.artboard.bounds);
@@ -259,7 +259,7 @@ export class CanvasRiveObj extends CanvasObj {
                 align: "center",
                 fontWeight: "bold",
             });
-            this._textLabel = new PIXI.Text(this.defObj.text, style);
+            this._textLabel = new PIXI.Text({ text: this.defObj.text, style: style });
             this._textLabel.interactive = false;
             this._textLabel.eventMode = 'none';
             this._textLabel.x = this._objBoundsReuse.minX;
