@@ -210,17 +210,19 @@ export class CanvasRiveObj extends CanvasObj {
             }
         }
         this.artboard.advance(time);
+        const scaledWidth = this.artboard.width * this.xScale;
+        const scaledHeight = this.artboard.height * this.yScale;
         if (this._resolutionScale !== -1) {
             this._objBoundsReuse.minX = this._transformedX;
             this._objBoundsReuse.minY = this._transformedY;
-            this._objBoundsReuse.maxX = this._transformedX + (this._transformedWidth * this.xScale);
-            this._objBoundsReuse.maxY = this._transformedY + (this._transformedHeight * this.yScale);
+            this._objBoundsReuse.maxX = this._transformedX + (scaledWidth * this._resolutionScale);
+            this._objBoundsReuse.maxY = this._transformedY + (scaledHeight * this._resolutionScale);
         }
         else {
             this._objBoundsReuse.minX = this.x;
             this._objBoundsReuse.minY = this.y;
-            this._objBoundsReuse.maxX = this.x + (this.width * this.xScale);
-            this._objBoundsReuse.maxY = this.y + (this.height * this.yScale);
+            this._objBoundsReuse.maxX = this.x + scaledWidth;
+            this._objBoundsReuse.maxY = this.y + scaledHeight;
         }
         this.Renderer.save();
         this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, this._objBoundsReuse, this.artboard.bounds);
