@@ -104,56 +104,36 @@ export class CanvasRiveObj extends CanvasObj {
             this.initInteractive();
         if (this.defObj.text && this.defObj.text.length > 0)
             this.drawTextLabel();
-        console.log("");
-        console.log("___________________ INIT RIVE OBJECT ________________________");
-        console.log("");
-        console.log("Artboard Name: " + this.artboard.name);
-        console.log(" artboard: ", this.artboard);
-        console.log("Artboard Width: " + this.artboard.width);
-        console.log("Artboard Height: " + this.artboard.height);
-        console.log("Artboard Bounds: ", this.artboard.bounds);
-        console.log("Artboard State Machine Count: " + this.artboard.stateMachineCount());
-        console.log("Artboard Animation Count: " + this.artboard.animationCount());
+        //console.log("");
+        //console.log("___________________ INIT RIVE OBJECT ________________________");
+        //console.log("");
+        //console.log("Artboard Name: "+this.artboard.name);
+        //console.log(" artboard: ",this.artboard);
+        //console.log("Artboard Width: "+this.artboard.width);
+        //console.log("Artboard Height: "+this.artboard.height);
+        //console.log("Artboard Bounds: ", this.artboard.bounds);
+        //console.log("Artboard State Machine Count: "+this.artboard.stateMachineCount());
+        //console.log("Artboard Animation Count: "+this.artboard.animationCount());
         this._animations = [];
         for (let j = 0; j < this.artboard.animationCount(); j++) {
             const animation = new this.Rive.LinearAnimationInstance(this.artboard.animationByIndex(j), this.artboard);
-            console.log("Animation[" + j + "]: ", animation);
+            //console.log("Animation["+j+"]: ",animation);
             this._animations.push(animation);
         }
-        console.log("Animations Loaded : " + this._animations.length);
+        //console.log("Animations Loaded : "+this._animations.length);
         this._stateMachine = this.artboard.stateMachineCount() > 0 ? new this.Rive.StateMachineInstance(this.artboard.stateMachineByIndex(0), this.artboard) : null;
         this._inputs = new Map();
         if (this._stateMachine) {
-            console.log("Has State Machine<" + this._stateMachine.inputCount() + ">: ", this._stateMachine);
+            //console.log("Has State Machine<"+this._stateMachine.inputCount()+">: ", this._stateMachine);
             for (let j = 0; j < this._stateMachine.inputCount(); j++) {
                 const input = this._stateMachine.input(j);
                 this._inputs.set(input.name, input);
-                console.log("Input[" + j + "]: " + input.name + " -- " + input.type + " -- " + input.value);
+                //console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
             }
         }
         else {
-            console.log("No State Machine found");
+            //console.log("No State Machine found");
         }
-        //console.log('');
-        //console.log('||');
-        //console.log(' LETz DO VIEW MODELS!....');
-        //if(riveFile.viewModelCount() > 0)
-        //{
-        //	for (let j = 0; j < riveFile.viewModelCount(); j++)
-        //	{
-        //		viewModel = riveFile.viewModelByIndex(j);
-        //		console.log("ViewModel["+j+"]: "+viewModel.name);
-        //		console.log("ViewModel["+j+"]: ic= "+viewModel.instanceCount);
-        //		console.log("ViewModel["+j+"]: in= ",viewModel.getInstanceNames());
-        //		console.log("ViewModel["+j+"]: ip= ",viewModel.getProperties());
-        //	}
-        //}
-        //if(viewModel)
-        //{
-        //	console.log("Binding ViewModel to Artboard");
-        //	artboard.bindViewModelInstance(viewModel.instance());
-        //}
-        //this.artboard.bindViewModelInstance(this._entityObj);
         this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale: this.xScale, yScale: this.yScale, riveInteractiveLocalOnly: this.defObj.riveInteractiveLocalOnly };
     }
     updateEntityObj() {

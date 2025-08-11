@@ -67,6 +67,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         z: number;
         xScale: number;
         yScale: number;
+        InitVisuals(): void;
         SwapDepths(other: CanvasObj): void;
         BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
         UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;

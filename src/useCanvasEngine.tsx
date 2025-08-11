@@ -263,8 +263,7 @@ export class CanvasEngine
 	public AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
 	{
 		let cObjs: CanvasObj[] = [];
-
-		if (objs instanceof RiveObjectsSet)
+		if(objs instanceof RiveObjectsSet)
 		{
 			cObjs = objs.objects ?? [];
 		}
@@ -283,6 +282,11 @@ export class CanvasEngine
 		cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
 		groupArray.push(...cObjs);
 		groupArray.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+
+		cObjs.forEach((obj) =>
+		{
+			obj.InitVisuals();
+		});
 	}
 
 	public RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")

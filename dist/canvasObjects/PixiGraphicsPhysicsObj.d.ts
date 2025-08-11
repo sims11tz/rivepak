@@ -67,6 +67,7 @@ declare const BaseShapePhysicsObj_base: {
         z: number;
         xScale: number;
         yScale: number;
+        InitVisuals(): void;
         SwapDepths(other: import("./CanvasObj").CanvasObj): void;
         BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
         UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;

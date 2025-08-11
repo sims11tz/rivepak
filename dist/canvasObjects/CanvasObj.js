@@ -122,6 +122,8 @@ export class CanvasObj {
         if (this._resolutionScale !== -1)
             this.ApplyResolutionScale(this._resolutionScale, "yScale");
     }
+    InitVisuals() {
+    }
     ApplyResolutionScale(scale, property = "") {
         //console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);
         if (scale !== this._resolutionScale) {

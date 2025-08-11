@@ -221,6 +221,10 @@ export abstract class CanvasObj
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"yScale");
 	}
 
+	public InitVisuals():void
+	{
+	}
+
 	public ApplyResolutionScale(scale:number, property:string="")
 	{
 		//console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);

@@ -257,6 +257,9 @@ export class CanvasEngine {
         cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
         groupArray.push(...cObjs);
         groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
+        cObjs.forEach((obj) => {
+            obj.InitVisuals();
+        });
     }
     RemoveCanvasObjects(objs, group = "main") {
         const groupArray = this.canvasObjects.get(group);

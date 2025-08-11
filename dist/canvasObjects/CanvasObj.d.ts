@@ -104,6 +104,7 @@ export declare abstract class CanvasObj {
     set xScale(value: number);
     get yScale(): number;
     set yScale(value: number);
+    InitVisuals(): void;
     ApplyResolutionScale(scale: number, property?: string): void;
     abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
     SwapDepths(other: CanvasObj): void;

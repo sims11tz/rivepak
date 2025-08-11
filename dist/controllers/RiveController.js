@@ -116,6 +116,7 @@ export class RiveController {
     CreateRiveObj(riveObjDefs) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            const debug = false;
             const defs = [];
             if (Array.isArray(riveObjDefs)) {
                 riveObjDefs.forEach(def => { var _a; for (let i = 0; i < ((_a = def.count) !== null && _a !== void 0 ? _a : 1); i++)
@@ -137,10 +138,11 @@ export class RiveController {
                     console.error(`Failed to create Rive object for ${def.filePath}`);
                     return null;
                 }
-                //console.log("......RIVE CONTROLLER");
-                //console.log("ArtboardCount:", riveFile.artboardCount());
-                //console.log("enums:", riveFile.enums());
-                //console.log("defaultArtboardViewModel:", riveFile.viewModelCount());
+                if (debug) {
+                    //console.log("......RIVE CONTROLLER");
+                    //console.log("ArtboardCount:", riveFile.artboardCount());
+                    //console.log("enums:", riveFile.enums());
+                }
                 let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
                 if (!artboard) {
                     console.error(`Artboard not found in ${def.filePath}`);
@@ -162,34 +164,43 @@ export class RiveController {
                     }
                 }
                 canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
-                console.log('');
-                console.log('%c RiveController..... VIEW MODEL SHIT !!!! ', 'color:#00FF88');
-                console.log('%c riveFile.enums :', 'color:#00FF88', riveFile.enums());
-                console.log('%c riveFile.viewModelCount :', 'color:#00FF88', riveFile.viewModelCount());
+                if (debug) {
+                    console.log('');
+                    console.log('%c RiveController..... VIEW MODEL SHIT !!!! ', 'color:#00FF88');
+                    console.log('%c riveFile.enums :', 'color:#00FF88', riveFile.enums());
+                    console.log('%c riveFile.viewModelCount :', 'color:#00FF88', riveFile.viewModelCount());
+                }
                 if (riveFile.viewModelCount() > 0) {
-                    const vmName /* optional */ = undefined; // e.g. "UIVM" if you want to force a specific VM
+                    const vmName = undefined;
                     const vm = this.getVMForArtboard(riveFile, artboard, vmName);
-                    console.log('%c vm :', 'color:#00FF88', vm);
+                    if (debug)
+                        console.log('%c vm :', 'color:#00FF88', vm);
                     let vmi = null;
                     if (vm) {
-                        console.log('%c ', 'color:#C586C0');
-                        console.log('%c lets get vmi :', 'color:#C586C0');
-                        console.log('%c vmName:', 'color:#C586C0', vm.name);
-                        console.log('%c getInstanceNames(' + vm.instanceCount + ') :', 'color:#C586C0', vm.getInstanceNames());
-                        console.log('%c getProperties(' + vm.propertyCount + ') :', 'color:#C586C0', vm.getProperties());
+                        if (debug) {
+                            console.log('%c ', 'color:#C586C0');
+                            console.log('%c lets get vmi :', 'color:#C586C0');
+                            console.log('%c vmName:', 'color:#C586C0', vm.name);
+                            console.log('%c getInstanceNames(' + vm.instanceCount + ') :', 'color:#C586C0', vm.getInstanceNames());
+                            console.log('%c getProperties(' + vm.propertyCount + ') :', 'color:#C586C0', vm.getProperties());
+                        }
                         vmi = this.makeVMI(vm, artboard);
-                        console.log('%c vmi :', 'color:#C586C0', vmi);
+                        if (debug)
+                            console.log('%c vmi :', 'color:#C586C0', vmi);
                         if (vmi && typeof artboard.bindViewModelInstance === "function") {
                             artboard.bindViewModelInstance(vmi);
-                            console.log("Bound ViewModelInstance. Properties:", (_a = vmi.getProperties) === null || _a === void 0 ? void 0 : _a.call(vmi).map((p) => p.name));
+                            if (debug)
+                                console.log("Bound ViewModelInstance. Properties:", (_a = vmi.getProperties) === null || _a === void 0 ? void 0 : _a.call(vmi).map((p) => p.name));
                         }
                     }
                     if (vmi) {
-                        console.log('%c HAS VMI !', 'color:#C586C0');
+                        if (debug)
+                            console.log('%c HAS VMI:' + vmi.artboard.name, 'color:#C586C0');
                         canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.SetViewModelInstance(vmi);
                     }
                     else {
-                        console.log('%c no VMI !', 'color:#C586C0');
+                        if (debug)
+                            console.log('%c no VMI !', 'color:#C586C0');
                     }
                 }
                 return canvasRiveObj;
@@ -219,9 +230,11 @@ export class RiveController {
         }
         return null;
     }
-    makeVMI(vm, artboard) {
-        var _a, _b, _c, _d, _e, _f;
-        return (_f = (_d = (_b = (_a = vm === null || vm === void 0 ? void 0 : vm.instanceByArtboard) === null || _a === void 0 ? void 0 : _a.call(vm, artboard)) !== null && _b !== void 0 ? _b : (_c = vm === null || vm === void 0 ? void 0 : vm.defaultInstance) === null || _c === void 0 ? void 0 : _c.call(vm)) !== null && _d !== void 0 ? _d : (_e = vm === null || vm === void 0 ? void 0 : vm.instance) === null || _e === void 0 ? void 0 : _e.call(vm)) !== null && _f !== void 0 ? _f : null;
+    makeVMI(vm, artboard, vmName = "") {
+        var _a, _b, _c, _d;
+        if (vmName != "")
+            return vm === null || vm === void 0 ? void 0 : vm.instanceByName(vmName);
+        return (_d = (_b = (_a = vm === null || vm === void 0 ? void 0 : vm.defaultInstance) === null || _a === void 0 ? void 0 : _a.call(vm)) !== null && _b !== void 0 ? _b : (_c = vm === null || vm === void 0 ? void 0 : vm.instance) === null || _c === void 0 ? void 0 : _c.call(vm)) !== null && _d !== void 0 ? _d : null;
     }
     loadRiveFiles(filenames, callback) {
         return __awaiter(this, void 0, void 0, function* () {
