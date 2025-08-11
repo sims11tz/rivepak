@@ -46,6 +46,8 @@ export declare class RiveController {
     Init(canvas: HTMLCanvasElement): Promise<void>;
     SetSize(width: number, height: number): void;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<RiveObjectsSet>;
+    private getVMForArtboard;
+    private makeVMI;
     private loadRiveFiles;
     private _mousePos;
     private _mouseGlobalPos;

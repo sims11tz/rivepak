@@ -22,13 +22,17 @@ export declare class CanvasSettingsDef {
     height?: number;
     autoScale?: boolean;
     debugMode?: boolean;
-    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, }: {
+    borderWidth?: number;
+    borderColor?: string;
+    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, borderWidth, borderColor, }: {
         physicsEnabled?: boolean | undefined;
         physicsWalls?: boolean | undefined;
         width?: number | undefined;
         height?: number | undefined;
         autoScale?: boolean | undefined;
         debugMode?: boolean | undefined;
+        borderWidth?: number | undefined;
+        borderColor?: string | undefined;
     });
 }
 export declare class CanvasEngine {

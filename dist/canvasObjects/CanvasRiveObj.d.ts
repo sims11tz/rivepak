@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance } from "@rive-app/canvas-advanced";
+import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasObj } from "./CanvasObj";
 import * as PIXI from "pixi.js";
@@ -17,6 +17,13 @@ export interface EntityObj {
     height: number;
     body: Matter.Body | null;
 }
+export type ChildBundle = {
+    name: string;
+    nester: any;
+    artboard: Artboard;
+    stateMachine: StateMachineInstance | null;
+    inputs: Map<string, SMIInput>;
+};
 export declare class CanvasRiveObj extends CanvasObj {
     private _artboard;
     protected _renderer: Renderer;
@@ -24,6 +31,10 @@ export declare class CanvasRiveObj extends CanvasObj {
     protected _animations: LinearAnimationInstance[];
     protected _stateMachine: StateMachineInstance | null;
     protected _inputs: Map<string, SMIInput>;
+    protected _viewModels: Map<string, any>;
+    protected _viewModelInstance: any | null;
+    SetViewModelInstance(vmi: any): void;
+    get ViewModelInstance(): any | null;
     private _objBoundsReuse;
     private _riveObjDef;
     get riveObjDef(): RiveObjectDef;

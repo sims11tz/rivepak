@@ -1,4 +1,4 @@
-import RiveCanvas, { File as RiveFile, Artboard, Renderer } from "@rive-app/webgl-advanced";
+import RiveCanvas, { File as RiveFile, Artboard, Renderer, ViewModel } from "@rive-app/webgl-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
@@ -152,13 +152,17 @@ export class RiveController
 				return null;
 			}
 
+			//console.log("......RIVE CONTROLLER");
+			//console.log("ArtboardCount:", riveFile.artboardCount());
+			//console.log("enums:", riveFile.enums());
+			//console.log("defaultArtboardViewModel:", riveFile.viewModelCount());
+
 			let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
 			if (!artboard)
 			{
 				console.error(`Artboard not found in ${def.filePath}`);
 				return null;
 			}
-
 			artboard.devicePixelRatioUsed = window.devicePixelRatio;
 
 			let canvasRiveObj: CanvasRiveObj | null = null;
@@ -180,6 +184,45 @@ export class RiveController
 			}
 
 			canvasRiveObj?.ApplyResolutionScale(CanvasEngine.get().CurrentCanvasScale);
+
+			console.log('');
+			console.log('%c RiveController..... VIEW MODEL SHIT !!!! ','color:#00FF88');
+			console.log('%c riveFile.enums :','color:#00FF88', riveFile.enums());
+			console.log('%c riveFile.viewModelCount :','color:#00FF88', riveFile.viewModelCount());
+			if(riveFile.viewModelCount() > 0)
+			{
+				const vmName /* optional */ = undefined; // e.g. "UIVM" if you want to force a specific VM
+				const vm = this.getVMForArtboard(riveFile, artboard, vmName);
+				console.log('%c vm :','color:#00FF88', vm);
+				let vmi: any = null;
+
+				if(vm)
+				{
+					console.log('%c ','color:#C586C0');
+					console.log('%c lets get vmi :','color:#C586C0');
+					console.log('%c vmName:','color:#C586C0', vm.name);
+					console.log('%c getInstanceNames('+vm.instanceCount+') :','color:#C586C0',vm.getInstanceNames());
+					console.log('%c getProperties('+vm.propertyCount+') :','color:#C586C0',vm.getProperties());
+					vmi = this.makeVMI(vm, artboard);
+					console.log('%c vmi :','color:#C586C0', vmi);
+					if(vmi && typeof artboard.bindViewModelInstance === "function")
+					{
+						artboard.bindViewModelInstance(vmi);
+						console.log("Bound ViewModelInstance. Properties:", vmi.getProperties?.().map((p:any)=>p.name));
+					}
+				}
+
+				if(vmi)
+				{
+					console.log('%c HAS VMI !','color:#C586C0');
+					canvasRiveObj?.SetViewModelInstance(vmi);
+				}
+				else
+				{
+					console.log('%c no VMI !','color:#C586C0');
+				}
+			}
+
 			return canvasRiveObj;
 		})
 		.filter((obj): obj is CanvasRiveObj => obj !== null);
@@ -187,6 +230,38 @@ export class RiveController
 		this._riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
 
 		return this._riveObjectsSet;
+	}
+
+	private getVMForArtboard(file: RiveFile, artboard: Artboard, name?: string): ViewModel | null
+	{
+		// try a named VM first (optional)
+		if (name && typeof file.viewModelByName === "function")
+		{
+			const vm = file.viewModelByName(name);
+			if (vm) return vm;
+		}
+
+		// prefer the artboard's default VM from the editor
+		if (typeof file.defaultArtboardViewModel === "function")
+		{
+			const vm = file.defaultArtboardViewModel(artboard);
+			if (vm) return vm;
+		}
+		// fallback to first VM in file
+		if (typeof file.viewModelCount === "function" && file.viewModelCount() > 0)
+		{
+			return file.viewModelByIndex?.(0) ?? null;
+		}
+
+		return null;
+	}
+
+	private makeVMI(vm: any, artboard: any)
+	{
+		return vm?.instanceByArtboard?.(artboard)
+			?? vm?.defaultInstance?.()
+			?? vm?.instance?.()
+			?? null;
 	}
 
 	private async loadRiveFiles( filenames: string | string[], callback: (data: Array<{ filename: string; riveFile: RiveFile | null }>, error?: Error) => void)
