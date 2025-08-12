@@ -63,6 +63,12 @@ declare const BaseRivePhysicsObject_base: {
         readonly transformedY: number;
         _transformedY: number;
         _transformedYlast: number;
+        _objBoundsReuse: {
+            minX: number;
+            minY: number;
+            maxX: number;
+            maxY: number;
+        };
         _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
         UpdateBaseProps(): void;
         z: number;

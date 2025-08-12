@@ -28,7 +28,6 @@ export declare class CanvasRiveObj extends CanvasObj {
     protected _viewModelInstance: ViewModelInstance | null;
     SetViewModelInstance(vmi: ViewModelInstance | null): void;
     get ViewModelInstance(): ViewModelInstance | null;
-    private _objBoundsReuse;
     private _riveObjDef;
     get riveObjDef(): RiveObjectDef;
     private _artboardName;

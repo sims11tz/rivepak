@@ -46,8 +46,6 @@ export class CanvasRiveObj extends CanvasObj
 		return this._viewModelInstance;
 	}
 
-	private _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-
 	private _riveObjDef:RiveObjectDef;
 	public get riveObjDef():RiveObjectDef { return this._riveObjDef; }
 

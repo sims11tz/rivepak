@@ -127,6 +127,8 @@ export abstract class CanvasObj
 	public _transformedY: number = -1;
 	public _transformedYlast: number = -1;
 
+	public _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+
 	public _body: Matter.Body | null = null;
 
 	public _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();

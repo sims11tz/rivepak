@@ -48,6 +48,7 @@ export class CanvasObj {
         this._transformedXlast = -1;
         this._transformedY = -1;
         this._transformedYlast = -1;
+        this._objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;

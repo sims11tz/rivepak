@@ -20,7 +20,6 @@ export class CanvasRiveObj extends CanvasObj {
         this._inputs = new Map();
         this._viewModels = new Map();
         this._viewModelInstance = null;
-        this._objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
         this._artboardName = "";
         this._filePath = "";
         this._lastMousePos = { x: -1, y: -1 };

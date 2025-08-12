@@ -35,6 +35,14 @@ export class CanvasPixiShapeObj extends CanvasObj {
             this._graphics.on("pointerover", this.onHover, this);
             this._graphics.on("pointerout", this.onHoverOut, this);
         }
+        if (this.centerGlobally) {
+            this.x = CanvasEngine.get().width / 2;
+            this.y = CanvasEngine.get().height / 2;
+        }
+        if (this.centerGlobally || this.centerLocally) {
+            this.x -= (this.width / 2);
+            this.y -= (this.height / 2);
+        }
         this.UpdateBaseProps();
     }
     DrawVectors() {
