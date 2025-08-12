@@ -22,7 +22,6 @@ export class CanvasPixiShapeObj extends CanvasObj {
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
         this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
         this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
-        this.DrawVectors();
         this.x = (_e = this.defObj.x) !== null && _e !== void 0 ? _e : Math.random() * RiveController.get().Canvas.width;
         this.y = (_f = this.defObj.y) !== null && _f !== void 0 ? _f : Math.random() * RiveController.get().Canvas.height;
         this._graphics.x = this.x;
@@ -44,6 +43,7 @@ export class CanvasPixiShapeObj extends CanvasObj {
             this.y -= (this.height / 2);
         }
         this.UpdateBaseProps();
+        this.DrawVectors();
     }
     DrawVectors() {
         if (this._graphics === null)

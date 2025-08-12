@@ -1,5 +1,6 @@
 import Matter from "matter-js";
 import { PIXI_LAYER } from "../controllers/PixiController";
+import type { TextStyleOptions } from "pixi.js";
 
 export class GlobalUIDGenerator
 {
@@ -44,6 +45,41 @@ export interface CanvasObjectDef
 	label?:string;
 
 	text?:string;
+
+/*TEXT Start*/
+	// Text styling options
+	textStyle?: Partial<TextStyleOptions>;
+	textAlign?: 'left' | 'center' | 'right' | 'justify';
+	verticalAlign?: 'top' | 'middle' | 'bottom';
+
+	// Text bounds and wrapping
+	wordWrap?: boolean;
+	wordWrapWidth?: number;
+	breakWords?: boolean;
+	maxWidth?: number;
+	maxHeight?: number;
+
+	// Text effects
+	textShadow?: boolean;
+	textShadowColor?: string | number;
+	textShadowBlur?: number;
+	textShadowAngle?: number;
+	textShadowDistance?: number;
+
+	// Text animations
+	typewriterEffect?: boolean;
+	typewriterSpeed?: number; // characters per second
+	fadeInDuration?: number; // milliseconds
+	pulseText?: boolean;
+	pulseSpeed?: number;
+
+	// Advanced text options
+	letterSpacing?: number;
+	lineHeight?: number;
+	padding?: number;
+	trimText?: boolean;
+	resolution?: number;
+/*TEXT END*/
 
 	count?:number;
 	width?:number;

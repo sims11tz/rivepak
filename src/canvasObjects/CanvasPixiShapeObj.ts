@@ -31,8 +31,6 @@ export class CanvasPixiShapeObj extends CanvasObj
 		this.xScale = this.defObj.xScale ?? 1;
 		this.yScale = this.defObj.yScale ?? 1;
 
-		this.DrawVectors();
-
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
 
@@ -64,6 +62,8 @@ export class CanvasPixiShapeObj extends CanvasObj
 		}
 
 		this.UpdateBaseProps();
+
+		this.DrawVectors();
 	}
 
 	public DrawVectors():void

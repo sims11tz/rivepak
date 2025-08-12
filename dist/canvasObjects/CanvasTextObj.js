@@ -5,6 +5,13 @@ import { PixiController } from "../controllers/PixiController";
 export class CanvasTextObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
+        this._typewriterIndex = 0;
+        this._typewriterTimer = 0;
+        this._fullText = "";
+        this._fadeStartTime = 0;
+        this._pulseTime = 0;
+        this._alignmentOffsetX = 0;
+        this._alignmentOffsetY = 0;
     }
     InitPixiObject() {
         var _a, _b, _c, _d, _e, _f;
@@ -22,17 +29,88 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             this.x -= (this.width / 2);
             this.y -= (this.height / 2);
         }
-        this.UpdateBaseProps();
         const scaledWidth = this.width * this.xScale;
         const scaledHeight = this.height * this.yScale;
         this._objBoundsReuse.minX = this.x;
         this._objBoundsReuse.minY = this.y;
         this._objBoundsReuse.maxX = this.x + scaledWidth;
         this._objBoundsReuse.maxY = this.y + scaledHeight;
+        if (this.defObj.typewriterEffect && this.defObj.text) {
+            this._fullText = this.defObj.text;
+            this._typewriterIndex = 0;
+            this._typewriterTimer = 0;
+        }
+        if (this.defObj.fadeInDuration) {
+            this._fadeStartTime = Date.now();
+        }
         super.InitPixiObject();
     }
+    createTextStyle() {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        const defaultStyle = {
+            fontFamily: "Arial, Helvetica, sans-serif",
+            fontSize: 24,
+            fill: 0xffffff,
+            align: this.defObj.textAlign || 'left',
+            wordWrap: (_a = this.defObj.wordWrap) !== null && _a !== void 0 ? _a : false,
+            wordWrapWidth: (_b = this.defObj.wordWrapWidth) !== null && _b !== void 0 ? _b : this.width,
+            breakWords: (_c = this.defObj.breakWords) !== null && _c !== void 0 ? _c : false,
+            letterSpacing: (_d = this.defObj.letterSpacing) !== null && _d !== void 0 ? _d : 0,
+            lineHeight: this.defObj.lineHeight,
+            padding: (_e = this.defObj.padding) !== null && _e !== void 0 ? _e : 0,
+            trim: (_f = this.defObj.trimText) !== null && _f !== void 0 ? _f : false,
+        };
+        if (this.defObj.textShadow) {
+            defaultStyle.dropShadow = {
+                color: (_g = this.defObj.textShadowColor) !== null && _g !== void 0 ? _g : 0x000000,
+                blur: (_h = this.defObj.textShadowBlur) !== null && _h !== void 0 ? _h : 4,
+                angle: (_j = this.defObj.textShadowAngle) !== null && _j !== void 0 ? _j : Math.PI / 6,
+                distance: (_k = this.defObj.textShadowDistance) !== null && _k !== void 0 ? _k : 5,
+                alpha: 1
+            };
+        }
+        const finalStyle = this.defObj.textStyle
+            ? Object.assign(Object.assign({}, defaultStyle), this.defObj.textStyle) : defaultStyle;
+        console.log('createTextStyle().finalStyle=', finalStyle);
+        return new PIXI.TextStyle(finalStyle);
+    }
+    calculateAlignmentOffsets() {
+        var _a, _b;
+        if (!this._textField)
+            return;
+        const textBounds = this._textField.getLocalBounds();
+        const containerWidth = (_a = this.defObj.maxWidth) !== null && _a !== void 0 ? _a : this.width;
+        const containerHeight = (_b = this.defObj.maxHeight) !== null && _b !== void 0 ? _b : this.height;
+        // Horizontal alignment
+        switch (this.defObj.textAlign) {
+            case 'center':
+                this._alignmentOffsetX = (containerWidth - textBounds.width) / 2;
+                break;
+            case 'right':
+                this._alignmentOffsetX = containerWidth - textBounds.width;
+                break;
+            case 'justify':
+            case 'left':
+            default:
+                this._alignmentOffsetX = 0;
+                break;
+        }
+        // Vertical alignment
+        switch (this.defObj.verticalAlign) {
+            case 'middle':
+                this._alignmentOffsetY = (containerHeight - textBounds.height) / 2;
+                break;
+            case 'bottom':
+                this._alignmentOffsetY = containerHeight - textBounds.height;
+                break;
+            case 'top':
+            default:
+                this._alignmentOffsetY = 0;
+                break;
+        }
+    }
     DrawVectors() {
-        if (this._textField && this._textField.text === this.defObj.text) {
+        if (this._textField && this._textField.text === this.getCurrentDisplayText() && !this.hasStyleChanged()) {
             return;
         }
         if (this._textField) {
@@ -40,67 +118,223 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             this._textField.destroy();
             this._textField = null;
         }
-        if (this.defObj.text && this.defObj.text.length > 0) {
-            const style = new PIXI.TextStyle({
-                fontFamily: "Verdana",
-                fontSize: 64,
-                fill: "#ffcc00",
-                stroke: "#000000",
-                dropShadow: true,
-                align: "center",
-                fontWeight: "bold",
-            });
-            this._textField = new PIXI.Text({ text: this.defObj.text, style: style });
-            this._textField.interactive = false;
-            this._textField.eventMode = 'none';
-            //console.log('add the shit.... layer='+this.defObj.pixiLayer);
-            //console.log('add the shit.... test='+PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage);
+        const displayText = this.getCurrentDisplayText();
+        if (displayText && displayText.length > 0) {
+            const style = this.createTextStyle();
+            this._textField = new PIXI.Text({ text: displayText, style: style });
+            if (this.defObj.interactive) {
+                this._textField.interactive = true;
+                this._textField.eventMode = 'static';
+                this._textField.cursor = 'pointer';
+                this._textField.on('pointerdown', this.onTextClick, this);
+                this._textField.on('pointerover', this.onTextHover, this);
+                this._textField.on('pointerout', this.onTextHoverOut, this);
+            }
+            else {
+                this._textField.interactive = false;
+                this._textField.eventMode = 'none';
+            }
+            if (this.defObj.resolution) {
+                this._textField.resolution = this.defObj.resolution;
+            }
+            this.calculateAlignmentOffsets();
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textField);
-            const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
-            const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
-            //console.log('.    combinedScaleX='+combinedScaleX);
-            //console.log('.    combinedScaleY='+combinedScaleY);
-            this._textField.scale.set(combinedScaleX, combinedScaleY);
-            this._textField.x = this._objBoundsReuse.minX;
-            this._textField.y = this._objBoundsReuse.maxY - (this._textField.height * combinedScaleY) - 5;
-            //console.log('.    this._textField.x='+this._textField.x);
-            //console.log('.    this._textField.y='+this._textField.y);
+            this.updateTextTransform();
         }
         super.DrawVectors();
     }
+    /**
+     * Updates text position and scale based on current settings
+     */
+    updateTextTransform() {
+        if (!this._textField)
+            return;
+        const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
+        const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+        this._textField.scale.set(combinedScaleX, combinedScaleY);
+        this._textField.x = this._objBoundsReuse.minX + this._alignmentOffsetX * combinedScaleX;
+        this._textField.y = this._objBoundsReuse.minY + this._alignmentOffsetY * combinedScaleY;
+    }
+    /**
+     * Gets the current text to display (considering animations)
+     */
+    getCurrentDisplayText() {
+        if (!this.defObj.text)
+            return "";
+        console.log('CanvasTextObj.getCurrentDisplayText() >');
+        if (this.defObj.typewriterEffect) {
+            return this._fullText.substring(0, this._typewriterIndex);
+        }
+        return this.defObj.text;
+    }
+    /**
+     * Checks if style has changed and needs recreation
+     */
+    hasStyleChanged() {
+        // In a real implementation, you'd compare the actual style properties
+        // For now, we'll return false to avoid unnecessary recreation
+        return false;
+    }
+    /**
+     * Sets the text content
+     */
     SetText(text) {
         this.defObj.text = text;
+        if (this.defObj.typewriterEffect) {
+            this._fullText = text;
+            this._typewriterIndex = 0;
+            this._typewriterTimer = 0;
+        }
         this.DrawVectors();
     }
-    Update(time, frameCount, onceSecond) {
+    /**
+     * Updates the text style dynamically
+     */
+    SetTextStyle(style) {
+        console.log('CanvasTextObj.SetTextStyle() >');
+        this.defObj.textStyle = Object.assign(Object.assign({}, this.defObj.textStyle), style);
+        this.DrawVectors();
+    }
+    /**
+     * Sets text alignment
+     */
+    SetAlignment(horizontal, vertical) {
+        if (horizontal)
+            this.defObj.textAlign = horizontal;
+        if (vertical)
+            this.defObj.verticalAlign = vertical;
+        this.calculateAlignmentOffsets();
+        this.updateTextTransform();
+    }
+    /**
+     * Animates the text with a typewriter effect
+     */
+    StartTypewriter(speed) {
         var _a;
+        this.defObj.typewriterEffect = true;
+        this.defObj.typewriterSpeed = speed !== null && speed !== void 0 ? speed : 10;
+        this._fullText = (_a = this.defObj.text) !== null && _a !== void 0 ? _a : "";
+        this._typewriterIndex = 0;
+        this._typewriterTimer = 0;
+    }
+    /**
+     * Stops the typewriter effect and shows full text
+     */
+    StopTypewriter() {
+        this.defObj.typewriterEffect = false;
+        this._typewriterIndex = this._fullText.length;
+        this.DrawVectors();
+    }
+    /**
+     * Click handler for interactive text
+     */
+    onTextClick(event) {
+        // Override in subclass or emit event
+        console.log("Text clicked:", this.defObj.text);
+    }
+    /**
+     * Hover handler for interactive text
+     */
+    onTextHover() {
+        if (!this._textField)
+            return;
+        // Add hover effect - slightly brighten the text
+        this._textField.alpha = 0.8;
+        this._textField.scale.set(this._textField.scale.x * 1.05, this._textField.scale.y * 1.05);
+    }
+    /**
+     * Hover out handler for interactive text
+     */
+    onTextHoverOut() {
+        if (!this._textField)
+            return;
+        // Remove hover effect
+        this._textField.alpha = 1;
+        const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
+        const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+        this._textField.scale.set(combinedScaleX, combinedScaleY);
+    }
+    Update(time, frameCount, onceSecond) {
+        var _a, _b, _c;
         if (this.enabled === false)
             return;
-        if (this._textField) {
-            if ((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) {
-                //if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO- '+CanvasEngine.get().CurrentCanvasScale);
-                let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-                let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
-                //if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO-Tx '+transformedX);
-                //if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO-Ty '+transformedY);
-                this._textField.x = transformedX;
-                this._textField.y = transformedY;
-                this._textField.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
-            }
-            else {
-                //if(onceSecond) console.log('>>>>>>> - no autoscale ---- <<<<<<<');
-                this._textField.x = this.x;
-                this._textField.y = this.y;
-                this._textField.scale.set(this.xScale, this.yScale);
+        const debug = false;
+        if (debug)
+            console.log('CanvasTextObj.Update() >');
+        // Update typewriter effect
+        if (this.defObj.typewriterEffect && this._typewriterIndex < this._fullText.length) {
+            if (debug)
+                console.log('CanvasTextObj.Update() >1> typewriter');
+            const speed = (_a = this.defObj.typewriterSpeed) !== null && _a !== void 0 ? _a : 10;
+            this._typewriterTimer += 16; // Assume 60fps, ~16ms per frame
+            const msPerChar = 1000 / speed;
+            if (this._typewriterTimer >= msPerChar) {
+                this._typewriterIndex++;
+                this._typewriterTimer = 0;
+                // Update displayed text
+                if (this._textField) {
+                    this._textField.text = this.getCurrentDisplayText();
+                }
             }
         }
-        else {
-            //if(onceSecond) console.log("Text >4> There is no text field :S ");
+        // Update fade in effect
+        if (this.defObj.fadeInDuration && this._textField) {
+            if (debug)
+                console.log('CanvasTextObj.Update() >2> fade in effect ');
+            const elapsed = Date.now() - this._fadeStartTime;
+            const progress = Math.min(elapsed / this.defObj.fadeInDuration, 1);
+            this._textField.alpha = progress;
+        }
+        // Update pulse effect
+        if (this.defObj.pulseText && this._textField) {
+            if (debug)
+                console.log('CanvasTextObj.Update() >3> pulse ');
+            this._pulseTime += 16;
+            const pulseSpeed = (_b = this.defObj.pulseSpeed) !== null && _b !== void 0 ? _b : 1;
+            const scale = 1 + Math.sin(this._pulseTime * 0.001 * pulseSpeed) * 0.05;
+            const baseScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
+            const baseScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+            this._textField.scale.set(baseScaleX * scale, baseScaleY * scale);
+        }
+        // Update text position based on autoscale
+        if (this._textField) {
+            if (debug)
+                console.log('CanvasTextObj.Update() >4> has textfield do stuff ');
+            if ((_c = CanvasEngine.get().EngineSettings) === null || _c === void 0 ? void 0 : _c.autoScale) {
+                if (debug)
+                    console.log('CanvasTextObj.Update() >5> autoscale ');
+                let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+                let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+                this._textField.x = transformedX + this._alignmentOffsetX * CanvasEngine.get().CurrentCanvasScale;
+                this._textField.y = transformedY + this._alignmentOffsetY * CanvasEngine.get().CurrentCanvasScale;
+                if (!this.defObj.pulseText) {
+                    if (debug)
+                        console.log('CanvasTextObj.Update() >6>  ');
+                    this._textField.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
+                }
+            }
+            else {
+                if (debug)
+                    console.log('CanvasTextObj.Update() >7>  ');
+                this._textField.x = this.x + this._alignmentOffsetX;
+                this._textField.y = this.y + this._alignmentOffsetY;
+                if (!this.defObj.pulseText) {
+                    if (debug)
+                        console.log('CanvasTextObj.Update() >8>  ');
+                    this._textField.scale.set(this.xScale, this.yScale);
+                }
+            }
         }
         super.Update(time, frameCount, onceSecond);
     }
     Dispose() {
         if (this._textField) {
+            // Remove event listeners if interactive
+            if (this.defObj.interactive) {
+                this._textField.off('pointerdown', this.onTextClick, this);
+                this._textField.off('pointerover', this.onTextHover, this);
+                this._textField.off('pointerout', this.onTextHoverOut, this);
+            }
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
             this._textField.destroy();
             this._textField = null;
