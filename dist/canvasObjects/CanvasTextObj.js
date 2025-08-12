@@ -1,13 +1,12 @@
 import * as PIXI from "pixi.js";
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
-import { PIXI_LAYER, PixiController } from "../controllers/PixiController";
+import { PixiController } from "../controllers/PixiController";
 export class CanvasTextObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
         this._text = null;
     }
     DrawVectors() {
-        var _a;
         console.log("==---");
         console.log("=====-----");
         console.log("Drawing text object vectors!!");
@@ -44,7 +43,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             console.log("test.... height: " + this._text.height);
             console.log("test.... combinedScaleX: " + combinedScaleX);
             console.log("test.... combinedScaleY: " + combinedScaleY);
-            PixiController.get().GetPixiInstance((_a = this.defObj.pixiLayer) !== null && _a !== void 0 ? _a : PIXI_LAYER.ABOVE).stage.addChild(this._text);
+            console.log("test.... this.defObj.pixiLayer: " + this.defObj.pixiLayer);
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._text);
         }
     }
     SetText(text) {
@@ -101,6 +101,11 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         super.Update(time, frameCount, onceSecond);
     }
     Dispose() {
+        if (this._text) {
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._text);
+            this._text.destroy();
+            this._text = null;
+        }
         super.Dispose();
     }
 }

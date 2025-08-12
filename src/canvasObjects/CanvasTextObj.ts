@@ -61,7 +61,9 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			console.log("test.... combinedScaleX: "+combinedScaleX);
 			console.log("test.... combinedScaleY: "+combinedScaleY);
 
-			PixiController.get().GetPixiInstance(this.defObj.pixiLayer ?? PIXI_LAYER.ABOVE).stage.addChild(this._text);
+			console.log("test.... this.defObj.pixiLayer: "+this.defObj.pixiLayer);
+
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._text);
 		}
 	}
 
@@ -127,6 +129,13 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 
 	public Dispose(): void
 	{
+		if (this._text)
+		{
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._text);
+			this._text.destroy();
+			this._text = null;
+		}
+
 		super.Dispose();
 	}
 }
