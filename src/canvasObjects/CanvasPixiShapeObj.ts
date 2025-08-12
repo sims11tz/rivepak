@@ -105,7 +105,6 @@ export class CanvasPixiShapeObj extends CanvasObj
 		//console.log("🖱️ PixiShapeObject clicked!", this.label);
 	}
 
-	// ✅ Hover event handler
 	private onHover()
 	{
 		if (this._graphics)

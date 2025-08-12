@@ -74,7 +74,6 @@ export class CanvasPixiShapeObj extends CanvasObj {
     onClick(event) {
         //console.log("🖱️ PixiShapeObject clicked!", this.label);
     }
-    // ✅ Hover event handler
     onHover() {
         if (this._graphics) {
             this._graphics.tint = 0x00ff00;

@@ -36,7 +36,7 @@ export class PixiController {
     get PixiAbove() { return this._pixiInstanceAbove; }
     get PixiBelow() { return this._pixiInstanceBelow; }
     GetPixiInstance(layer = PIXI_LAYER.ABOVE) {
-        if (layer === PIXI_LAYER.ABOVE)
+        if (layer === PIXI_LAYER.ABOVE || layer == undefined)
             return this.PixiAbove;
         if (layer === PIXI_LAYER.BELOW)
             return this.PixiBelow;

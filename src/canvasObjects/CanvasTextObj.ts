@@ -2,35 +2,68 @@ import * as PIXI from "pixi.js";
 
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 import { CanvasObjectDef } from "./CanvasObj";
-import { PIXI_LAYER, PixiController } from "../controllers/PixiController";
+import { CanvasEngine } from "../useCanvasEngine";
+import { PixiController } from "../controllers/PixiController";
 
 export class CanvasTextObject extends CanvasPixiShapeObj
 {
+	private _textField!:PIXI.Text | null;
+
 	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
 	}
 
-	private _text: PIXI.Text | null = null;
+	public override InitPixiObject(): void
+	{
+		this.width = this.defObj.width ?? 100;
+		this.height = this.defObj.height ?? 100;
+		this.xScale = this.defObj.xScale ?? 1;
+		this.yScale = this.defObj.yScale ?? 1;
+
+		this.x = this.defObj.x ?? 0;
+		this.y = this.defObj.y ?? 0;
+
+		if(this.centerGlobally)
+		{
+			this.x = CanvasEngine.get().width / 2;
+			this.y = CanvasEngine.get().height / 2;
+		}
+
+		if(this.centerGlobally || this.centerLocally)
+		{
+			this.x -= (this.width / 2);
+			this.y -= (this.height / 2);
+		}
+
+		this.UpdateBaseProps();
+
+		const scaledWidth = this.width * this.xScale;
+		const scaledHeight = this.height * this.yScale;
+		this._objBoundsReuse.minX = this.x;
+		this._objBoundsReuse.minY = this.y;
+		this._objBoundsReuse.maxX = this.x + scaledWidth;
+		this._objBoundsReuse.maxY = this.y + scaledHeight;
+
+		super.InitPixiObject();
+	}
+
 	public override DrawVectors():void
 	{
-		console.log("==---");
-		console.log("=====-----");
-		console.log("Drawing text object vectors!!");
-		console.log("this.defObj.text:",this.defObj.text);
-
-		super.DrawVectors();
-
-		if(this._text)
+		if(this._textField && this._textField.text === this.defObj.text)
 		{
-			this._text.destroy();
-			this._text = null;
-			console.warn('WARN DESTROY TEXT');
+			return;
+		}
+
+		if(this._textField)
+		{
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
+			this._textField.destroy();
+			this._textField = null;
 		}
 
 		if(this.defObj.text && this.defObj.text.length > 0)
 		{
-			console.log("draw some text please");
 			const style = new PIXI.TextStyle({
 				fontFamily: "Verdana",
 				fontSize: 64,
@@ -40,100 +73,78 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 				align: "center",
 				fontWeight: "bold",
 			});
-			this._text = new PIXI.Text({text:this.defObj.text, style:style});
-			this._text.interactive = false;
-			this._text.eventMode = 'none';
+			this._textField = new PIXI.Text({text:this.defObj.text, style:style});
+			this._textField.interactive = false;
+			this._textField.eventMode = 'none';
+			//console.log('add the shit.... layer='+this.defObj.pixiLayer);
+			//console.log('add the shit.... test='+PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage);
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textField);
 
 			const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
 			const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
 
-			this._text.scale.set(combinedScaleX, combinedScaleY);
-			this._text.x = this._objBoundsReuse.minX;
-			this._text.y = this._objBoundsReuse.maxY - (this._text.height * combinedScaleY) - 5;
+			//console.log('.    combinedScaleX='+combinedScaleX);
+			//console.log('.    combinedScaleY='+combinedScaleY);
 
-			console.log("test.... : "+this._text.text);
-			console.log("test.... x: "+this._text.x);
-			console.log("test.... y: "+this._text.y);
+			this._textField.scale.set(combinedScaleX, combinedScaleY);
+			this._textField.x = this._objBoundsReuse.minX;
+			this._textField.y = this._objBoundsReuse.maxY - (this._textField.height * combinedScaleY) - 5;
 
-			console.log("test.... width: "+this._text.width);
-			console.log("test.... height: "+this._text.height);
-
-			console.log("test.... combinedScaleX: "+combinedScaleX);
-			console.log("test.... combinedScaleY: "+combinedScaleY);
-
-			console.log("test.... this.defObj.pixiLayer: "+this.defObj.pixiLayer);
-
-			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._text);
+			//console.log('.    this._textField.x='+this._textField.x);
+			//console.log('.    this._textField.y='+this._textField.y);
 		}
+
+		super.DrawVectors();
 	}
 
 	public SetText(text: string): void
 	{
-		console.log('SSSSSSSEEeeeeeeT text ::::::::: '+text);
 		this.defObj.text = text;
 		this.DrawVectors();
 	}
-
 
 	public Update(time:number,frameCount:number,onceSecond:boolean)
 	{
 		if(this.enabled === false) return;
 
-		const scaledWidth = this.width * this.xScale;
-		const scaledHeight = this.height * this.yScale;
-
-		if(onceSecond) console.log('CanvasTextObj.update');
-		if(this._resolutionScale !== -1)
+		if(this._textField)
 		{
-			this._objBoundsReuse.minX = this._transformedX;
-			this._objBoundsReuse.minY = this._transformedY;
-			this._objBoundsReuse.maxX = this._transformedX + (scaledWidth * this._resolutionScale);
-			this._objBoundsReuse.maxY = this._transformedY + (scaledHeight * this._resolutionScale);
-		}
-		else
-		{
-			this._objBoundsReuse.minX = this.x;
-			this._objBoundsReuse.minY = this.y;
-			this._objBoundsReuse.maxX = this.x + scaledWidth;
-			this._objBoundsReuse.maxY = this.y + scaledHeight;
-		}
-
-		if(onceSecond) console.log('CanvasTextObj this._objBoundsReuse.minX:'+this._objBoundsReuse.minX);
-		if(onceSecond) console.log('CanvasTextObj this._objBoundsReuse.minY:'+this._objBoundsReuse.minY);
-		if(onceSecond) console.log('CanvasTextObj this._objBoundsReuse.maxX:'+this._objBoundsReuse.maxX);
-		if(onceSecond) console.log('CanvasTextObj this._objBoundsReuse.maxY:'+this._objBoundsReuse.maxY);
-
-		if(this._text)
-		{
-			const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
-			const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
-
-			this._text.x = this._objBoundsReuse.minX;
-			this._text.y = this._objBoundsReuse.maxY - (this._text.height * combinedScaleY) - 5;
-			if(onceSecond) console.log('CanvasTextObj this._text.x:'+this._text.x);
-			if(onceSecond) console.log('CanvasTextObj this._text.y:'+this._text.y);
-
-			if(this._text.scale.x !== combinedScaleX || this._text.scale.y !== combinedScaleY)
+			if(CanvasEngine.get().EngineSettings?.autoScale)
 			{
-				this._text.scale.set(combinedScaleX, combinedScaleY);
-				if(onceSecond) console.log('CanvasTextObj this._text.scale:'+this._text.scale);
+				//if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO- '+CanvasEngine.get().CurrentCanvasScale);
+				let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+				let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+				//if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO-Tx '+transformedX);
+				//if(onceSecond) console.log('>>>>>>> -AUTOscaleAUTO-Ty '+transformedY);
+
+				this._textField.x = transformedX;
+				this._textField.y = transformedY;
+
+				this._textField.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
+			}
+			else
+			{
+				//if(onceSecond) console.log('>>>>>>> - no autoscale ---- <<<<<<<');
+				this._textField.x = this.x;
+				this._textField.y = this.y;
+				this._textField.scale.set(this.xScale, this.yScale);
 			}
 		}
 		else
 		{
-			if(onceSecond) console.log('CanvasTextObj NO TEXT OBJ:---',this._text);
+			//if(onceSecond) console.log("Text >4> There is no text field :S ");
 		}
 
-		super.Update(time,frameCount,onceSecond);
+		super.Update(time, frameCount, onceSecond);
 	}
 
 	public Dispose(): void
 	{
-		if (this._text)
+		if (this._textField)
 		{
-			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._text);
-			this._text.destroy();
-			this._text = null;
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
+			this._textField.destroy();
+			this._textField = null;
 		}
 
 		super.Dispose();

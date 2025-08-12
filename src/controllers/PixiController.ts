@@ -31,7 +31,7 @@ export class PixiController
 
 	public GetPixiInstance(layer:PIXI_LAYER = PIXI_LAYER.ABOVE):PIXI.Application
 	{
-		if (layer === PIXI_LAYER.ABOVE) return this.PixiAbove;
+		if (layer === PIXI_LAYER.ABOVE || layer == undefined) return this.PixiAbove;
 		if (layer === PIXI_LAYER.BELOW) return this.PixiBelow;
 		return this.PixiAbove;
 	}
