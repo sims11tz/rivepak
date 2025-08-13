@@ -9,18 +9,30 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 {
 	private _textField!: PIXI.Text | null;
 
-	private _typewriterIndex: number = 0;
-	private _typewriterTimer: number = 0;
-	private _fullText: string = "";
-	private _fadeStartTime: number = 0;
-	private _pulseTime: number = 0;
+	private _typewriterIndex!:number;
+	private _typewriterTimer!:number;
+	private _fullText!:string;
+	private _fadeStartTime!:number;
+	private _pulseTime!:number;
 
-	private _alignmentOffsetX: number = 0;
-	private _alignmentOffsetY: number = 0;
+	private _alignmentOffsetX!:number;
+	private _alignmentOffsetY!:number;
 
-	constructor(canvasDef: CanvasObjectDef)
+	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
+
+		if(this.defObj.typewriterEffect && this.defObj.text)
+		{
+			this._fullText = this.defObj.text;
+			this._typewriterIndex = 0;
+			this._typewriterTimer = 0;
+		}
+
+		if(this.defObj.fadeInDuration)
+		{
+			this._fadeStartTime = Date.now();
+		}
 	}
 
 	public override InitPixiObject(): void
@@ -52,21 +64,47 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._objBoundsReuse.maxX = this.x + scaledWidth;
 		this._objBoundsReuse.maxY = this.y + scaledHeight;
 
-		if(this.defObj.typewriterEffect && this.defObj.text)
-		{
-			this._fullText = this.defObj.text;
-			this._typewriterIndex = 0;
-			this._typewriterTimer = 0;
-		}
-
-		if(this.defObj.fadeInDuration)
-		{
-			this._fadeStartTime = Date.now();
-		}
-
 		super.InitPixiObject();
 	}
 
+	/**
+	 * Migrates old PIXI v7 stroke format to v8 format
+	 */
+	private migrateStrokeStyle(style: any): any
+	{
+		// Check if style has old stroke format
+		if('strokeThickness' in style || (style.stroke && typeof style.stroke !== 'object'))
+		{
+			const newStyle = { ...style };
+
+			// Convert old stroke format to new format
+			if(style.stroke || style.strokeThickness)
+			{
+				newStyle.stroke = {
+					color: style.stroke || 0x000000,
+					width: style.strokeThickness || 0,
+					alpha: 1
+				};
+
+				// Remove old properties
+				delete newStyle.strokeThickness;
+				if(typeof style.stroke !== 'object')
+				{
+					delete newStyle.stroke;
+					newStyle.stroke = {
+						color: style.stroke || 0x000000,
+						width: style.strokeThickness || 0,
+						alpha: 1
+					};
+				}
+			}
+
+			return newStyle;
+		}
+
+		return style;
+	}
+//textAlign verticalAlign
 	private createTextStyle(): PIXI.TextStyle
 	{
 		const defaultStyle: Partial<PIXI.TextStyleOptions> = {
@@ -94,11 +132,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			};
 		}
 
-		const finalStyle = this.defObj.textStyle
-			? { ...defaultStyle, ...this.defObj.textStyle }
-			: defaultStyle;
-
-		console.log('createTextStyle().finalStyle=', finalStyle);
+		let finalStyle = this.defObj.textStyle ? { ...defaultStyle, ...this.defObj.textStyle } : defaultStyle;
+		finalStyle = this.migrateStrokeStyle(finalStyle);
 
 		return new PIXI.TextStyle(finalStyle);
 	}
@@ -111,35 +146,21 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		const containerWidth = this.defObj.maxWidth ?? this.width;
 		const containerHeight = this.defObj.maxHeight ?? this.height;
 
-		// Horizontal alignment
 		switch(this.defObj.textAlign)
 		{
-			case 'center':
-				this._alignmentOffsetX = (containerWidth - textBounds.width) / 2;
-				break;
-			case 'right':
-				this._alignmentOffsetX = containerWidth - textBounds.width;
-				break;
+			case 'center': this._alignmentOffsetX = (containerWidth - textBounds.width) / 2; break;
+			case 'right': this._alignmentOffsetX = containerWidth - textBounds.width; break;
 			case 'justify':
 			case 'left':
-			default:
-				this._alignmentOffsetX = 0;
-				break;
+			default: this._alignmentOffsetX = 0; break;
 		}
 
-		// Vertical alignment
 		switch(this.defObj.verticalAlign)
 		{
-			case 'middle':
-				this._alignmentOffsetY = (containerHeight - textBounds.height) / 2;
-				break;
-			case 'bottom':
-				this._alignmentOffsetY = containerHeight - textBounds.height;
-				break;
+			case 'middle': this._alignmentOffsetY = (containerHeight - textBounds.height) / 2; break;
+			case 'bottom': this._alignmentOffsetY = containerHeight - textBounds.height; break;
 			case 'top':
-			default:
-				this._alignmentOffsetY = 0;
-				break;
+			default: this._alignmentOffsetY = 0; break;
 		}
 	}
 
@@ -190,12 +211,9 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			this.updateTextTransform();
 		}
 
-		super.DrawVectors();
+		//if(debug) super.DrawVectors();
 	}
 
-	/**
-	 * Updates text position and scale based on current settings
-	 */
 	private updateTextTransform(): void
 	{
 		if(!this._textField) return;
@@ -208,14 +226,10 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._textField.y = this._objBoundsReuse.minY + this._alignmentOffsetY * combinedScaleY;
 	}
 
-	/**
-	 * Gets the current text to display (considering animations)
-	 */
 	private getCurrentDisplayText(): string
 	{
 		if(!this.defObj.text) return "";
 
-		console.log('CanvasTextObj.getCurrentDisplayText() >');
 		if(this.defObj.typewriterEffect)
 		{
 			return this._fullText.substring(0, this._typewriterIndex);
@@ -224,19 +238,11 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		return this.defObj.text;
 	}
 
-	/**
-	 * Checks if style has changed and needs recreation
-	 */
 	private hasStyleChanged(): boolean
 	{
-		// In a real implementation, you'd compare the actual style properties
-		// For now, we'll return false to avoid unnecessary recreation
 		return false;
 	}
 
-	/**
-	 * Sets the text content
-	 */
 	public SetText(text: string): void
 	{
 		this.defObj.text = text;
@@ -251,9 +257,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
-	/**
-	 * Updates the text style dynamically
-	 */
 	public SetTextStyle(style: Partial<PIXI.TextStyleOptions>): void
 	{
 		console.log('CanvasTextObj.SetTextStyle() >');
@@ -261,9 +264,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
-	/**
-	 * Sets text alignment
-	 */
 	public SetAlignment(horizontal?: 'left' | 'center' | 'right' | 'justify', vertical?: 'top' | 'middle' | 'bottom'): void
 	{
 		if(horizontal) this.defObj.textAlign = horizontal;
@@ -273,9 +273,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.updateTextTransform();
 	}
 
-	/**
-	 * Animates the text with a typewriter effect
-	 */
 	public StartTypewriter(speed?: number): void
 	{
 		this.defObj.typewriterEffect = true;
@@ -285,9 +282,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._typewriterTimer = 0;
 	}
 
-	/**
-	 * Stops the typewriter effect and shows full text
-	 */
 	public StopTypewriter(): void
 	{
 		this.defObj.typewriterEffect = false;
@@ -295,23 +289,15 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
-	/**
-	 * Click handler for interactive text
-	 */
 	private onTextClick(event: PIXI.FederatedPointerEvent): void
 	{
-		// Override in subclass or emit event
 		console.log("Text clicked:", this.defObj.text);
 	}
 
-	/**
-	 * Hover handler for interactive text
-	 */
 	private onTextHover(): void
 	{
 		if(!this._textField) return;
 
-		// Add hover effect - slightly brighten the text
 		this._textField.alpha = 0.8;
 		this._textField.scale.set(
 			this._textField.scale.x * 1.05,
@@ -319,9 +305,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		);
 	}
 
-	/**
-	 * Hover out handler for interactive text
-	 */
 	private onTextHoverOut(): void
 	{
 		if(!this._textField) return;
@@ -339,8 +322,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		const debug = false;
 
 		if(debug) console.log('CanvasTextObj.Update() >');
-
-		// Update typewriter effect
 		if(this.defObj.typewriterEffect && this._typewriterIndex < this._fullText.length)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >1> typewriter');
@@ -353,7 +334,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 				this._typewriterIndex++;
 				this._typewriterTimer = 0;
 
-				// Update displayed text
 				if(this._textField)
 				{
 					this._textField.text = this.getCurrentDisplayText();
@@ -361,7 +341,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			}
 		}
 
-		// Update fade in effect
 		if(this.defObj.fadeInDuration && this._textField)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >2> fade in effect ');
@@ -370,7 +349,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			this._textField.alpha = progress;
 		}
 
-		// Update pulse effect
 		if(this.defObj.pulseText && this._textField)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >3> pulse ');
@@ -384,13 +362,12 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			this._textField.scale.set(baseScaleX * scale, baseScaleY * scale);
 		}
 
-		// Update text position based on autoscale
 		if(this._textField)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >4> has textfield do stuff ');
 			if(CanvasEngine.get().EngineSettings?.autoScale)
 			{
-				if(debug) console.log('CanvasTextObj.Update() >5> autoscale ');
+				if(debug) if(onceSecond) console.log('CanvasTextObj.Update() >5> autoscale ');
 				let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
 				let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
 

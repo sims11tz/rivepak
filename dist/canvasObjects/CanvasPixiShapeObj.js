@@ -48,9 +48,10 @@ export class CanvasPixiShapeObj extends CanvasObj {
     DrawVectors() {
         if (this._graphics === null)
             return;
+        this._graphics.clear();
         this._graphics.rect(0, 0, this.width, this.height);
-        this._graphics.fill({ color: 0x650a5a, alpha: 0.3 });
-        this._graphics.stroke({ width: 2, color: 0xfeeb77 });
+        this._graphics.fill({ color: 0x650a5a, alpha: 0.15 });
+        this._graphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.15 });
     }
     Update(time, frameCount, onceSecond) {
         var _a;
