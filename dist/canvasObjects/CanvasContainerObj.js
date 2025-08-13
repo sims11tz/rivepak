@@ -72,12 +72,46 @@ export class CanvasContainerObj extends CanvasObj {
         if (child.parent) {
             child.parent.RemoveChild(child);
         }
+        // Calculate relative position to container
+        const relativeX = child.x - this.x;
+        const relativeY = child.y - this.y;
+        const relativeXScale = child.xScale / this.xScale;
+        const relativeYScale = child.yScale / this.yScale;
         // Store original transform relative to container
         this._childOriginalTransforms.set(child.uuid, {
-            x: child.x,
-            y: child.y,
-            xScale: child.xScale,
-            yScale: child.yScale
+            x: relativeX,
+            y: relativeY,
+            xScale: relativeXScale,
+            yScale: relativeYScale
+        });
+        // Set up property change listeners to track child movement
+        child.BindPropertyChange('x', (oldValue, newValue) => {
+            const original = this._childOriginalTransforms.get(child.uuid);
+            if (original) {
+                // Update relative position
+                original.x = newValue - this.x;
+            }
+        });
+        child.BindPropertyChange('y', (oldValue, newValue) => {
+            const original = this._childOriginalTransforms.get(child.uuid);
+            if (original) {
+                // Update relative position
+                original.y = newValue - this.y;
+            }
+        });
+        child.BindPropertyChange('xScale', (oldValue, newValue) => {
+            const original = this._childOriginalTransforms.get(child.uuid);
+            if (original) {
+                // Update relative scale
+                original.xScale = newValue / this.xScale;
+            }
+        });
+        child.BindPropertyChange('yScale', (oldValue, newValue) => {
+            const original = this._childOriginalTransforms.get(child.uuid);
+            if (original) {
+                // Update relative scale
+                original.yScale = newValue / this.yScale;
+            }
         });
         child.SetParent(this);
         this.children.push(child);
@@ -91,17 +125,16 @@ export class CanvasContainerObj extends CanvasObj {
         const index = this.children.indexOf(child);
         if (index === -1)
             return false;
+        // Remove property change listeners
+        child.UnbindPropertyChange('x');
+        child.UnbindPropertyChange('y');
+        child.UnbindPropertyChange('xScale');
+        child.UnbindPropertyChange('yScale');
         child.SetParent(null);
         this.children.splice(index, 1);
-        // Restore original transform
-        const original = this._childOriginalTransforms.get(child.uuid);
-        if (original) {
-            child.x = original.x;
-            child.y = original.y;
-            child.xScale = original.xScale;
-            child.yScale = original.yScale;
-            this._childOriginalTransforms.delete(child.uuid);
-        }
+        // Keep current world position (don't restore to original)
+        // The child keeps its current position after being removed
+        this._childOriginalTransforms.delete(child.uuid);
         return true;
     }
     /**
@@ -325,23 +358,17 @@ export class CanvasContainerObj extends CanvasObj {
      * Moves a child to a new relative position within the container
      */
     MoveChild(child, x, y) {
-        const original = this._childOriginalTransforms.get(child.uuid);
-        if (original) {
-            original.x = x;
-            original.y = y;
-            this.updateChildTransform(child);
-        }
+        // Set the child's position relative to the container
+        child.x = this.x + x;
+        child.y = this.y + y;
     }
     /**
      * Scales a child relative to the container
      */
     ScaleChild(child, xScale, yScale) {
-        const original = this._childOriginalTransforms.get(child.uuid);
-        if (original) {
-            original.xScale = xScale;
-            original.yScale = yScale !== null && yScale !== void 0 ? yScale : xScale;
-            this.updateChildTransform(child);
-        }
+        // Set the child's scale relative to the container
+        child.xScale = this.xScale * xScale;
+        child.yScale = this.yScale * (yScale !== null && yScale !== void 0 ? yScale : xScale);
     }
     /**
      * Disposes of the container and all its children
