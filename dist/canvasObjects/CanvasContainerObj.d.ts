@@ -1,8 +1,5 @@
 import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
-/**
- * Container object that can hold and manage child canvas objects.
- * All children inherit transformations from their parent container.
- */
+import * as PIXI from "pixi.js";
 export declare class CanvasContainerObj extends CanvasObj {
     children: CanvasObj[];
     private _childOriginalTransforms;
@@ -10,7 +7,9 @@ export declare class CanvasContainerObj extends CanvasObj {
     get visible(): boolean;
     set visible(value: boolean);
     constructor(canvasDef: CanvasObjectDef);
+    protected _debugGraphics: PIXI.Graphics | null;
     protected InitContainer(): void;
+    protected DrawDebug(): void;
     /**
      * Adds a child object to this container
      */

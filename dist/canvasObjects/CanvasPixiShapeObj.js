@@ -1,4 +1,4 @@
-import { PixiController } from "../controllers/PixiController";
+import { PIXI_LAYER, PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
 import { CanvasObj } from "./CanvasObj";
@@ -7,17 +7,21 @@ export class CanvasPixiShapeObj extends CanvasObj {
     constructor(canvasDef) {
         super(canvasDef);
         this._graphics = null;
+        this._debugGraphics = null;
         this.InitPixiObject();
     }
     InitPixiObject() {
         var _a, _b, _c, _d, _e, _f;
-        // ✅ Create a new PIXI Graphics object
+        if (this._debug) {
+            console.log(' PIXI InitObject ---- DEBUG DEBUG DEBUG DEBUG ');
+            this._debugGraphics = new PIXI.Graphics();
+            PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
+        }
+        else {
+            console.log(' PIXI InitObject ---- noraml ');
+        }
         this._graphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
-        //const texture = await PIXI.Assets.load('https://pixijs.com/assets/bunny.png');
-        //const bunny = new PIXI.Sprite(texture);
-        //PixiController.get().Pixi.stage.addChild(bunny);
-        //bunny.anchor.set(0.5);
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
         this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
@@ -48,28 +52,43 @@ export class CanvasPixiShapeObj extends CanvasObj {
     DrawVectors() {
         if (this._graphics === null)
             return;
-        //this._graphics.clear();
-        //this._graphics.rect(0, 0, this.width, this.height);
-        //this._graphics.fill({color: 0x650a5a, alpha: 0.15});
-        //this._graphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.15 });
+        if (this._debug && this._debugGraphics) {
+            console.log(' PIXI InitObject ---- DEBUG Draw Vecotrs ');
+            this._debugGraphics.clear();
+            this._debugGraphics.rect(0, 0, this.width, this.height);
+            this._debugGraphics.fill({ color: 0x650a5a, alpha: 0.75 });
+            this._debugGraphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.95 });
+        }
     }
     Update(time, frameCount, onceSecond) {
         var _a;
         if (this.enabled === false)
             return;
+        let transformedX = 0;
+        let xScale = 0;
+        let transformedY = 0;
+        let yScale = 0;
+        if (((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) && (this._graphics || (this._debug && this._debugGraphics))) {
+            transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+            transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+            xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
+            yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+        }
+        else {
+            transformedX = this.x;
+            transformedY = this.y;
+            xScale = this.xScale;
+            yScale = this.yScale;
+        }
         if (this._graphics) {
-            if ((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) {
-                let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-                let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
-                this._graphics.x = transformedX;
-                this._graphics.y = transformedY;
-                this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
-            }
-            else {
-                this._graphics.x = this.x;
-                this._graphics.y = this.y;
-                this._graphics.scale.set(this.xScale, this.yScale);
-            }
+            this._graphics.x = transformedX;
+            this._graphics.y = transformedY;
+            this._graphics.scale.set(xScale, yScale);
+        }
+        if (this._debug && this._debugGraphics) {
+            this._debugGraphics.x = transformedX;
+            this._debugGraphics.y = transformedY;
+            this._debugGraphics.scale.set(xScale, yScale);
         }
     }
     onClick(event) {
@@ -90,6 +109,11 @@ export class CanvasPixiShapeObj extends CanvasObj {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
             this._graphics.destroy();
             this._graphics = null;
+        }
+        if (this._debugGraphics) {
+            PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.removeChild(this._debugGraphics);
+            this._debugGraphics.destroy();
+            this._debugGraphics = null;
         }
         super.Dispose();
     }

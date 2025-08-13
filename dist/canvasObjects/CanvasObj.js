@@ -55,6 +55,7 @@ export class CanvasObj {
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;
+        this._debug = false;
         this._defObj = defObj;
         this._uuid = GlobalUIDGenerator.generateUID();
         this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);

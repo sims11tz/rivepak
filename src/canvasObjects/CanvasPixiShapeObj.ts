@@ -7,6 +7,7 @@ import * as PIXI from "pixi.js";
 export class CanvasPixiShapeObj extends CanvasObj
 {
 	protected _graphics: PIXI.Graphics | null = null;
+	protected _debugGraphics: PIXI.Graphics | null = null;
 
 	constructor(canvasDef:CanvasObjectDef)
 	{
@@ -17,14 +18,19 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 	public InitPixiObject(): void
 	{
-		// ✅ Create a new PIXI Graphics object
+		if(this._debug)
+		{
+			console.log(' PIXI InitObject ---- DEBUG DEBUG DEBUG DEBUG ');
+			this._debugGraphics = new PIXI.Graphics();
+			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
+		}
+		else
+		{
+			console.log(' PIXI InitObject ---- noraml ');
+		}
+
 		this._graphics = new PIXI.Graphics();
 		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
-
-		//const texture = await PIXI.Assets.load('https://pixijs.com/assets/bunny.png');
-		//const bunny = new PIXI.Sprite(texture);
-		//PixiController.get().Pixi.stage.addChild(bunny);
-		//bunny.anchor.set(0.5);
 
 		this.width = this.defObj.width ?? 100;
 		this.height = this.defObj.height ?? 100;
@@ -70,34 +76,52 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		if(this._graphics === null) return;
 
-		//this._graphics.clear();
-		//this._graphics.rect(0, 0, this.width, this.height);
-		//this._graphics.fill({color: 0x650a5a, alpha: 0.15});
-		//this._graphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.15 });
+		if(this._debug && this._debugGraphics)
+		{
+			console.log(' PIXI InitObject ---- DEBUG Draw Vecotrs ');
+			this._debugGraphics.clear();
+			this._debugGraphics.rect(0, 0, this.width, this.height);
+			this._debugGraphics.fill({color: 0x650a5a, alpha: 0.75});
+			this._debugGraphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.95 });
+		}
 	}
 
 	public Update(time: number, frameCount: number, onceSecond: boolean): void
 	{
 		if(this.enabled === false) return;
 
-		if (this._graphics)
+		let transformedX = 0;
+		let xScale = 0;
+		let transformedY = 0;
+		let yScale = 0;
+
+		if(CanvasEngine.get().EngineSettings?.autoScale && (this._graphics || (this._debug && this._debugGraphics)))
 		{
-			if(CanvasEngine.get().EngineSettings?.autoScale)
-			{
-				let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-				let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+			transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+			transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+			xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
+			yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+		}
+		else
+		{
+			transformedX = this.x;
+			transformedY = this.y;
+			xScale = this.xScale;
+			yScale = this.yScale;
+		}
 
-				this._graphics.x = transformedX;
-				this._graphics.y = transformedY;
+		if(this._graphics)
+		{
+			this._graphics.x = transformedX;
+			this._graphics.y = transformedY;
+			this._graphics.scale.set(xScale, yScale);
+		}
 
-				this._graphics.scale.set(CanvasEngine.get().CurrentCanvasScale * this.xScale, CanvasEngine.get().CurrentCanvasScale * this.yScale);
-			}
-			else
-			{
-				this._graphics.x = this.x;
-				this._graphics.y = this.y;
-				this._graphics.scale.set(this.xScale, this.yScale);
-			}
+		if(this._debug && this._debugGraphics)
+		{
+			this._debugGraphics.x = transformedX;
+			this._debugGraphics.y = transformedY;
+			this._debugGraphics.scale.set(xScale, yScale);
 		}
 	}
 
@@ -124,11 +148,18 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 	public Dispose(): void
 	{
-		if (this._graphics)
+		if(this._graphics)
 		{
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
 			this._graphics.destroy();
 			this._graphics = null;
+		}
+
+		if(this._debugGraphics)
+		{
+			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.removeChild(this._debugGraphics);
+			this._debugGraphics.destroy();
+			this._debugGraphics = null;
 		}
 
 		super.Dispose();

@@ -35,7 +35,6 @@ export interface CanvasObjectEntity
 	z?:number;
 
 	resolutionScale?: number;
-
 	riveInteractiveLocalOnly?: boolean;
 }
 
@@ -65,6 +64,7 @@ export interface CanvasObjectDef
 	textShadowBlur?: number;
 	textShadowAngle?: number;
 	textShadowDistance?: number;
+	textShadowAlpha?: number;
 
 	// Text animations
 	typewriterEffect?: boolean;
@@ -171,9 +171,12 @@ export abstract class CanvasObj
 
 	public _body:Matter.Body | null = null;
 
+	public _debug!:boolean;
+
 	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
+		this._debug = false;
 		this._defObj = defObj;
 
 		this._uuid = GlobalUIDGenerator.generateUID();

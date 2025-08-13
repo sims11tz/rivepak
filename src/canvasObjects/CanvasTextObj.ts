@@ -37,6 +37,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 
 	public override InitPixiObject(): void
 	{
+		//this._debug = true;
+
 		this.width = this.defObj.width ?? 100;
 		this.height = this.defObj.height ?? 100;
 		this.xScale = this.defObj.xScale ?? 1;
@@ -63,6 +65,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._objBoundsReuse.minY = this.y;
 		this._objBoundsReuse.maxX = this.x + scaledWidth;
 		this._objBoundsReuse.maxY = this.y + scaledHeight;
+
+		console.log('%c CanvasTextObj x='+this.x+' y='+this.y+' w='+this.width+' h='+this.height,'color:#FFA500; font-weight:bold;');
 
 		super.InitPixiObject();
 	}
@@ -128,7 +132,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 				blur: this.defObj.textShadowBlur ?? 4,
 				angle: this.defObj.textShadowAngle ?? Math.PI / 6,
 				distance: this.defObj.textShadowDistance ?? 5,
-				alpha: 1
+				alpha: this.defObj.textShadowAlpha ?? 1
 			};
 		}
 
@@ -170,6 +174,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		{
 			return;
 		}
+		this._styleDirty = false;
 
 		if(this._textField)
 		{
@@ -211,7 +216,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			this.updateTextTransform();
 		}
 
-		//if(debug) super.DrawVectors();
+		super.DrawVectors();
 	}
 
 	private updateTextTransform(): void
@@ -238,12 +243,13 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		return this.defObj.text;
 	}
 
+	private _styleDirty = false;
 	private hasStyleChanged(): boolean
 	{
-		return false;
+		return this._styleDirty;
 	}
 
-	public SetText(text: string): void
+	public SetText(text:string): void
 	{
 		this.defObj.text = text;
 
@@ -260,6 +266,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 	public SetTextStyle(style: Partial<PIXI.TextStyleOptions>): void
 	{
 		console.log('CanvasTextObj.SetTextStyle() >');
+		this._styleDirty = true;
 		this.defObj.textStyle = { ...this.defObj.textStyle, ...style };
 		this.DrawVectors();
 	}

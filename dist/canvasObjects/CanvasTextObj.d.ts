@@ -21,6 +21,7 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     DrawVectors(): void;
     private updateTextTransform;
     private getCurrentDisplayText;
+    private _styleDirty;
     private hasStyleChanged;
     SetText(text: string): void;
     SetTextStyle(style: Partial<PIXI.TextStyleOptions>): void;

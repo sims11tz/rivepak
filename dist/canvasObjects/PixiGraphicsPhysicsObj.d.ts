@@ -71,6 +71,7 @@ declare const BaseShapePhysicsObj_base: {
             maxX: number;
             maxY: number;
         };
+        _debug: boolean;
         _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
         UpdateBaseProps(): void;
         z: number;

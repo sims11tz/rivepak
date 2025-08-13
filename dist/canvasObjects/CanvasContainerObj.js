@@ -1,8 +1,8 @@
+import { PixiController } from "../controllers/PixiController";
+import { RiveController } from "../controllers/RiveController";
+import { CanvasEngine } from "../useCanvasEngine";
 import { CanvasObj } from "./CanvasObj";
-/**
- * Container object that can hold and manage child canvas objects.
- * All children inherit transformations from their parent container.
- */
+import * as PIXI from "pixi.js";
 export class CanvasContainerObj extends CanvasObj {
     get visible() { return this._visible; }
     set visible(value) {
@@ -16,15 +16,49 @@ export class CanvasContainerObj extends CanvasObj {
         this._childOriginalTransforms = new Map();
         // Container visibility affects children
         this._visible = true;
+        this._debugGraphics = null;
         this.InitContainer();
     }
     InitContainer() {
-        // Container-specific initialization
-        // Set default size if not specified
-        if (!this.defObj.width)
-            this.width = 100;
-        if (!this.defObj.height)
-            this.height = 100;
+        var _a, _b, _c, _d, _e, _f;
+        this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
+        this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
+        this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
+        this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
+        this.x = (_e = this.defObj.x) !== null && _e !== void 0 ? _e : Math.random() * RiveController.get().Canvas.width;
+        this.y = (_f = this.defObj.y) !== null && _f !== void 0 ? _f : Math.random() * RiveController.get().Canvas.height;
+        if (this.centerGlobally) {
+            //console.log(`CANVAS CONTAINER... center globally`);
+            this.x = CanvasEngine.get().width / 2;
+            this.y = CanvasEngine.get().height / 2;
+        }
+        if (this.centerGlobally || this.centerLocally) {
+            //console.log(`CANVAS CONTAINER... center locally`);
+            this.x -= (this.width / 2);
+            this.y -= (this.height / 2);
+        }
+        if (this._debug) {
+            //console.log(`CANVAS CONTAINER... DEBUG MODE!!!!! `);
+            this._debugGraphics = new PIXI.Graphics();
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
+            this._debugGraphics.x = this.x;
+            this._debugGraphics.y = this.y;
+            this._debugGraphics.scale.set(this.xScale, this.yScale);
+            this._debugGraphics.eventMode = "static";
+            console.log('CANVAS CONTAINER... ' + this._debugGraphics.x + ',' + this._debugGraphics.y + ',' + this._debugGraphics.scale.x + ',' + this._debugGraphics.scale.y);
+        }
+        this.UpdateBaseProps();
+        if (this._debug)
+            this.DrawDebug();
+    }
+    DrawDebug() {
+        if (this._debug && this._debugGraphics) {
+            console.log('CANVAS CONTAINER --- DrawDebug');
+            this._debugGraphics.clear();
+            this._debugGraphics.rect(0, 0, this.width, this.height);
+            this._debugGraphics.fill({ color: 0x66CCFF, alpha: 0.45 });
+            this._debugGraphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.35 });
+        }
     }
     /**
      * Adds a child object to this container
@@ -154,6 +188,8 @@ export class CanvasContainerObj extends CanvasObj {
             child._transformedX = this._transformedX + (original.x * this.xScale * this._resolutionScale);
             child._transformedY = this._transformedY + (original.y * this.yScale * this._resolutionScale);
         }
+        //console.log('%c      child.x='+child.x+',      child.y='+child.y,'color:#00FF88');
+        //console.log('%c child.xScale='+child.xScale+', child.yScale='+child.yScale,'color:#00FF88');
     }
     /**
      * Gets the world position of this container (accounting for nested containers)
@@ -221,18 +257,18 @@ export class CanvasContainerObj extends CanvasObj {
      * Updates container and all its children
      */
     Update(time, frameCount, onceSecond) {
+        var _a;
         if (!this.enabled || !this._visible)
             return;
         // Update all child transforms relative to container
-        //for(const child of this.children)
-        //{
-        //	this.updateChildTransform(child);
-        //	// Update the child itself
-        //	if (child.enabled)
-        //	{
-        //		child.Update(time, frameCount, onceSecond);
-        //	}
-        //}
+        for (const child of this.children) {
+            this.updateChildTransform(child);
+            // Update the child itself
+            //if (child.enabled)
+            //{
+            //	child.Update(time, frameCount, onceSecond);
+            //}
+        }
         // Handle autoscale if needed
         //if (CanvasEngine.get().EngineSettings?.autoScale)
         //{
@@ -243,6 +279,33 @@ export class CanvasContainerObj extends CanvasObj {
         //	this._transformedHeight = this.height * this.yScale * scale;
         //	this._resolutionScale = scale;
         //}
+        let transformedX = 0;
+        let xScale = 0;
+        let transformedY = 0;
+        let yScale = 0;
+        if (((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) && (this._debug && this._debugGraphics)) {
+            transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+            transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+            xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
+            yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+        }
+        else {
+            transformedX = this.x;
+            transformedY = this.y;
+            xScale = this.xScale;
+            yScale = this.yScale;
+        }
+        //if(this._graphics)
+        //{
+        //	this._graphics.x = transformedX;
+        //	this._graphics.y = transformedY;
+        //	this._graphics.scale.set(xScale, yScale);
+        //}
+        if (this._debug && this._debugGraphics) {
+            this._debugGraphics.x = transformedX;
+            this._debugGraphics.y = transformedY;
+            this._debugGraphics.scale.set(xScale, yScale);
+        }
     }
     /**
      * Sets the position of the container

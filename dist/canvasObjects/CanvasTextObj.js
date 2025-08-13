@@ -5,6 +5,7 @@ import { PixiController } from "../controllers/PixiController";
 export class CanvasTextObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
+        this._styleDirty = false;
         if (this.defObj.typewriterEffect && this.defObj.text) {
             this._fullText = this.defObj.text;
             this._typewriterIndex = 0;
@@ -15,6 +16,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         }
     }
     InitPixiObject() {
+        //this._debug = true;
         var _a, _b, _c, _d, _e, _f;
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
@@ -36,6 +38,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this._objBoundsReuse.minY = this.y;
         this._objBoundsReuse.maxX = this.x + scaledWidth;
         this._objBoundsReuse.maxY = this.y + scaledHeight;
+        console.log('%c CanvasTextObj x=' + this.x + ' y=' + this.y + ' w=' + this.width + ' h=' + this.height, 'color:#FFA500; font-weight:bold;');
         super.InitPixiObject();
     }
     /**
@@ -69,7 +72,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     }
     //textAlign verticalAlign
     createTextStyle() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         const defaultStyle = {
             fontFamily: "Arial, Helvetica, sans-serif",
             fontSize: 24,
@@ -89,7 +92,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
                 blur: (_h = this.defObj.textShadowBlur) !== null && _h !== void 0 ? _h : 4,
                 angle: (_j = this.defObj.textShadowAngle) !== null && _j !== void 0 ? _j : Math.PI / 6,
                 distance: (_k = this.defObj.textShadowDistance) !== null && _k !== void 0 ? _k : 5,
-                alpha: 1
+                alpha: (_l = this.defObj.textShadowAlpha) !== null && _l !== void 0 ? _l : 1
             };
         }
         let finalStyle = this.defObj.textStyle ? Object.assign(Object.assign({}, defaultStyle), this.defObj.textStyle) : defaultStyle;
@@ -133,6 +136,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         if (this._textField && this._textField.text === this.getCurrentDisplayText() && !this.hasStyleChanged()) {
             return;
         }
+        this._styleDirty = false;
         if (this._textField) {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
             this._textField.destroy();
@@ -161,7 +165,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textField);
             this.updateTextTransform();
         }
-        //if(debug) super.DrawVectors();
+        super.DrawVectors();
     }
     updateTextTransform() {
         if (!this._textField)
@@ -181,7 +185,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         return this.defObj.text;
     }
     hasStyleChanged() {
-        return false;
+        return this._styleDirty;
     }
     SetText(text) {
         this.defObj.text = text;
@@ -194,6 +198,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     }
     SetTextStyle(style) {
         console.log('CanvasTextObj.SetTextStyle() >');
+        this._styleDirty = true;
         this.defObj.textStyle = Object.assign(Object.assign({}, this.defObj.textStyle), style);
         this.DrawVectors();
     }

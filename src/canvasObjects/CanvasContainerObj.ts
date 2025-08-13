@@ -1,10 +1,9 @@
-import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import { PixiController } from "../controllers/PixiController";
+import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
+import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import * as PIXI from "pixi.js";
 
-/**
- * Container object that can hold and manage child canvas objects.
- * All children inherit transformations from their parent container.
- */
 export class CanvasContainerObj extends CanvasObj
 {
 	public children: CanvasObj[] = [];
@@ -32,12 +31,61 @@ export class CanvasContainerObj extends CanvasObj
 		this.InitContainer();
 	}
 
+	protected _debugGraphics: PIXI.Graphics | null = null;
 	protected InitContainer(): void
 	{
-		// Container-specific initialization
-		// Set default size if not specified
-		if (!this.defObj.width) this.width = 100;
-		if (!this.defObj.height) this.height = 100;
+		this.width = this.defObj.width ?? 100;
+		this.height = this.defObj.height ?? 100;
+		this.xScale = this.defObj.xScale ?? 1;
+		this.yScale = this.defObj.yScale ?? 1;
+
+		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
+		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
+
+		if(this.centerGlobally)
+		{
+			//console.log(`CANVAS CONTAINER... center globally`);
+			this.x = CanvasEngine.get().width / 2;
+			this.y = CanvasEngine.get().height / 2;
+		}
+
+		if(this.centerGlobally || this.centerLocally)
+		{
+			//console.log(`CANVAS CONTAINER... center locally`);
+			this.x -= (this.width / 2);
+			this.y -= (this.height / 2);
+		}
+
+		if (this._debug)
+		{
+			//console.log(`CANVAS CONTAINER... DEBUG MODE!!!!! `);
+			this._debugGraphics = new PIXI.Graphics();
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
+
+			this._debugGraphics.x = this.x;
+			this._debugGraphics.y = this.y;
+			this._debugGraphics.scale.set(this.xScale, this.yScale);
+			this._debugGraphics.eventMode = "static";
+
+			console.log('CANVAS CONTAINER... '+this._debugGraphics.x+','+this._debugGraphics.y+','+this._debugGraphics.scale.x+','+this._debugGraphics.scale.y);
+
+		}
+
+		this.UpdateBaseProps();
+
+		if(this._debug) this.DrawDebug();
+	}
+
+	protected DrawDebug()
+	{
+		if(this._debug && this._debugGraphics)
+		{
+			console.log('CANVAS CONTAINER --- DrawDebug');
+			this._debugGraphics.clear();
+			this._debugGraphics.rect(0, 0, this.width, this.height);
+			this._debugGraphics.fill({color: 0x66CCFF, alpha: 0.45});
+			this._debugGraphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.35 });
+		}
 	}
 
 	/**
@@ -203,6 +251,9 @@ export class CanvasContainerObj extends CanvasObj
 			child._transformedX = this._transformedX + (original.x * this.xScale * this._resolutionScale);
 			child._transformedY = this._transformedY + (original.y * this.yScale * this._resolutionScale);
 		}
+
+		//console.log('%c      child.x='+child.x+',      child.y='+child.y,'color:#00FF88');
+		//console.log('%c child.xScale='+child.xScale+', child.yScale='+child.yScale,'color:#00FF88');
 	}
 
 	/**
@@ -291,16 +342,16 @@ export class CanvasContainerObj extends CanvasObj
 		if (!this.enabled || !this._visible) return;
 
 		// Update all child transforms relative to container
-		//for(const child of this.children)
-		//{
-		//	this.updateChildTransform(child);
+		for(const child of this.children)
+		{
+			this.updateChildTransform(child);
 
-		//	// Update the child itself
-		//	if (child.enabled)
-		//	{
-		//		child.Update(time, frameCount, onceSecond);
-		//	}
-		//}
+			// Update the child itself
+			//if (child.enabled)
+			//{
+			//	child.Update(time, frameCount, onceSecond);
+			//}
+		}
 
 		// Handle autoscale if needed
 		//if (CanvasEngine.get().EngineSettings?.autoScale)
@@ -312,6 +363,40 @@ export class CanvasContainerObj extends CanvasObj
 		//	this._transformedHeight = this.height * this.yScale * scale;
 		//	this._resolutionScale = scale;
 		//}
+
+		let transformedX = 0;
+		let xScale = 0;
+		let transformedY = 0;
+		let yScale = 0;
+
+		if(CanvasEngine.get().EngineSettings?.autoScale && (this._debug && this._debugGraphics))
+		{
+			transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+			transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+			xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
+			yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+		}
+		else
+		{
+			transformedX = this.x;
+			transformedY = this.y;
+			xScale = this.xScale;
+			yScale = this.yScale;
+		}
+
+		//if(this._graphics)
+		//{
+		//	this._graphics.x = transformedX;
+		//	this._graphics.y = transformedY;
+		//	this._graphics.scale.set(xScale, yScale);
+		//}
+
+		if(this._debug && this._debugGraphics)
+		{
+			this._debugGraphics.x = transformedX;
+			this._debugGraphics.y = transformedY;
+			this._debugGraphics.scale.set(xScale, yScale);
+		}
 	}
 
 	/**

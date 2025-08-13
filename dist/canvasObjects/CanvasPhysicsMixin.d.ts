@@ -71,6 +71,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
             maxX: number;
             maxY: number;
         };
+        _debug: boolean;
         _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
         UpdateBaseProps(): void;
         z: number;

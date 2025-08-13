@@ -37,6 +37,7 @@ export interface CanvasObjectDef {
     textShadowBlur?: number;
     textShadowAngle?: number;
     textShadowDistance?: number;
+    textShadowAlpha?: number;
     typewriterEffect?: boolean;
     typewriterSpeed?: number;
     fadeInDuration?: number;
@@ -124,6 +125,7 @@ export declare abstract class CanvasObj {
         maxY: number;
     };
     _body: Matter.Body | null;
+    _debug: boolean;
     _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
     constructor(defObj: CanvasObjectDef);
     UpdateBaseProps(): void;
