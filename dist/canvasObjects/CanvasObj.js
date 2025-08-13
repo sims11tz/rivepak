@@ -21,6 +21,8 @@ export class CanvasObj {
     get id() { return (this._id != '') ? this._id : this._uuid; }
     get label() { return this._label; }
     get defObj() { return this._defObj; }
+    SetParent(parent) { this._parent = parent; }
+    get parent() { return this._parent; }
     get resolutionScale() { return this._resolutionScale; }
     get transformedWidth() { return this._transformedWidth; }
     get transformedHeight() { return this._transformedHeight; }
@@ -38,6 +40,7 @@ export class CanvasObj {
         this.group = "main";
         this.width = 0;
         this.height = 0;
+        this._parent = null;
         this.constrainProportions = false;
         this._resolutionScale = -1;
         this._transformedWidth = -1;

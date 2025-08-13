@@ -41,6 +41,9 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         group: string;
         width: number;
         height: number;
+        _parent: CanvasObj | null;
+        SetParent(parent: CanvasObj | null): void;
+        readonly parent: CanvasObj | null;
         constrainProportions: boolean;
         baseX: number;
         baseY: number;

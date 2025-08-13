@@ -42,6 +42,9 @@ declare const BaseRivePhysicsObject_base: {
         group: string;
         width: number;
         height: number;
+        _parent: import("./CanvasObj").CanvasObj | null;
+        SetParent(parent: import("./CanvasObj").CanvasObj | null): void;
+        readonly parent: import("./CanvasObj").CanvasObj | null;
         constrainProportions: boolean;
         baseX: number;
         baseY: number;

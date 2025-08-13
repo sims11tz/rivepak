@@ -117,57 +117,61 @@ export interface CanvasObjectDef
 
 export abstract class CanvasObj
 {
-	public _uuid: string = "";
-	public get uuid(): string { return this._uuid; }
+	public _uuid:string = "";
+	public get uuid():string { return this._uuid; }
 
-	public _id: string = "";
-	public get id(): string { return (this._id != '') ? this._id : this._uuid; }
+	public _id:string = "";
+	public get id():string { return (this._id != '') ? this._id : this._uuid; }
 
-	public _label: string = "";
-	public get label(): string { return this._label; }
+	public _label:string = "";
+	public get label():string { return this._label; }
 
-	public _defObj: CanvasObjectDef | null = null;
-	public get defObj(): CanvasObjectDef { return this._defObj!; }
+	public _defObj:CanvasObjectDef | null = null;
+	public get defObj():CanvasObjectDef { return this._defObj!; }
 
-	public enabled: boolean = true;
-	public _state: { x: number; y: number; z: number; xScale: number; yScale: number };
+	public enabled:boolean = true;
+	public _state:{ x: number; y: number; z: number; xScale: number; yScale: number };
 
-	public centerLocally: boolean=false;
-	public centerGlobally: boolean=false;
+	public centerLocally:boolean=false;
+	public centerGlobally:boolean=false;
 
-	public group: string = "main";
-	public width: number = 0;
-	public height: number = 0;
+	public group:string = "main";
+	public width:number = 0;
+	public height:number = 0;
 
-	public constrainProportions: boolean = false;
+	public _parent:CanvasObj | null = null;
+	public SetParent(parent:CanvasObj | null): void {this._parent = parent;}
+	public get parent():CanvasObj | null { return this._parent; }
 
-	public baseX: number;
-	public baseY: number;
-	public baseWidth: number;
-	public baseHeight: number;
-	public baseXScale: number;
-	public baseYScale: number;
+	public constrainProportions:boolean = false;
 
-	public get resolutionScale(): number { return this._resolutionScale; }
-	public _resolutionScale: number = -1;
-	public get transformedWidth(): number { return this._transformedWidth; }
-	public _transformedWidth: number = -1;
-	public _transformedWidthlast: number = -1;
-	public get transformedHeight(): number { return this._transformedHeight; }
-	public _transformedHeight: number = -1;
-	public _transformedHeightlast: number = -1;
-	public get transformedX(): number { return this._transformedX; }
-	public _transformedX: number = -1;
-	public _transformedXlast: number = -1;
-	public get transformedY(): number { return this._transformedY; }
-	public _transformedY: number = -1;
-	public _transformedYlast: number = -1;
+	public baseX:number;
+	public baseY:number;
+	public baseWidth:number;
+	public baseHeight:number;
+	public baseXScale:number;
+	public baseYScale:number;
+
+	public get resolutionScale():number { return this._resolutionScale; }
+	public _resolutionScale:number = -1;
+	public get transformedWidth():number { return this._transformedWidth; }
+	public _transformedWidth:number = -1;
+	public _transformedWidthlast:number = -1;
+	public get transformedHeight():number { return this._transformedHeight; }
+	public _transformedHeight:number = -1;
+	public _transformedHeightlast:number = -1;
+	public get transformedX():number { return this._transformedX; }
+	public _transformedX:number = -1;
+	public _transformedXlast:number = -1;
+	public get transformedY():number { return this._transformedY; }
+	public _transformedY:number = -1;
+	public _transformedYlast:number = -1;
 
 	public _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
-	public _body: Matter.Body | null = null;
+	public _body:Matter.Body | null = null;
 
-	public _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
+	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
 		this._defObj = defObj;

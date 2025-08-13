@@ -93,6 +93,9 @@ export declare abstract class CanvasObj {
     group: string;
     width: number;
     height: number;
+    _parent: CanvasObj | null;
+    SetParent(parent: CanvasObj | null): void;
+    get parent(): CanvasObj | null;
     constrainProportions: boolean;
     baseX: number;
     baseY: number;
