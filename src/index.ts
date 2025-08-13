@@ -1,4 +1,5 @@
 export * from "./canvasObjects/CanvasObj";
+export * from "./canvasObjects/CanvasContainerObj";
 export * from "./canvasObjects/CanvasPixiShapeObj";
 export * from "./canvasObjects/CanvasRiveObj"
 export * from "./canvasObjects/CanvasTextObj";
