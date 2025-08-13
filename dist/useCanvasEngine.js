@@ -130,6 +130,10 @@ export class CanvasEngine {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
+            if (this.animationFrameId && this.riveInstance) {
+                this.riveInstance.cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
+            }
             this._canvasSettings = canvasSettings;
             this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
             if (this.runStateLabel) {
@@ -167,9 +171,14 @@ export class CanvasEngine {
             //const MIN_TIME_STEP = 0.00012;
             if (canvasSettings.debugMode == null || !canvasSettings.debugMode) {
             }
+            let inFrame = false;
             const updateLoop = (time) => {
+                if (inFrame)
+                    console.warn('updateLoop re-entered same frame');
+                inFrame = true;
                 if (this.runState !== CANVAS_ENGINE_RUN_STATE.RUNNING) {
                     lastTime = time;
+                    inFrame = false;
                     this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
                     return;
                 }
@@ -182,6 +191,7 @@ export class CanvasEngine {
                 accumulatedTime += elapsedTimeSec;
                 if (accumulatedTime < MIN_TIME_STEP) {
                     skipsPerSecond++;
+                    inFrame = false;
                     this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
                     //console.log(`Skipping frame ${numSkips}/${numNoSkips} - elapsedTime=${elapsedTimeSec.toFixed(4)}, accumulatedTime=${accumulatedTime.toFixed(4)}`);
                     return;
@@ -210,8 +220,11 @@ export class CanvasEngine {
                     });
                 });
                 riveRenderer.flush();
+                PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+                inFrame = false;
                 this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             };
+            inFrame = false;
             this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             if (onInitComplete)
                 onInitComplete();

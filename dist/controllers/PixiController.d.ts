@@ -24,6 +24,7 @@ export declare class PixiController {
     private _canvasContainer;
     private _initialized;
     Init(width?: number, height?: number): Promise<void>;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
     SetSize(width: number, height: number): void;
     Dispose(): void;
 }

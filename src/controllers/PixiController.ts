@@ -72,7 +72,10 @@ export class PixiController
 			height: height || 500,
 			backgroundAlpha: 0,
 			canvas: this._CanvasAbove,
+			//resolution: window.devicePixelRatio || 1,
 		});
+		this._pixiInstanceAbove.ticker.autoStart = false;
+		this._pixiInstanceAbove.ticker.stop();
 		this._pixiInstanceAbove.stage.eventMode = 'static';
 		this._pixiInstanceAbove.stage.hitArea = this._pixiInstanceAbove.renderer.screen;
 		this._pixiInstanceAbove.stage.on('pointermove', (e: PIXI.FederatedPointerEvent) =>
@@ -107,10 +110,28 @@ export class PixiController
 			height: height || 500,
 			backgroundAlpha: 0,
 			canvas: this._CanvasBelow,
+			//resolution: window.devicePixelRatio || 1,
 		});
+		this._pixiInstanceBelow.ticker.autoStart = false;
+		this._pixiInstanceBelow.ticker.stop();
 		this._pixiInstanceBelow.stage.eventMode = 'static';
 
 		this._initialized = true;
+	}
+
+	public Update(time: number, frameCount: number, onceSecond: boolean)
+	{
+		if(!this._initialized) return;
+
+		if(this._pixiInstanceAbove && this._pixiInstanceAbove.render)
+		{
+			this._pixiInstanceAbove.render();
+		}
+
+		if(this._pixiInstanceBelow && this._pixiInstanceBelow.render)
+		{
+			this._pixiInstanceBelow.render();
+		}
 	}
 
 	public SetSize(width: number, height: number)
