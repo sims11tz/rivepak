@@ -156,9 +156,16 @@ export class RiveController
 
 			if(debug)
 			{
-				//console.log("......RIVE CONTROLLER");
-				//console.log("ArtboardCount:", riveFile.artboardCount());
-				//console.log("enums:", riveFile.enums());
+				console.log("......RIVE CONTROLLER");
+				console.log("ArtboardCount:", riveFile.artboardCount());
+				console.log("enums:", riveFile.enums());
+
+				console.log("artboards:", riveFile.artboardCount());
+				for (let i = 0; i < riveFile.artboardCount(); i++)
+				{
+					const artboard = riveFile.artboardByIndex(i);
+					console.log(`Artboard ${i}:`, artboard.name);
+				}
 			}
 
 			let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);

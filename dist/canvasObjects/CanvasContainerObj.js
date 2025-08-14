@@ -374,10 +374,26 @@ export class CanvasContainerObj extends CanvasObj {
      * Disposes of the container and all its children
      */
     Dispose() {
-        // Dispose all children
+        // First unbind all property change listeners to prevent memory leaks
         for (const child of this.children) {
-            child.Dispose();
+            // Unbind property change listeners we added
+            child.UnbindPropertyChange('x');
+            child.UnbindPropertyChange('y');
+            child.UnbindPropertyChange('xScale');
+            child.UnbindPropertyChange('yScale');
+            // Clear parent reference
+            child.SetParent(null);
+            // Dispose the child---- the Controller they are attached to should dispose of the,,,.... we hope?
+            //child.Dispose();
         }
+        // Clean up debug graphics if present
+        if (this._debugGraphics) {
+            this._debugGraphics.removeAllListeners();
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._debugGraphics);
+            this._debugGraphics.destroy();
+            this._debugGraphics = null;
+        }
+        // Clear collections
         this.children = [];
         this._childOriginalTransforms.clear();
         super.Dispose();

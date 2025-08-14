@@ -336,13 +336,11 @@ export abstract class CanvasObj
 		other.z = temp;
 	}
 
-	// ✅ Function to selectively bind to x, y, z, xScale, or yScale changes
 	public BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void)
 	{
 		this._propertyChangeListeners.set(property, callback);
 	}
 
-	// ✅ Function to unbind property change listener
 	public UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale")
 	{
 		this._propertyChangeListeners.delete(property);
@@ -357,7 +355,13 @@ export abstract class CanvasObj
 	public Dispose():void
 	{
 		this._propertyChangeListeners.clear();
+		this._parent = null;
 		this._defObj = null;
 		this._OnZIndexChanged = null;
+
+		if(this._body)
+		{
+			this._body = null;
+		}
 	}
 }

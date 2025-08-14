@@ -150,6 +150,17 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		if(this._graphics)
 		{
+			// Remove event listeners BEFORE destroying to prevent memory leaks
+			if(this.defObj.interactive)
+			{
+				this._graphics.off("pointerdown", this.onClick, this);
+				this._graphics.off("pointerover", this.onHover, this);
+				this._graphics.off("pointerout", this.onHoverOut, this);
+			}
+			
+			// Remove all listeners just in case
+			this._graphics.removeAllListeners();
+			
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
 			this._graphics.destroy();
 			this._graphics = null;
@@ -157,6 +168,9 @@ export class CanvasPixiShapeObj extends CanvasObj
 
 		if(this._debugGraphics)
 		{
+			// Clean up debug graphics listeners if any
+			this._debugGraphics.removeAllListeners();
+			
 			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.removeChild(this._debugGraphics);
 			this._debugGraphics.destroy();
 			this._debugGraphics = null;

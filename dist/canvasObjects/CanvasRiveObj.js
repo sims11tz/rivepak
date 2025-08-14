@@ -324,26 +324,54 @@ export class CanvasRiveObj extends CanvasObj {
             (_a = this._onHoverOutCallback) === null || _a === void 0 ? void 0 : _a.call(this, this);
     }
     Dispose() {
-        var _a;
-        this._animations.forEach((animation) => animation.delete());
-        (_a = this._stateMachine) === null || _a === void 0 ? void 0 : _a.delete();
-        this._animations = [];
-        this._stateMachine = null;
-        this._renderer = undefined;
-        this._artboard = undefined;
+        // Clean up Rive resources properly
+        if (this._animations) {
+            this._animations.forEach((animation) => {
+                try {
+                    animation.delete();
+                }
+                catch (e) {
+                    console.warn("Failed to delete animation:", e);
+                }
+            });
+            this._animations = [];
+        }
+        if (this._stateMachine) {
+            try {
+                this._stateMachine.delete();
+            }
+            catch (e) {
+                console.warn("Failed to delete state machine:", e);
+            }
+            this._stateMachine = null;
+        }
+        // Properly null out references instead of forcing undefined
+        this._renderer = null;
+        this._artboard = null;
+        this._riveInstance = null;
+        // Clean up interactive graphics with proper event removal
         if (this._interactiveGraphics) {
+            // Remove specific event listeners
             this._interactiveGraphics.off("pointerdown", this.onClick, this);
             this._interactiveGraphics.off("pointerover", this.onHover, this);
             this._interactiveGraphics.off("pointerout", this.onHoverOut, this);
+            // Remove all listeners just in case
+            this._interactiveGraphics.removeAllListeners();
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._interactiveGraphics);
             this._interactiveGraphics.destroy();
             this._interactiveGraphics = null;
         }
+        // Clean up text label
         if (this._textLabel) {
+            this._textLabel.removeAllListeners();
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textLabel);
             this._textLabel.destroy();
             this._textLabel = null;
         }
+        // Clear callback references to prevent circular references
+        this._onClickCallback = undefined;
+        this._onHoverCallback = undefined;
+        this._onHoverOutCallback = undefined;
         super.Dispose();
     }
     get Rive() {

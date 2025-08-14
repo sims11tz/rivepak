@@ -175,11 +175,9 @@ export class CanvasObj {
         this.z = other.z;
         other.z = temp;
     }
-    // ✅ Function to selectively bind to x, y, z, xScale, or yScale changes
     BindPropertyChange(property, callback) {
         this._propertyChangeListeners.set(property, callback);
     }
-    // ✅ Function to unbind property change listener
     UnbindPropertyChange(property) {
         this._propertyChangeListeners.delete(property);
     }
@@ -188,7 +186,11 @@ export class CanvasObj {
     }
     Dispose() {
         this._propertyChangeListeners.clear();
+        this._parent = null;
         this._defObj = null;
         this._OnZIndexChanged = null;
+        if (this._body) {
+            this._body = null;
+        }
     }
 }
