@@ -14,12 +14,12 @@ import { useEffect, useRef } from "react";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
-export var CANVAS_ENGINE_RUN_STATE;
-(function (CANVAS_ENGINE_RUN_STATE) {
-    CANVAS_ENGINE_RUN_STATE["STOPPED"] = "STOPPED";
-    CANVAS_ENGINE_RUN_STATE["RUNNING"] = "RUNNING";
-    CANVAS_ENGINE_RUN_STATE["PAUSED"] = "PAUSED";
-})(CANVAS_ENGINE_RUN_STATE || (CANVAS_ENGINE_RUN_STATE = {}));
+export var CANVAS_ENGINE_RUN_STATEsdf;
+(function (CANVAS_ENGINE_RUN_STATEsdf) {
+    CANVAS_ENGINE_RUN_STATEsdf["STOPPED"] = "STOPPED";
+    CANVAS_ENGINE_RUN_STATEsdf["RUNNING"] = "RUNNING";
+    CANVAS_ENGINE_RUN_STATEsdf["PAUSED"] = "PAUSED";
+})(CANVAS_ENGINE_RUN_STATEsdf || (CANVAS_ENGINE_RUN_STATEsdf = {}));
 export class ResizeCanvasObj {
     constructor(width, height, scale, margin, canvasRef = null) {
         this.canvasRef = null;
