@@ -8,7 +8,7 @@ import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
 
-export enum CANVAS_ENGINE_RUN_STATEsdf
+export enum CANVAS_ENGINE_RUN_STATE
 {
 	STOPPED = "STOPPED",
 	RUNNING = "RUNNING",
