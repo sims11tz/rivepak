@@ -8,17 +8,14 @@ export class CanvasPixiShapeObj extends CanvasObj {
         super(canvasDef);
         this._graphics = null;
         this._debugGraphics = null;
+        this._ranFirstUpdate = false;
         this.InitPixiObject();
     }
     InitPixiObject() {
         var _a, _b, _c, _d, _e, _f;
         if (this._debug) {
-            console.log(' PIXI InitObject ---- DEBUG DEBUG DEBUG DEBUG ');
             this._debugGraphics = new PIXI.Graphics();
             PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
-        }
-        else {
-            console.log(' PIXI InitObject ---- noraml ');
         }
         this._graphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
@@ -53,7 +50,6 @@ export class CanvasPixiShapeObj extends CanvasObj {
         if (this._graphics === null)
             return;
         if (this._debug && this._debugGraphics) {
-            console.log(' PIXI InitObject ---- DEBUG Draw Vecotrs ');
             this._debugGraphics.clear();
             this._debugGraphics.rect(0, 0, this.width, this.height);
             this._debugGraphics.fill({ color: 0x650a5a, alpha: 0.75 });
@@ -64,6 +60,10 @@ export class CanvasPixiShapeObj extends CanvasObj {
         var _a;
         if (this.enabled === false)
             return;
+        if (!this._ranFirstUpdate) {
+            this._ranFirstUpdate = true;
+            this.DrawVectors();
+        }
         let transformedX = 0;
         let xScale = 0;
         let transformedY = 0;

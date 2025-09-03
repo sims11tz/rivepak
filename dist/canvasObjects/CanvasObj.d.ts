@@ -27,6 +27,8 @@ export interface CanvasObjectDef {
     textStyle?: Partial<TextStyleOptions>;
     textAlign?: 'left' | 'center' | 'right' | 'justify';
     verticalAlign?: 'top' | 'middle' | 'bottom';
+    debugMode?: boolean;
+    drawFunction?: (pixiGraphics: any, defObj: CanvasObjectDef) => void;
     wordWrap?: boolean;
     wordWrapWidth?: number;
     breakWords?: boolean;

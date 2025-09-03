@@ -38,7 +38,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this._objBoundsReuse.minY = this.y;
         this._objBoundsReuse.maxX = this.x + scaledWidth;
         this._objBoundsReuse.maxY = this.y + scaledHeight;
-        console.log('%c CanvasTextObj x=' + this.x + ' y=' + this.y + ' w=' + this.width + ' h=' + this.height, 'color:#FFA500; font-weight:bold;');
+        //console.log('%c CanvasTextObj x='+this.x+' y='+this.y+' w='+this.width+' h='+this.height,'color:#FFA500; font-weight:bold;');
         super.InitPixiObject();
     }
     /**
@@ -197,7 +197,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this.DrawVectors();
     }
     SetTextStyle(style) {
-        console.log('CanvasTextObj.SetTextStyle() >');
         this._styleDirty = true;
         this.defObj.textStyle = Object.assign(Object.assign({}, this.defObj.textStyle), style);
         this.DrawVectors();

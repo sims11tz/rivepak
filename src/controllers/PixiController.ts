@@ -166,26 +166,26 @@ export class PixiController
 
 			if (this._pixiInstanceAbove)
 			{
-				// Remove event listeners BEFORE destroying to prevent memory leaks
-				this._pixiInstanceAbove.stage.off('pointermove');
-				this._pixiInstanceAbove.stage.off('pointerdown');
-				this._pixiInstanceAbove.stage.off('pointerup');
-				this._pixiInstanceAbove.stage.removeAllListeners();
-				
-				this._pixiInstanceAbove.ticker.stop();
-				this._pixiInstanceAbove.stage.removeChildren();
-				this._pixiInstanceAbove.stage.interactive = false;
-				
-				// Destroy stage with options
-				this._pixiInstanceAbove.stage.destroy({ children: true, texture: true });
-
 				try
 				{
-					this._pixiInstanceAbove.destroy(true);
+					//this._pixiInstanceAbove.destroy(true); // causing double destroy issues
+
+					// Remove event listeners BEFORE destroying to prevent memory leaks
+					this._pixiInstanceAbove.stage.off('pointermove');
+					this._pixiInstanceAbove.stage.off('pointerdown');
+					this._pixiInstanceAbove.stage.off('pointerup');
+
+					this._pixiInstanceAbove.stage.removeAllListeners();
+					this._pixiInstanceAbove.ticker.stop();
+					this._pixiInstanceAbove.stage.removeChildren();
+					this._pixiInstanceAbove.stage.interactive = false;
+
+					// Destroy stage with options
+					this._pixiInstanceAbove.stage.destroy({ children: true, texture: true, context:true });
 				}
 				catch (error)
 				{
-					console.warn("PixiController - Failed to destroy Pixi application:", error);
+					console.warn("PixiController - Failed to destroy Above Pixi application:", error);
 				}
 
 				this._pixiInstanceAbove = null;
@@ -193,28 +193,27 @@ export class PixiController
 
 			if (this._pixiInstanceBelow)
 			{
-				// Remove any listeners if added in future
-				this._pixiInstanceBelow.stage.removeAllListeners();
-				
-				this._pixiInstanceBelow.ticker.stop();
-				this._pixiInstanceBelow.stage.removeChildren();
-				this._pixiInstanceBelow.stage.interactive = false;
-				
-				// Destroy stage with options
-				this._pixiInstanceBelow.stage.destroy({ children: true, texture: true });
-
 				try
 				{
-					this._pixiInstanceBelow.destroy(true);
+					//this._pixiInstanceBelow.destroy(true); // causing double destroy issues
+
+					// Remove any listeners if added in future
+					this._pixiInstanceBelow.stage.removeAllListeners();
+					this._pixiInstanceBelow.ticker.stop();
+					this._pixiInstanceBelow.stage.removeChildren();
+					this._pixiInstanceBelow.stage.interactive = false;
+
+					// Destroy stage with options
+					this._pixiInstanceBelow.stage.destroy({ children: true, texture: true });
 				}
 				catch (error)
 				{
-					console.warn("PixiController - Failed to destroy Pixi application:", error);
+					console.warn("PixiController - Failed to destroy Below Pixi application:", error);
 				}
 
 				this._pixiInstanceBelow = null;
 			}
-			
+
 			// Clear canvas references
 			this._CanvasAbove = null;
 			this._CanvasBelow = null;

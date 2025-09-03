@@ -6,6 +6,7 @@ export declare class CanvasPixiShapeObj extends CanvasObj {
     constructor(canvasDef: CanvasObjectDef);
     InitPixiObject(): void;
     DrawVectors(): void;
+    private _ranFirstUpdate;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
     protected onClick(event: PIXI.FederatedPointerEvent): void;
     private onHover;

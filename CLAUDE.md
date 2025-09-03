@@ -1,5 +1,7 @@
 # RivePak - Canvas Engine Framework
 
+IMPORTANT !!! -- NEVER CONSIDER .js files.... Only grok and modify .ts files!!!!!!!
+
 ## Overview
 
 RivePak is a TypeScript library that integrates HTML canvas, Pixi.js, Rive, and Matter.js into a unified visual system. It provides a powerful framework for creating interactive canvas applications with vector animations (Rive), raster graphics (Pixi), and physics simulation (Matter.js).

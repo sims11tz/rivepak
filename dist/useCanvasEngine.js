@@ -11,6 +11,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { useEffect, useRef } from "react";
+import { GlobalUIDGenerator } from "./canvasObjects/CanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
@@ -134,6 +135,7 @@ export class CanvasEngine {
                 this.riveInstance.cancelAnimationFrame(this.animationFrameId);
                 this.animationFrameId = null;
             }
+            GlobalUIDGenerator.clear();
             this._canvasSettings = canvasSettings;
             this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
             if (this.runStateLabel) {
@@ -253,26 +255,45 @@ export class CanvasEngine {
         return this.fpsValue.toString();
     }
     AddCanvasObjects(objs, group = "main") {
-        var _a;
-        let cObjs = [];
-        if (objs instanceof RiveObjectsSet) {
-            cObjs = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
-        }
-        else if (Array.isArray(objs)) {
-            cObjs = objs;
-        }
-        else {
-            cObjs = [objs];
-        }
+        var _a, _b;
+        var _c;
+        let add = [];
+        if (objs instanceof RiveObjectsSet)
+            add = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
+        else if (Array.isArray(objs))
+            add = objs;
+        else
+            add = [objs];
         if (!this.canvasObjects.has(group))
             this.canvasObjects.set(group, []);
-        const groupArray = this.canvasObjects.get(group);
-        cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
-        groupArray.push(...cObjs);
-        groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
-        cObjs.forEach((obj) => {
-            obj.InitVisuals();
-        });
+        const dest = this.canvasObjects.get(group);
+        let maxZ = dest.reduce((m, o) => { var _a; return Math.max(m, (_a = o.z) !== null && _a !== void 0 ? _a : 0); }, 0);
+        for (const obj of add) {
+            obj.OnZIndexChanged = this.updateZIndex.bind(this);
+            for (const [g, arr] of this.canvasObjects) {
+                const i = arr.indexOf(obj);
+                if (i !== -1) {
+                    arr.splice(i, 1);
+                    if (arr.length === 0)
+                        this.canvasObjects.delete(g);
+                    break;
+                }
+            }
+            const idx = dest.indexOf(obj);
+            if (idx !== -1) {
+                dest.splice(idx, 1);
+            }
+            else {
+                (_b = (_c = obj)._inited) !== null && _b !== void 0 ? _b : (_c._inited = false);
+                if (!obj._inited) {
+                    obj.InitVisuals();
+                    obj._inited = true;
+                }
+            }
+            obj.z = ++maxZ;
+            dest.push(obj);
+        }
+        dest.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
     }
     RemoveCanvasObjects(objs, group = "main") {
         const groupArray = this.canvasObjects.get(group);

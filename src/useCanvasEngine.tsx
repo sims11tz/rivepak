@@ -3,7 +3,7 @@ import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX, useEffect, useRef } from "react";
-import { CanvasObj } from "./canvasObjects/CanvasObj";
+import { CanvasObj, GlobalUIDGenerator } from "./canvasObjects/CanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
@@ -114,6 +114,8 @@ export class CanvasEngine
 			this.riveInstance.cancelAnimationFrame(this.animationFrameId);
 			this.animationFrameId = null;
 		}
+
+		GlobalUIDGenerator.clear();
 
 		this._canvasSettings = canvasSettings;
 
@@ -278,31 +280,49 @@ export class CanvasEngine
 
 	public AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
 	{
-		let cObjs: CanvasObj[] = [];
-		if(objs instanceof RiveObjectsSet)
-		{
-			cObjs = objs.objects ?? [];
-		}
-		else if (Array.isArray(objs))
-		{
-			cObjs = objs;
-		}
-		else
-		{
-			cObjs = [objs];
-		}
+		let add: CanvasObj[] = [];
+		if (objs instanceof RiveObjectsSet) add = objs.objects ?? [];
+		else if (Array.isArray(objs)) add = objs;
+		else add = [objs];
 
 		if (!this.canvasObjects.has(group)) this.canvasObjects.set(group, []);
+		const dest = this.canvasObjects.get(group)!;
 
-		const groupArray = this.canvasObjects.get(group)!;
-		cObjs.forEach((obj) => (obj.OnZIndexChanged = this.updateZIndex.bind(this)));
-		groupArray.push(...cObjs);
-		groupArray.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+		let maxZ = dest.reduce((m, o) => Math.max(m, o.z ?? 0), 0);
 
-		cObjs.forEach((obj) =>
+		for (const obj of add)
 		{
-			obj.InitVisuals();
-		});
+			obj.OnZIndexChanged = this.updateZIndex.bind(this);
+
+			for (const [g, arr] of this.canvasObjects) {
+				const i = arr.indexOf(obj);
+				if (i !== -1) {
+					arr.splice(i, 1);
+					if (arr.length === 0) this.canvasObjects.delete(g);
+					break;
+				}
+			}
+
+			const idx = dest.indexOf(obj);
+			if (idx !== -1)
+			{
+				dest.splice(idx, 1);
+			}
+			else
+			{
+				(obj as any)._inited ??= false;
+				if (!(obj as any)._inited)
+				{
+					obj.InitVisuals();
+					(obj as any)._inited = true;
+				}
+			}
+
+			obj.z = ++maxZ;
+			dest.push(obj);
+		}
+
+		dest.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
 	}
 
 	public RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")

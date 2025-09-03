@@ -20,13 +20,8 @@ export class CanvasPixiShapeObj extends CanvasObj
 	{
 		if(this._debug)
 		{
-			console.log(' PIXI InitObject ---- DEBUG DEBUG DEBUG DEBUG ');
 			this._debugGraphics = new PIXI.Graphics();
 			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
-		}
-		else
-		{
-			console.log(' PIXI InitObject ---- noraml ');
 		}
 
 		this._graphics = new PIXI.Graphics();
@@ -75,10 +70,9 @@ export class CanvasPixiShapeObj extends CanvasObj
 	public DrawVectors():void
 	{
 		if(this._graphics === null) return;
-
 		if(this._debug && this._debugGraphics)
 		{
-			console.log(' PIXI InitObject ---- DEBUG Draw Vecotrs ');
+
 			this._debugGraphics.clear();
 			this._debugGraphics.rect(0, 0, this.width, this.height);
 			this._debugGraphics.fill({color: 0x650a5a, alpha: 0.75});
@@ -86,9 +80,16 @@ export class CanvasPixiShapeObj extends CanvasObj
 		}
 	}
 
+	private _ranFirstUpdate = false;
 	public Update(time: number, frameCount: number, onceSecond: boolean): void
 	{
 		if(this.enabled === false) return;
+
+		if(!this._ranFirstUpdate)
+		{
+			this._ranFirstUpdate = true;
+			this.DrawVectors();
+		}
 
 		let transformedX = 0;
 		let xScale = 0;
@@ -157,10 +158,10 @@ export class CanvasPixiShapeObj extends CanvasObj
 				this._graphics.off("pointerover", this.onHover, this);
 				this._graphics.off("pointerout", this.onHoverOut, this);
 			}
-			
+
 			// Remove all listeners just in case
 			this._graphics.removeAllListeners();
-			
+
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._graphics);
 			this._graphics.destroy();
 			this._graphics = null;
@@ -170,7 +171,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 		{
 			// Clean up debug graphics listeners if any
 			this._debugGraphics.removeAllListeners();
-			
+
 			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.removeChild(this._debugGraphics);
 			this._debugGraphics.destroy();
 			this._debugGraphics = null;

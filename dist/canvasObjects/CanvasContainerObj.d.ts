@@ -26,9 +26,6 @@ export declare class CanvasContainerObj extends CanvasObj {
      * Gets a child by its ID or label
      */
     GetChildById(id: string): CanvasObj | null;
-    /**
-     * Gets all children of a specific type
-     */
     GetChildrenByType<T extends CanvasObj>(type: new (...args: any[]) => T): T[];
     /**
      * Removes all children from this container
@@ -88,13 +85,7 @@ export declare class CanvasContainerObj extends CanvasObj {
      * Moves a child to a new relative position within the container
      */
     MoveChild(child: CanvasObj, x: number, y: number): void;
-    /**
-     * Scales a child relative to the container
-     */
     ScaleChild(child: CanvasObj, xScale: number, yScale?: number): void;
-    /**
-     * Disposes of the container and all its children
-     */
     Dispose(): void;
     /**
      * Gets debug info about the container

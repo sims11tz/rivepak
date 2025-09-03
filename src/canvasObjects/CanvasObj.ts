@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+
 import { PIXI_LAYER } from "../controllers/PixiController";
 import type { TextStyleOptions } from "pixi.js";
 
@@ -51,6 +52,10 @@ export interface CanvasObjectDef
 	textAlign?: 'left' | 'center' | 'right' | 'justify';
 	verticalAlign?: 'top' | 'middle' | 'bottom';
 
+	debugMode?: boolean;
+
+	drawFunction?:(pixiGraphics:any, defObj:CanvasObjectDef) => void;
+
 	// Text bounds and wrapping
 	wordWrap?: boolean;
 	wordWrapWidth?: number;
@@ -68,8 +73,8 @@ export interface CanvasObjectDef
 
 	// Text animations
 	typewriterEffect?: boolean;
-	typewriterSpeed?: number; // characters per second
-	fadeInDuration?: number; // milliseconds
+	typewriterSpeed?: number;
+	fadeInDuration?: number;
 	pulseText?: boolean;
 	pulseSpeed?: number;
 
@@ -176,7 +181,7 @@ export abstract class CanvasObj
 	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
-		this._debug = false;
+		this._debug = defObj.debugMode ?? false;
 		this._defObj = defObj;
 
 		this._uuid = GlobalUIDGenerator.generateUID();

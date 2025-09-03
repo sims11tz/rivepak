@@ -29,7 +29,7 @@ export class CanvasObj {
     get transformedX() { return this._transformedX; }
     get transformedY() { return this._transformedY; }
     constructor(defObj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         this._uuid = "";
         this._id = "";
         this._label = "";
@@ -55,23 +55,23 @@ export class CanvasObj {
         this._body = null;
         this._propertyChangeListeners = new Map();
         this._OnZIndexChanged = null;
-        this._debug = false;
+        this._debug = (_a = defObj.debugMode) !== null && _a !== void 0 ? _a : false;
         this._defObj = defObj;
         this._uuid = GlobalUIDGenerator.generateUID();
-        this._label = (_a = this.defObj.label) !== null && _a !== void 0 ? _a : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
-        this._state = { x: (_b = defObj.x) !== null && _b !== void 0 ? _b : 0, y: (_c = defObj.y) !== null && _c !== void 0 ? _c : 0, z: (_d = defObj.z) !== null && _d !== void 0 ? _d : 0, xScale: (_e = defObj.xScale) !== null && _e !== void 0 ? _e : 1, yScale: (_f = defObj.yScale) !== null && _f !== void 0 ? _f : 1 };
-        this.centerLocally = (_g = defObj.centerLocally) !== null && _g !== void 0 ? _g : false;
-        this.centerGlobally = (_h = defObj.centerGlobally) !== null && _h !== void 0 ? _h : false;
-        this.group = (_j = this.defObj.group) !== null && _j !== void 0 ? _j : "main";
-        this.width = (_k = this.defObj.width) !== null && _k !== void 0 ? _k : 0;
-        this.height = (_l = this.defObj.height) !== null && _l !== void 0 ? _l : 0;
-        this.constrainProportions = (_m = this.defObj.constrainProportions) !== null && _m !== void 0 ? _m : false;
-        this.baseX = (_o = defObj.x) !== null && _o !== void 0 ? _o : 0;
-        this.baseY = (_p = defObj.y) !== null && _p !== void 0 ? _p : 0;
-        this.baseWidth = (_q = defObj.width) !== null && _q !== void 0 ? _q : 1;
-        this.baseHeight = (_r = defObj.height) !== null && _r !== void 0 ? _r : 1;
-        this.baseXScale = (_s = defObj.xScale) !== null && _s !== void 0 ? _s : 1;
-        this.baseYScale = (_t = defObj.yScale) !== null && _t !== void 0 ? _t : 1;
+        this._label = (_b = this.defObj.label) !== null && _b !== void 0 ? _b : GlobalUIDGenerator.generateUniqueString(this.constructor.name);
+        this._state = { x: (_c = defObj.x) !== null && _c !== void 0 ? _c : 0, y: (_d = defObj.y) !== null && _d !== void 0 ? _d : 0, z: (_e = defObj.z) !== null && _e !== void 0 ? _e : 0, xScale: (_f = defObj.xScale) !== null && _f !== void 0 ? _f : 1, yScale: (_g = defObj.yScale) !== null && _g !== void 0 ? _g : 1 };
+        this.centerLocally = (_h = defObj.centerLocally) !== null && _h !== void 0 ? _h : false;
+        this.centerGlobally = (_j = defObj.centerGlobally) !== null && _j !== void 0 ? _j : false;
+        this.group = (_k = this.defObj.group) !== null && _k !== void 0 ? _k : "main";
+        this.width = (_l = this.defObj.width) !== null && _l !== void 0 ? _l : 0;
+        this.height = (_m = this.defObj.height) !== null && _m !== void 0 ? _m : 0;
+        this.constrainProportions = (_o = this.defObj.constrainProportions) !== null && _o !== void 0 ? _o : false;
+        this.baseX = (_p = defObj.x) !== null && _p !== void 0 ? _p : 0;
+        this.baseY = (_q = defObj.y) !== null && _q !== void 0 ? _q : 0;
+        this.baseWidth = (_r = defObj.width) !== null && _r !== void 0 ? _r : 1;
+        this.baseHeight = (_s = defObj.height) !== null && _s !== void 0 ? _s : 1;
+        this.baseXScale = (_t = defObj.xScale) !== null && _t !== void 0 ? _t : 1;
+        this.baseYScale = (_u = defObj.yScale) !== null && _u !== void 0 ? _u : 1;
         //console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
         this._state = new Proxy(this._state, {
             set: (target, key, value) => {

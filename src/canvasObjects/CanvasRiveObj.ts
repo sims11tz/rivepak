@@ -489,7 +489,7 @@ export class CanvasRiveObj extends CanvasObj
 			});
 			this._animations = [];
 		}
-		
+
 		if(this._stateMachine)
 		{
 			try {
@@ -512,7 +512,7 @@ export class CanvasRiveObj extends CanvasObj
 			this._interactiveGraphics.off("pointerdown", this.onClick, this);
 			this._interactiveGraphics.off("pointerover", this.onHover, this);
 			this._interactiveGraphics.off("pointerout", this.onHoverOut, this);
-			
+
 			// Remove all listeners just in case
 			this._interactiveGraphics.removeAllListeners();
 
@@ -529,7 +529,7 @@ export class CanvasRiveObj extends CanvasObj
 			this._textLabel.destroy();
 			this._textLabel = null;
 		}
-		
+
 		// Clear callback references to prevent circular references
 		this._onClickCallback = undefined;
 		this._onHoverCallback = undefined;
