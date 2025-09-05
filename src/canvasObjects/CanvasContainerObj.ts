@@ -80,7 +80,6 @@ export class CanvasContainerObj extends CanvasObj
 	{
 		if(this._debug && this._debugGraphics)
 		{
-			console.log('CANVAS CONTAINER --- DrawDebug');
 			this._debugGraphics.clear();
 			this._debugGraphics.rect(0, 0, this.width, this.height);
 			this._debugGraphics.fill({color: 0x66CCFF, alpha: 0.45});
