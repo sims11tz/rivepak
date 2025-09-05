@@ -261,25 +261,25 @@ export class CanvasContainerObj extends CanvasObj
 		}
 
 		// Calculate world coordinates for rendering
-		// Use parent's world coordinates (not local coordinates)
-		child._worldX = this.worldX + (child.x * this.worldXScale);
-		child._worldY = this.worldY + (child.y * this.worldYScale);
-		child._worldXScale = child.xScale * this.worldXScale;
-		child._worldYScale = child.yScale * this.worldYScale;
+		// Use parent's render coordinates (which already account for nested parents)
+		child._worldX = this.renderX + (child.x * this.renderXScale);
+		child._worldY = this.renderY + (child.y * this.renderYScale);
+		child._worldXScale = child.xScale * this.renderXScale;
+		child._worldYScale = child.yScale * this.renderYScale;
 
-		if(oncePerSecond) {
-			console.log('%c <updateChildTransform> for '+child.label,'color:#00FF88; font-weight:bold;');
-			console.log('%c <updateChildTransform> CHILD LOCAL -- x:'+child.x+', y:'+child.y+', scaleX:'+child.xScale+', scaleY:'+child.yScale,'color:#00FF88; font-weight:bold;');
-			console.log('%c <updateChildTransform> PARENT WORLD -- x:'+this.worldX+', y:'+this.worldY+', scaleX:'+this.worldXScale+', scaleY:'+this.worldYScale,'color:#00FF88; font-weight:bold;');
-			console.log('%c <updateChildTransform> CHILD WORLD -- x:'+child._worldX+', y:'+child._worldY+', scaleX:'+child._worldXScale+', scaleY:'+child._worldYScale,'color:#00FF88; font-weight:bold;');
-		}
+		//if(oncePerSecond) {
+		//	console.log('%c <updateChildTransform> for '+child.label,'color:#00FF88; font-weight:bold;');
+		//	console.log('%c <updateChildTransform> CHILD LOCAL -- x:'+child.x+', y:'+child.y+', scaleX:'+child.xScale+', scaleY:'+child.yScale,'color:#00FF88; font-weight:bold;');
+		//	console.log('%c <updateChildTransform> PARENT WORLD -- x:'+this.worldX+', y:'+this.worldY+', scaleX:'+this.worldXScale+', scaleY:'+this.worldYScale,'color:#00FF88; font-weight:bold;');
+		//	console.log('%c <updateChildTransform> CHILD WORLD -- x:'+child._worldX+', y:'+child._worldY+', scaleX:'+child._worldXScale+', scaleY:'+child._worldYScale,'color:#00FF88; font-weight:bold;');
+		//}
 
 		// If container has resolution scale, propagate it
 		if (this._resolutionScale !== -1)
 		{
 			child._resolutionScale = this._resolutionScale;
-			child._transformedX = this._transformedX + (child.x * this.worldXScale * this._resolutionScale);
-			child._transformedY = this._transformedY + (child.y * this.worldYScale * this._resolutionScale);
+			child._transformedX = this._transformedX + (child.x * this.renderXScale * this._resolutionScale);
+			child._transformedY = this._transformedY + (child.y * this.renderYScale * this._resolutionScale);
 		}
 	}
 

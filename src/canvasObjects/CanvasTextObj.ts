@@ -371,12 +371,12 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		if(this._textField)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >4> has textfield do stuff ');
-			// Use world coordinates for rendering (which account for parent transforms)
+			// Use render coordinates (automatically handles parent transforms)
 			if(CanvasEngine.get().EngineSettings?.autoScale)
 			{
 				if(debug) if(onceSecond) console.log('CanvasTextObj.Update() >5> autoscale ');
-				let transformedX = this.worldX * CanvasEngine.get().CurrentCanvasScale;
-				let transformedY = this.worldY * CanvasEngine.get().CurrentCanvasScale;
+				let transformedX = this.renderX * CanvasEngine.get().CurrentCanvasScale;
+				let transformedY = this.renderY * CanvasEngine.get().CurrentCanvasScale;
 
 				this._textField.x = transformedX + this._alignmentOffsetX * CanvasEngine.get().CurrentCanvasScale;
 				this._textField.y = transformedY + this._alignmentOffsetY * CanvasEngine.get().CurrentCanvasScale;
@@ -385,21 +385,21 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 				{
 					if(debug) console.log('CanvasTextObj.Update() >6>  ');
 					this._textField.scale.set(
-						CanvasEngine.get().CurrentCanvasScale * this.worldXScale,
-						CanvasEngine.get().CurrentCanvasScale * this.worldYScale
+						CanvasEngine.get().CurrentCanvasScale * this.renderXScale,
+						CanvasEngine.get().CurrentCanvasScale * this.renderYScale
 					);
 				}
 			}
 			else
 			{
 				if(debug) console.log('CanvasTextObj.Update() >7>  ');
-				this._textField.x = this.worldX + this._alignmentOffsetX;
-				this._textField.y = this.worldY + this._alignmentOffsetY;
+				this._textField.x = this.renderX + this._alignmentOffsetX;
+				this._textField.y = this.renderY + this._alignmentOffsetY;
 
 				if(!this.defObj.pulseText)
 				{
 					if(debug) console.log('CanvasTextObj.Update() >8>  ');
-					this._textField.scale.set(this.worldXScale, this.worldYScale);
+					this._textField.scale.set(this.renderXScale, this.renderYScale);
 				}
 			}
 		}
