@@ -3,7 +3,14 @@
   "version": "0.0.36",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+       "import": "./dist/index.js"
+    }
+  },
   "scripts": {
+    "clean": "rimraf dist",
     "build": "tsc",
     "dev:watch": "chokidar 'src/**/*' -c 'npm run build && yalc push'"
   },
@@ -32,5 +39,6 @@
   "files": [
     "dist",
     "README.md"
-  ]
+  ],
+  "sideEffects": false
 }
