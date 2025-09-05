@@ -35,9 +35,10 @@ export class CanvasPixiShapeObj extends CanvasObj
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
 
-		this._graphics.x = this.x;
-		this._graphics.y = this.y;
-		this._graphics.scale.set(this.xScale, this.yScale);
+		// Use world coordinates for initial positioning (in case we're already parented)
+		this._graphics.x = this.worldX;
+		this._graphics.y = this.worldY;
+		this._graphics.scale.set(this.worldXScale, this.worldYScale);
 
 		this._graphics.eventMode = "static";
 
@@ -96,19 +97,20 @@ export class CanvasPixiShapeObj extends CanvasObj
 		let transformedY = 0;
 		let yScale = 0;
 
+		// Use world coordinates for rendering (which account for parent transforms)
 		if(CanvasEngine.get().EngineSettings?.autoScale && (this._graphics || (this._debug && this._debugGraphics)))
 		{
-			transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-			transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
-			xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
-			yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+			transformedX = this.worldX * CanvasEngine.get().CurrentCanvasScale;
+			transformedY = this.worldY * CanvasEngine.get().CurrentCanvasScale;
+			xScale = CanvasEngine.get().CurrentCanvasScale * this.worldXScale;
+			yScale = CanvasEngine.get().CurrentCanvasScale * this.worldYScale;
 		}
 		else
 		{
-			transformedX = this.x;
-			transformedY = this.y;
-			xScale = this.xScale;
-			yScale = this.yScale;
+			transformedX = this.worldX;
+			transformedY = this.worldY;
+			xScale = this.worldXScale;
+			yScale = this.worldYScale;
 		}
 
 		if(this._graphics)

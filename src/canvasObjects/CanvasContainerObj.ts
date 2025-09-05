@@ -120,42 +120,8 @@ export class CanvasContainerObj extends CanvasObj
 			yScale: relativeYScale
 		});
 
-		// Set up property change listeners to track child movement
-		child.BindPropertyChange('x', (oldValue, newValue) => {
-			const original = this._childOriginalTransforms.get(child.uuid);
-			if (original) {
-				// Store the new relative position
-				//original.x = newValue;
-				original.x = newValue - this.x;
-			}
-		});
-
-		child.BindPropertyChange('y', (oldValue, newValue) => {
-			const original = this._childOriginalTransforms.get(child.uuid);
-			if (original) {
-				// Store the new relative position
-				//original.y = newValue;
-				original.y = newValue - this.y;
-			}
-		});
-
-		child.BindPropertyChange('xScale', (oldValue, newValue) => {
-			const original = this._childOriginalTransforms.get(child.uuid);
-			if (original) {
-				// Store the new relative scale
-				//original.xScale = newValue;
-				original.xScale = newValue / this.xScale;
-			}
-		});
-
-		child.BindPropertyChange('yScale', (oldValue, newValue) => {
-			const original = this._childOriginalTransforms.get(child.uuid);
-			if (original) {
-				// Store the new relative scale
-				//original.yScale = newValue;
-				 original.yScale = newValue / this.yScale;
-			}
-		});
+		// No property change listeners needed - child x,y are always parent-relative
+		// The stored values in _childOriginalTransforms will be updated when child.x/y are set directly
 
 		child.SetParent(this);
 		this.children.push(child);
@@ -174,17 +140,17 @@ export class CanvasContainerObj extends CanvasObj
 		const index = this.children.indexOf(child);
 		if (index === -1) return false;
 
-		// Remove property change listeners
-		child.UnbindPropertyChange('x');
-		child.UnbindPropertyChange('y');
-		child.UnbindPropertyChange('xScale');
-		child.UnbindPropertyChange('yScale');
+		// Convert world position back to local before removing parent
+		// So the object stays in the same visual position
+		child.x = child._worldX;
+		child.y = child._worldY;
+		child.xScale = child._worldXScale;
+		child.yScale = child._worldYScale;
 
 		child.SetParent(null);
 		this.children.splice(index, 1);
 
-		// Keep current world position (don't restore to original)
-		// The child keeps its current position after being removed
+		// Clean up stored transform
 		this._childOriginalTransforms.delete(child.uuid);
 
 		return true;
@@ -274,35 +240,47 @@ export class CanvasContainerObj extends CanvasObj
 	 */
 	private updateChildTransform(child:CanvasObj, oncePerSecond:boolean=false): void
 	{
-		const original = this._childOriginalTransforms.get(child.uuid);
-		if (!original) return;
+		// Update the stored relative position to match current child.x/y
+		// Child x,y are always treated as parent-relative
+		let original = this._childOriginalTransforms.get(child.uuid);
+		if (!original) {
+			// Create entry if it doesn't exist
+			original = {
+				x: child.x,
+				y: child.y,
+				xScale: child.xScale,
+				yScale: child.yScale
+			};
+			this._childOriginalTransforms.set(child.uuid, original);
+		} else {
+			// Update stored relative values with current child values
+			original.x = child.x;
+			original.y = child.y;
+			original.xScale = child.xScale;
+			original.yScale = child.yScale;
+		}
 
-		//if(oncePerSecond) console.log('%c <updateChildTransform> for '+child.label,'color:#00FF88; font-weight:bold;');
-		//if(oncePerSecond) console.log('%c <updateChildTransform> ORIG -- x:'+original.x+', y:'+original.y+', scaleX:'+original.xScale+', scaleY:'+original.yScale,'color:#00FF88; font-weight:bold;');
-		//if(oncePerSecond) console.log('%c <updateChildTransform> THIS -- x:'+this.x+', y:'+this.y+', scaleX:'+this.xScale+', scaleY:'+this.yScale,'color:#00FF88; font-weight:bold;');
-		//if(oncePerSecond) console.log('%c <updateChildTransform>  PRE -- x:'+child.x+', y:'+child.y+', scaleX:'+child.xScale+', scaleY:'+child.yScale,'color:#00FF88; font-weight:bold;');
+		// Calculate world coordinates for rendering
+		// Use parent's world coordinates (not local coordinates)
+		child._worldX = this.worldX + (child.x * this.worldXScale);
+		child._worldY = this.worldY + (child.y * this.worldYScale);
+		child._worldXScale = child.xScale * this.worldXScale;
+		child._worldYScale = child.yScale * this.worldYScale;
 
-		// Apply container transformations to child
-		// Position is relative to container position
-		child.x = this.x + (original.x * this.xScale);
-		child.y = this.y + (original.y * this.yScale);
-
-		// Scale is multiplicative
-		child.xScale = original.xScale * this.xScale;
-		child.yScale = original.yScale * this.yScale;
+		if(oncePerSecond) {
+			console.log('%c <updateChildTransform> for '+child.label,'color:#00FF88; font-weight:bold;');
+			console.log('%c <updateChildTransform> CHILD LOCAL -- x:'+child.x+', y:'+child.y+', scaleX:'+child.xScale+', scaleY:'+child.yScale,'color:#00FF88; font-weight:bold;');
+			console.log('%c <updateChildTransform> PARENT WORLD -- x:'+this.worldX+', y:'+this.worldY+', scaleX:'+this.worldXScale+', scaleY:'+this.worldYScale,'color:#00FF88; font-weight:bold;');
+			console.log('%c <updateChildTransform> CHILD WORLD -- x:'+child._worldX+', y:'+child._worldY+', scaleX:'+child._worldXScale+', scaleY:'+child._worldYScale,'color:#00FF88; font-weight:bold;');
+		}
 
 		// If container has resolution scale, propagate it
 		if (this._resolutionScale !== -1)
 		{
 			child._resolutionScale = this._resolutionScale;
-			child._transformedX = this._transformedX + (original.x * this.xScale * this._resolutionScale);
-			child._transformedY = this._transformedY + (original.y * this.yScale * this._resolutionScale);
+			child._transformedX = this._transformedX + (child.x * this.worldXScale * this._resolutionScale);
+			child._transformedY = this._transformedY + (child.y * this.worldYScale * this._resolutionScale);
 		}
-
-		//if(oncePerSecond) console.log('%c <updateChildTransform> POST - x:'+child.x+', y:'+child.y+', scaleX:'+child.xScale+', scaleY:'+child.yScale,'color:#00FF88; font-weight:bold;');
-
-		//console.log('%c      child.x='+child.x+',      child.y='+child.y,'color:#00FF88');
-		//console.log('%c child.xScale='+child.xScale+', child.yScale='+child.yScale,'color:#00FF88');
 	}
 
 	/**
@@ -452,7 +430,7 @@ export class CanvasContainerObj extends CanvasObj
 
 	/**
 	 * Sets the position of the container
-	 */
+
 	public SetPosition(x: number, y: number): void
 	{
 		this.x = x;
@@ -461,7 +439,7 @@ export class CanvasContainerObj extends CanvasObj
 
 	/**
 	 * Sets the scale of the container
-	 */
+
 	public SetScale(xScale: number, yScale?: number): void
 	{
 		this.xScale = xScale;
@@ -470,7 +448,7 @@ export class CanvasContainerObj extends CanvasObj
 
 	/**
 	 * Moves a child to a new relative position within the container
-	 */
+
 	public MoveChild(child: CanvasObj, x: number, y: number): void
 	{
 		// Set the child's position relative to the container
@@ -484,22 +462,17 @@ export class CanvasContainerObj extends CanvasObj
 		child.xScale = this.xScale * xScale;
 		child.yScale = this.yScale * (yScale ?? xScale);
 	}
+	*/
 
 	public Dispose(): void
 	{
-		// First unbind all property change listeners to prevent memory leaks
+		// Clear parent references for all children
 		for (const child of this.children)
 		{
-			// Unbind property change listeners we added
-			child.UnbindPropertyChange('x');
-			child.UnbindPropertyChange('y');
-			child.UnbindPropertyChange('xScale');
-			child.UnbindPropertyChange('yScale');
-
 			// Clear parent reference
 			child.SetParent(null);
 
-			// Dispose the child---- the Controller they are attached to should dispose of the,,,.... we hope?
+			// Dispose the child---- the Controller they are attached to should dispose of them.... we hope?
 			//child.Dispose();
 		}
 

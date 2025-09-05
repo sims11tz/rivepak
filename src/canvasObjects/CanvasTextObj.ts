@@ -371,11 +371,12 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		if(this._textField)
 		{
 			if(debug) console.log('CanvasTextObj.Update() >4> has textfield do stuff ');
+			// Use world coordinates for rendering (which account for parent transforms)
 			if(CanvasEngine.get().EngineSettings?.autoScale)
 			{
 				if(debug) if(onceSecond) console.log('CanvasTextObj.Update() >5> autoscale ');
-				let transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-				let transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+				let transformedX = this.worldX * CanvasEngine.get().CurrentCanvasScale;
+				let transformedY = this.worldY * CanvasEngine.get().CurrentCanvasScale;
 
 				this._textField.x = transformedX + this._alignmentOffsetX * CanvasEngine.get().CurrentCanvasScale;
 				this._textField.y = transformedY + this._alignmentOffsetY * CanvasEngine.get().CurrentCanvasScale;
@@ -384,21 +385,21 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 				{
 					if(debug) console.log('CanvasTextObj.Update() >6>  ');
 					this._textField.scale.set(
-						CanvasEngine.get().CurrentCanvasScale * this.xScale,
-						CanvasEngine.get().CurrentCanvasScale * this.yScale
+						CanvasEngine.get().CurrentCanvasScale * this.worldXScale,
+						CanvasEngine.get().CurrentCanvasScale * this.worldYScale
 					);
 				}
 			}
 			else
 			{
 				if(debug) console.log('CanvasTextObj.Update() >7>  ');
-				this._textField.x = this.x + this._alignmentOffsetX;
-				this._textField.y = this.y + this._alignmentOffsetY;
+				this._textField.x = this.worldX + this._alignmentOffsetX;
+				this._textField.y = this.worldY + this._alignmentOffsetY;
 
 				if(!this.defObj.pulseText)
 				{
 					if(debug) console.log('CanvasTextObj.Update() >8>  ');
-					this._textField.scale.set(this.xScale, this.yScale);
+					this._textField.scale.set(this.worldXScale, this.worldYScale);
 				}
 			}
 		}

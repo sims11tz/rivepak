@@ -147,6 +147,12 @@ export abstract class CanvasObj
 	public _parent:CanvasObj | null = null;
 	public SetParent(parent:CanvasObj | null): void {this._parent = parent;}
 	public get parent():CanvasObj | null { return this._parent; }
+	
+	// Store world coordinates separately for rendering (calculated by parent)
+	public _worldX:number = 0;
+	public _worldY:number = 0;
+	public _worldXScale:number = 1;
+	public _worldYScale:number = 1;
 
 	public constrainProportions:boolean = false;
 
@@ -235,6 +241,8 @@ export abstract class CanvasObj
 	public get x(): number { return this._state.x; }
 	public set x(value: number)
 	{
+		if(value == this._state.x) return;
+		console.log('__CanvasObj['+this._uuid+']  set x='+value);
 		this._state.x = value;
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"x");
 	}
@@ -269,6 +277,22 @@ export abstract class CanvasObj
 	{
 		this._state.yScale = value;
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"yScale");
+	}
+
+	// Get world coordinates for rendering
+	public get worldX(): number { 
+		// If parented, return the world position calculated by parent
+		// Otherwise, return our own position
+		return this._parent ? this._worldX : this._state.x; 
+	}
+	public get worldY(): number { 
+		return this._parent ? this._worldY : this._state.y; 
+	}
+	public get worldXScale(): number { 
+		return this._parent ? this._worldXScale : this._state.xScale; 
+	}
+	public get worldYScale(): number { 
+		return this._parent ? this._worldYScale : this._state.yScale; 
 	}
 
 	public InitVisuals():void
