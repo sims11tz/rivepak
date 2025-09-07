@@ -13,15 +13,17 @@ export class AnimationMetadata
 	public readonly name: string;
 	public readonly duration: number;
 	public readonly speed: number;
+	public readonly fps: number;
 	public autoPlay: boolean = true;
 
-	constructor(animation: LinearAnimationInstance, index: number, name: string, autoPlay: boolean = true)
+	constructor(animation: LinearAnimationInstance, index: number, name: string, duration: number, autoPlay: boolean = true)
 	{
 		this.animation = animation;
 		this.index = index;
 		this.name = name;
-		this.duration = animation.duration;
-		this.speed = animation.speed;
+		this.duration = duration;
+		this.speed = (animation as any).speed ?? 1;
+		this.fps = (animation as any).fps ?? 60;
 		this.autoPlay = autoPlay;
 	}
 }
@@ -52,6 +54,7 @@ export class CanvasRiveObj extends CanvasObj
 	protected _riveInstance: Awaited<ReturnType<typeof RiveCanvas>>;
 
 	protected  _animations:AnimationMetadata[];
+	protected  _timelineControllers:RiveTimelineController[];
 	protected _stateMachine:StateMachineInstance | null = null;
 	protected _inputs = new Map<string, SMIInput>();
 
@@ -93,6 +96,7 @@ export class CanvasRiveObj extends CanvasObj
 		this._riveInstance = RiveController.get().Rive!;
 		this._artboard = artboard;
 		this._animations = [];
+		this._timelineControllers = [];
 	}
 
 	private _lastMousePos = { x: -1, y: -1 };
@@ -195,11 +199,26 @@ export class CanvasRiveObj extends CanvasObj
 		for (let j = 0; j < this.artboard.animationCount(); j++)
 		{
 			const animationDefinition = this.artboard.animationByIndex(j);
-			if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name);
+			if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name+" loopValue:"+animationDefinition.loopValue);
 			const animation = new this.Rive.LinearAnimationInstance( animationDefinition, this.artboard );
-			//console.log("Animation["+j+"]: "+animation.name+" -- "+animation.duration+" -- "+animation.speed);
 
-			const metadata = new AnimationMetadata(animation, j, animationDefinition.name);
+			const animDef = animationDefinition as any;
+			const duration = animDef.duration ?? animDef.durationSeconds ?? animDef.workEnd ?? animDef.workStart ?? 0;
+
+			//// Log all properties to see what's available
+			//if(this._debugLogs)
+			//{
+			//	console.log("Animation["+j+"] properties available:");
+			//	for (const key in animDef) {
+			//		if (typeof animDef[key] !== 'function') {
+			//			console.log("  - " + key + ": " + animDef[key]);
+			//		}
+			//	}
+			//}
+
+			if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
+
+			const metadata = new AnimationMetadata(animation, j, animationDefinition.name, duration);
 			this._animations.push(metadata);
 		}
 		if(this._debugLogs) console.log("Animations Loaded : "+this._animations.length);
@@ -223,52 +242,32 @@ export class CanvasRiveObj extends CanvasObj
 			if(this._debugLogs) console.log("No State Machine found");
 		}
 
-		if(this._viewModelInstance)
-		{
-			console.log('>>> HAVE VM INSTANCE <<<');
-			this._readVMFlags();
-		}
-		else
-		{
-			console.log('>>> NO VM INSTANCE <<<');
-			console.log('>>> NO VM INSTANCE <<<');
-			console.log('>>> NO VM INSTANCE <<<');
-		}
+		//if(this._viewModelInstance)
+		//{
+		//	this._readVMFlags();
+		//}
 
 		this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale:this.xScale, yScale:this.yScale, riveInteractiveLocalOnly:this.defObj.riveInteractiveLocalOnly};
 	}
 
-	private _autoplayVM = new Map<string, boolean>();
-
-	private _readVMFlags()
-	{
-		console.log('');
-		console.log('>>>> READ VM FLAGS >>>>>>');
-		this._autoplayVM.clear();
-		const vmi:ViewModelInstance | null = this._viewModelInstance;
-		if(vmi)
-		{
-			const props = vmi?.getProperties?.() ?? [];
-			for (const p of props)
-			{
-				// p: { name, type, value }
-				console.log(' VM PROP: ', p);
-				if (p?.name?.startsWith('auto.'))
-				{
-					console.log(' VM PROP:  AUTO ');
-					const animName = p.name.slice(15);
-					console.log(' VM PROP:  AUTO animName:'+animName);
-					this._autoplayVM.set(animName, !!(p as any).value);
-					console.log(' VM PROP:  check that shit :',this._autoplayVM.get(animName));
-				}
-			}
-			console.log('<<<< READ VM FLAGS <<<< DONE');
-		}
-		else
-		{
-			console.log('....noVMI....');
-		}
-	}
+	//private _autoplayVM = new Map<string, boolean>();
+	//private _readVMFlags()
+	//{
+	//	this._autoplayVM.clear();
+	//	const vmi:ViewModelInstance | null = this._viewModelInstance;
+	//	if(vmi)
+	//	{
+	//		const props = vmi?.getProperties?.() ?? [];
+	//		for (const p of props)
+	//		{
+	//			if (p?.name?.startsWith('auto.'))
+	//			{
+	//				const animName = p.name.slice(15);
+	//				this._autoplayVM.set(animName, !!(p as any).value);
+	//			}
+	//		}
+	//	}
+	//}
 
 	public updateEntityObj():void
 	{
@@ -395,7 +394,14 @@ export class CanvasRiveObj extends CanvasObj
 		if (animMeta)
 		{
 			animMeta.autoPlay = false;
-			return new RiveTimelineController(animMeta.animation, this.artboard);
+			const timelineController = new RiveTimelineController(
+				animMeta.animation,
+				this.artboard,
+				animMeta.duration,
+				animMeta.name
+			);
+			this._timelineControllers.push(timelineController);
+			return timelineController;
 		}
 		console.warn(`Animation not found: ${animationName}`);
 		return null;
@@ -412,6 +418,10 @@ export class CanvasRiveObj extends CanvasObj
 				animationMeta.animation.advance(time);
 				animationMeta.animation.apply(1);
 			}
+		});
+
+		this._timelineControllers.forEach(controller => {
+			controller.Update(time, frameCount, onceSecond);
 		});
 
 		if(this._stateMachine)
@@ -644,11 +654,22 @@ export class CanvasRiveObj extends CanvasObj
 			this._animations = [];
 		}
 
+		if(this._timelineControllers.length > 0)
+		{
+			this._timelineControllers.forEach(controller => {
+				controller.Dispose();
+			});
+			this._timelineControllers = [];
+		}
+
 		if(this._stateMachine)
 		{
-			try {
+			try
+			{
 				this._stateMachine.delete();
-			} catch(e) {
+			}
+			catch(e)
+			{
 				console.warn("Failed to delete state machine:", e);
 			}
 			this._stateMachine = null;

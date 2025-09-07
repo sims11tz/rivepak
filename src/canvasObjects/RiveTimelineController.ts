@@ -9,11 +9,19 @@ export class RiveTimelineController {
 	private easeDuration = 0;
 	private easeStart = 0;
 	private easeEnd = 0;
+	private _duration: number;
+	private _name: string;
 
 	constructor(
 		private anim:LinearAnimationInstance,
-		private artboard:Artboard
-	) {}
+		private artboard:Artboard,
+		duration?: number,
+		name?: string
+	) {
+		// Store the duration and name passed from AnimationMetadata
+		this._duration = duration ?? (anim as any).duration ?? 0;
+		this._name = name ?? (anim as any).name ?? "";
+	}
 
 	private get _fps(): number
 	{
@@ -23,20 +31,20 @@ export class RiveTimelineController {
 
 	get Animation(): LinearAnimationInstance { return this.anim; }
 	get TimeSeconds(): number { return this.anim.time; }
-	get DurationSeconds(): number { return this.anim.duration; }
+	get DurationSeconds(): number { return this._duration; }
 	get Percent(): number
 	{
-		const d = this.anim.duration || 1;
+		const d = this._duration || 1;
 		return this.anim.time / d;
 	}
 	get Percent100(): number { return this.Percent * 100; }
 	get Fps(): number { return this._fps; }
 	get Frame(): number { return Math.round(this.anim.time * this._fps); }
-	get FrameCount(): number { return Math.round(this.anim.duration * this._fps); }
+	get FrameCount(): number { return Math.round(this._duration * this._fps); }
 
 	get RemainingSeconds(): number
 	{
-		return Math.max(0, this.anim.duration - this.anim.time);
+		return Math.max(0, this._duration - this.anim.time);
 	}
 
 	get RemainingFrames(): number
@@ -53,21 +61,19 @@ export class RiveTimelineController {
 
 	SeekSeconds(t: number)
 	{
-		console.log('RiveTimelineController SeekSeconds -- '+this.anim.name+':'+this.anim.duration);
-		const clamped = Math.max(0, Math.min(this.anim.duration, t));
-		console.log('RiveTimelineController clamped -- '+clamped);
+		const clamped = Math.max(0, Math.min(this._duration, t));
 		this.anim.time = clamped;
 		this.anim.apply(1);
 		//this.artboard.advance(0);
 	}
 
-	SeekPercent(p: number) { this.SeekSeconds(p * this.anim.duration); }
+	SeekPercent(p: number) { this.SeekSeconds(p * this._duration); }
 	SeekFrame(f: number)   { this.SeekSeconds(f / this._fps); }
 	AdvanceFrame(n = 1)    { this.SeekSeconds(this.anim.time + n / this._fps); }
 
 	EaseToPercent(p: number, duration = 0.5) {
 		this.easeStart = this.anim.time;
-		this.easeEnd = Math.max(0, Math.min(1, p)) * this.anim.duration;
+		this.easeEnd = Math.max(0, Math.min(1, p)) * this._duration;
 		this.easeDuration = Math.max(0.001, duration);
 		this.easeElapsed = 0;
 		this.easeActive = true;
@@ -87,11 +93,10 @@ export class RiveTimelineController {
 	{
 		if(this.playing)
 		{
-			if(onceSecond) console.log('RiveTimelineController Update -- '+this.anim.name+':'+this.anim.duration+'-'+(time*this.speed));
 			this.anim.advance(time * this.speed);
 		}
 
-		if (this.easeActive)
+		if(this.easeActive)
 		{
 			this.easeElapsed += time;
 			const a = Math.min(this.easeElapsed / this.easeDuration, 1);
@@ -102,6 +107,11 @@ export class RiveTimelineController {
 		}
 
 		this.anim.apply(1);
-		//this.artboard.advance(dt);
+	}
+
+	Dispose()
+	{
+		this.anim = null!;
+		this.artboard = null!;
 	}
 }

@@ -126,7 +126,7 @@ export class RiveController
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
-		const debug = true;
+		const debug = false;
 
 		const defs:RiveObjectDef[] = [];
 		if(Array.isArray(riveObjDefs))
@@ -255,7 +255,7 @@ export class RiveController
 
 	private getVMForArtboard(file:RiveFile, artboard:Artboard, name?:string): ViewModel | null
 	{
-		const debug = true;
+		const debug = false;
 		if(debug) console.log('----%---getVMForArtboard -- file:'+file.defaultArtboard.name+',  artboard:'+artboard.name+'   name:'+name);
 		if(name && typeof file.viewModelByName === "function")
 		{
