@@ -7,6 +7,7 @@ export * from "./canvasObjects/PixiGraphicsObj";
 export * from "./canvasObjects/PixiGraphicsPhysicsObj";
 export * from "./canvasObjects/RiveAnimationObj";
 export * from "./canvasObjects/RivePhysicsObj";
+export * from "./canvasObjects/RiveTimelineController";
 export * from "./controllers/PhysicsController";
 export * from "./controllers/PixiController";
 export * from "./controllers/RiveController";

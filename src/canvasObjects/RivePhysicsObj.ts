@@ -10,14 +10,14 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 	constructor(riveDef: RiveObjectDef, artboard: Artboard)
 	{
 		super(riveDef, artboard);
-		this.initRiveObject();
+		//this.initRiveObject();
 		this.InitPhysics();
 	}
 
-	protected initRiveObject()
-	{
-		super.initRiveObject();
-	}
+	//protected initRiveObject()
+	//{
+	//	super.initRiveObject();
+	//}
 
 	public ApplyResolutionScale(scale:number, property:string="")
 	{

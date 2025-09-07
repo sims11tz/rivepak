@@ -52,38 +52,39 @@ export interface CanvasObjectDef
 	textAlign?: 'left' | 'center' | 'right' | 'justify';
 	verticalAlign?: 'top' | 'middle' | 'bottom';
 
-	debugMode?: boolean;
+	debugMode?:boolean;
+	debugLogs?:boolean;
 
 	drawFunction?:(pixiGraphics:any, defObj:CanvasObjectDef) => void;
 
 	// Text bounds and wrapping
-	wordWrap?: boolean;
-	wordWrapWidth?: number;
-	breakWords?: boolean;
-	maxWidth?: number;
-	maxHeight?: number;
+	wordWrap?:boolean;
+	wordWrapWidth?:number;
+	breakWords?:boolean;
+	maxWidth?:number;
+	maxHeight?:number;
 
 	// Text effects
-	textShadow?: boolean;
-	textShadowColor?: string | number;
-	textShadowBlur?: number;
-	textShadowAngle?: number;
-	textShadowDistance?: number;
-	textShadowAlpha?: number;
+	textShadow?:boolean;
+	textShadowColor?:string | number;
+	textShadowBlur?:number;
+	textShadowAngle?:number;
+	textShadowDistance?:number;
+	textShadowAlpha?:number;
 
 	// Text animations
-	typewriterEffect?: boolean;
-	typewriterSpeed?: number;
-	fadeInDuration?: number;
-	pulseText?: boolean;
-	pulseSpeed?: number;
+	typewriterEffect?:boolean;
+	typewriterSpeed?:number;
+	fadeInDuration?:number;
+	pulseText?:boolean;
+	pulseSpeed?:number;
 
 	// Advanced text options
-	letterSpacing?: number;
-	lineHeight?: number;
-	padding?: number;
-	trimText?: boolean;
-	resolution?: number;
+	letterSpacing?:number;
+	lineHeight?:number;
+	padding?:number;
+	trimText?:boolean;
+	resolution?:number;
 /*TEXT END*/
 
 	count?:number;
@@ -183,11 +184,13 @@ export abstract class CanvasObj
 	public _body:Matter.Body | null = null;
 
 	public _debug!:boolean;
+	public _debugLogs!:boolean;
 
 	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
 		this._debug = defObj.debugMode ?? false;
+		this._debugLogs = defObj.debugLogs ?? false;
 		this._defObj = defObj;
 
 		this._uuid = GlobalUIDGenerator.generateUID();

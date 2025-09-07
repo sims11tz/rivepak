@@ -4,6 +4,27 @@ import { CanvasObj, CanvasObjectEntity } from "./CanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
+import { RiveTimelineController } from "./RiveTimelineController";
+
+export class AnimationMetadata
+{
+	public readonly animation: LinearAnimationInstance;
+	public readonly index: number;
+	public readonly name: string;
+	public readonly duration: number;
+	public readonly speed: number;
+	public autoPlay: boolean = true;
+
+	constructor(animation: LinearAnimationInstance, index: number, name: string, autoPlay: boolean = true)
+	{
+		this.animation = animation;
+		this.index = index;
+		this.name = name;
+		this.duration = animation.duration;
+		this.speed = animation.speed;
+		this.autoPlay = autoPlay;
+	}
+}
 
 export type RiveInstance = Awaited<ReturnType<typeof RiveCanvas>>;
 
@@ -30,7 +51,7 @@ export class CanvasRiveObj extends CanvasObj
 	protected _renderer:Renderer;
 	protected _riveInstance: Awaited<ReturnType<typeof RiveCanvas>>;
 
-	protected  _animations:LinearAnimationInstance[];
+	protected  _animations:AnimationMetadata[];
 	protected _stateMachine:StateMachineInstance | null = null;
 	protected _inputs = new Map<string, SMIInput>();
 
@@ -79,7 +100,7 @@ export class CanvasRiveObj extends CanvasObj
 
 	private _entityObj:CanvasObjectEntity | null = null;
 
-	protected initRiveObject():void
+	public InitRiveObject():void
 	{
 		//console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
 
@@ -156,45 +177,97 @@ export class CanvasRiveObj extends CanvasObj
 
 		if(this.defObj.text && this.defObj.text.length > 0) this.drawTextLabel();
 
-		//console.log("");
-		//console.log("___________________ INIT RIVE OBJECT ________________________");
-		//console.log("");
-		//console.log("Artboard Name: "+this.artboard.name);
-		//console.log(" artboard: ",this.artboard);
-		//console.log("Artboard Width: "+this.artboard.width);
-		//console.log("Artboard Height: "+this.artboard.height);
-		//console.log("Artboard Bounds: ", this.artboard.bounds);
-		//console.log("Artboard State Machine Count: "+this.artboard.stateMachineCount());
-		//console.log("Artboard Animation Count: "+this.artboard.animationCount());
+		if(this._debugLogs)
+		{
+			console.log("");
+			console.log("___________________ INIT RIVE OBJECT ________________________");
+			console.log("");
+			console.log("Artboard Name: "+this.artboard.name);
+			//console.log(" artboard: ",this.artboard);
+			//console.log("Artboard Width: "+this.artboard.width);
+			//console.log("Artboard Height: "+this.artboard.height);
+			//console.log("Artboard Bounds: ", this.artboard.bounds);
+			//console.log("Artboard State Machine Count: "+this.artboard.stateMachineCount());
+			console.log("Artboard Animation Count: "+this.artboard.animationCount());
+		}
 
 		this._animations = [];
 		for (let j = 0; j < this.artboard.animationCount(); j++)
 		{
-			const animation = new this.Rive.LinearAnimationInstance( this.artboard.animationByIndex(j), this.artboard );
-			//console.log("Animation["+j+"]: ",animation);
-			this._animations.push(animation);
+			const animationDefinition = this.artboard.animationByIndex(j);
+			if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name);
+			const animation = new this.Rive.LinearAnimationInstance( animationDefinition, this.artboard );
+			//console.log("Animation["+j+"]: "+animation.name+" -- "+animation.duration+" -- "+animation.speed);
+
+			const metadata = new AnimationMetadata(animation, j, animationDefinition.name);
+			this._animations.push(metadata);
 		}
-		//console.log("Animations Loaded : "+this._animations.length);
+		if(this._debugLogs) console.log("Animations Loaded : "+this._animations.length);
 
 		this._stateMachine = this.artboard.stateMachineCount() > 0 ? new this.Rive.StateMachineInstance(this.artboard.stateMachineByIndex(0),this.artboard): null;
 
 		this._inputs = new Map<string, SMIInput>();
 		if (this._stateMachine)
 		{
-			//console.log("Has State Machine<"+this._stateMachine.inputCount()+">: ", this._stateMachine);
+			if(this._debugLogs) console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.name);
+			if(this._debugLogs) console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.stateChangedCount());
 			for (let j = 0; j < this._stateMachine.inputCount(); j++)
 			{
 				const input = this._stateMachine.input(j);
 				this._inputs.set(input.name, input);
-				//console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
+				if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
 			}
 		}
 		else
 		{
-			//console.log("No State Machine found");
+			if(this._debugLogs) console.log("No State Machine found");
+		}
+
+		if(this._viewModelInstance)
+		{
+			console.log('>>> HAVE VM INSTANCE <<<');
+			this._readVMFlags();
+		}
+		else
+		{
+			console.log('>>> NO VM INSTANCE <<<');
+			console.log('>>> NO VM INSTANCE <<<');
+			console.log('>>> NO VM INSTANCE <<<');
 		}
 
 		this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale:this.xScale, yScale:this.yScale, riveInteractiveLocalOnly:this.defObj.riveInteractiveLocalOnly};
+	}
+
+	private _autoplayVM = new Map<string, boolean>();
+
+	private _readVMFlags()
+	{
+		console.log('');
+		console.log('>>>> READ VM FLAGS >>>>>>');
+		this._autoplayVM.clear();
+		const vmi:ViewModelInstance | null = this._viewModelInstance;
+		if(vmi)
+		{
+			const props = vmi?.getProperties?.() ?? [];
+			for (const p of props)
+			{
+				// p: { name, type, value }
+				console.log(' VM PROP: ', p);
+				if (p?.name?.startsWith('auto.'))
+				{
+					console.log(' VM PROP:  AUTO ');
+					const animName = p.name.slice(15);
+					console.log(' VM PROP:  AUTO animName:'+animName);
+					this._autoplayVM.set(animName, !!(p as any).value);
+					console.log(' VM PROP:  check that shit :',this._autoplayVM.get(animName));
+				}
+			}
+			console.log('<<<< READ VM FLAGS <<<< DONE');
+		}
+		else
+		{
+			console.log('....noVMI....');
+		}
 	}
 
 	public updateEntityObj():void
@@ -250,14 +323,95 @@ export class CanvasRiveObj extends CanvasObj
 		return matchingInputs[randomIndex];
 	}
 
+	public GetAnimationByName(name: string): AnimationMetadata | null
+	{
+		const found = this._animations.find(animMeta => animMeta.name === name);
+		return found || null;
+	}
+
+	public GetAnimationByIndex(index: number): AnimationMetadata | null
+	{
+		if (index >= 0 && index < this._animations.length)
+		{
+			return this._animations[index];
+		}
+		return null;
+	}
+
+	public GetAnimationsByNamePattern(searchTerm: string): AnimationMetadata[]
+	{
+		return this._animations.filter(animMeta =>
+			animMeta.name.toLowerCase().includes(searchTerm.toLowerCase())
+		);
+	}
+
+	public GetAllAnimations(): AnimationMetadata[]
+	{
+		return [...this._animations];
+	}
+
+	public PlayAnimationByName(name: string): boolean
+	{
+		const animMeta = this.GetAnimationByName(name);
+		if (animMeta)
+		{
+			animMeta.animation.advance(0);
+			animMeta.animation.apply(1);
+			return true;
+		}
+		console.warn(`Animation not found: ${name}`);
+		return false;
+	}
+
+	public SetAnimationAutoPlay(name: string, autoPlay: boolean): boolean
+	{
+		const animMeta = this.GetAnimationByName(name);
+		if (animMeta)
+		{
+			animMeta.autoPlay = autoPlay;
+			return true;
+		}
+		console.warn(`Animation not found: ${name}`);
+		return false;
+	}
+
+	public SetAllAnimationsAutoPlay(autoPlay: boolean): void
+	{
+		this._animations.forEach(animMeta => {
+			animMeta.autoPlay = autoPlay;
+		});
+	}
+
+	public DisableAutoPlayForAnimations(names: string[]): void
+	{
+		names.forEach(name => {
+			this.SetAnimationAutoPlay(name, false);
+		});
+	}
+
+	public CreateTimelineController(animationName: string): RiveTimelineController | null
+	{
+		const animMeta = this.GetAnimationByName(animationName);
+		if (animMeta)
+		{
+			animMeta.autoPlay = false;
+			return new RiveTimelineController(animMeta.animation, this.artboard);
+		}
+		console.warn(`Animation not found: ${animationName}`);
+		return null;
+	}
+
 	public Update(time: number, frameCount: number, onceSecond: boolean): void
 	{
 		if(this.enabled === false) return;
 
-		this._animations.forEach((animation) =>
+		this._animations.forEach((animationMeta) =>
 		{
-			animation.advance(time);
-			animation.apply(1);
+			if (animationMeta.autoPlay)
+			{
+				animationMeta.animation.advance(time);
+				animationMeta.animation.apply(1);
+			}
 		});
 
 		if(this._stateMachine)
@@ -480,9 +634,9 @@ export class CanvasRiveObj extends CanvasObj
 		// Clean up Rive resources properly
 		if(this._animations)
 		{
-			this._animations.forEach((animation) => {
+			this._animations.forEach((animationMeta) => {
 				try {
-					animation.delete();
+					animationMeta.animation.delete();
 				} catch(e) {
 					console.warn("Failed to delete animation:", e);
 				}
