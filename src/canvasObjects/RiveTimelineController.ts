@@ -89,15 +89,15 @@ export class RiveTimelineController {
 	{
 		if(this._anim == null) return;
 
-		if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController - ' + this._name);
+		//if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController - ' + this._name);
 		if(this._playing)
 		{
-			if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController.playing --- '+(time * this._speed));
+			//if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController.playing --- '+(time * this._speed));
 			this._anim.advance(time * this._speed);
 		}
 		else
 		{
-			if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController NOT PLAYING');
+			//if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController NOT PLAYING');
 		}
 
 		if(this._easeActive)
