@@ -1,117 +1,120 @@
-// keep your imports as-is if they work in your setup
-import { Artboard, LinearAnimationInstance } from "@rive-app/webgl-advanced";
+import { LinearAnimationInstance } from "@rive-app/webgl-advanced";
 
 export class RiveTimelineController {
-	private playing = false;
-	private speed = 1;
-	private easeActive = false;
-	private easeElapsed = 0;
-	private easeDuration = 0;
-	private easeStart = 0;
-	private easeEnd = 0;
+	private _playing = false;
+	private _speed = 1;
+	private _easeActive = false;
+	private _easeElapsed = 0;
+	private _easeDuration = 0;
+	private _easeStart = 0;
+	private _easeEnd = 0;
 	private _duration: number;
 	private _name: string;
+	private _animationMeataDataId:string;
+	private _anim:LinearAnimationInstance | null = null;
 
 	constructor(
-		private anim:LinearAnimationInstance,
-		private artboard:Artboard,
+		animationMeataDataId:string,
+		anim:LinearAnimationInstance,
 		duration?: number,
 		name?: string
 	) {
+		this._animationMeataDataId = animationMeataDataId;
+		this._anim = anim;
 		// Store the duration and name passed from AnimationMetadata
-		this._duration = duration ?? (anim as any).duration ?? 0;
-		this._name = name ?? (anim as any).name ?? "";
+		this._duration = duration ?? this._anim.duration ?? 0;
+		this._name = name ?? this._anim.name ?? "";
+		this.Pause();
 	}
 
-	private get _fps(): number
+	private get _fps():number
 	{
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (this.anim as any).Fps ?? 60;
+		return (this._anim as any).Fps ?? 60;
 	}
 
-	get Animation(): LinearAnimationInstance { return this.anim; }
-	get TimeSeconds(): number { return this.anim.time; }
-	get DurationSeconds(): number { return this._duration; }
-	get Percent(): number
+	get AnimationMetaDataId():string { return this._animationMeataDataId; }
+	get Animation():LinearAnimationInstance | null { return this._anim; }
+	get TimeSeconds():number { return this._anim?.time ?? 0; }
+	get DurationSeconds():number { return this._duration; }
+	get Percent():number
 	{
 		const d = this._duration || 1;
-		return this.anim.time / d;
+		return this._anim?.time ?? 0 / d;
 	}
-	get Percent100(): number { return this.Percent * 100; }
-	get Fps(): number { return this._fps; }
-	get Frame(): number { return Math.round(this.anim.time * this._fps); }
-	get FrameCount(): number { return Math.round(this._duration * this._fps); }
+	get Percent100():number { return this.Percent * 100; }
+	get Fps():number { return this._fps; }
+	get Frame(): number { return Math.round((this._anim?.time ?? 0) * this._fps); }
+	get FrameCount():number { return Math.round(this._duration * this._fps); }
 
-	get RemainingSeconds(): number
+	get RemainingSeconds():number
 	{
-		return Math.max(0, this._duration - this.anim.time);
+		return Math.max(0, this._duration - (this._anim?.time ?? 0));
 	}
 
-	get RemainingFrames(): number
+	get RemainingFrames():number
 	{
 		return Math.max(0, this.FrameCount - this.Frame);
 	}
-	get IsPlaying(): boolean { return this.playing; }
-	get IsEasing(): boolean { return this.easeActive; }
+	get IsPlaying():boolean { return this._playing; }
+	get IsEasing():boolean { return this._easeActive; }
 
-	/* --------------- controls you already had --------------- */
-
-	Play(speed = 1) { this.playing = true; this.speed = speed; }
-	Pause() { this.playing = false; }
+	Play(speed = 1) { this._playing = true; this._speed = speed; }
+	Pause() { this._playing = false; }
 
 	SeekSeconds(t: number)
 	{
+		if(this._anim == null) return;
 		const clamped = Math.max(0, Math.min(this._duration, t));
-		this.anim.time = clamped;
-		this.anim.apply(1);
-		//this.artboard.advance(0);
+		this._anim.time = clamped;
+		this._anim.apply(1);
 	}
 
-	SeekPercent(p: number) { this.SeekSeconds(p * this._duration); }
-	SeekFrame(f: number)   { this.SeekSeconds(f / this._fps); }
-	AdvanceFrame(n = 1)    { this.SeekSeconds(this.anim.time + n / this._fps); }
+	SeekPercent(p:number) { this.SeekSeconds(p * this._duration); }
+	SeekFrame(f:number) { this.SeekSeconds(f / this._fps); }
+	AdvanceFrame(n=1) { this.SeekSeconds((this._anim?.time ?? 0) + n / this._fps); }
 
 	EaseToPercent(p: number, duration = 0.5) {
-		this.easeStart = this.anim.time;
-		this.easeEnd = Math.max(0, Math.min(1, p)) * this._duration;
-		this.easeDuration = Math.max(0.001, duration);
-		this.easeElapsed = 0;
-		this.easeActive = true;
-		this.playing = false; // pause while easing
-	}
+		if(this._anim == null) return;
 
-	//this._animations.forEach((animationMeta) =>
-	//		{
-	//			if (animationMeta.autoPlay)
-	//			{
-	//				animationMeta.animation.advance(time);
-	//				animationMeta.animation.apply(1);
-	//			}
-	//		});
+		this._easeStart = this._anim.time;
+		this._easeEnd = Math.max(0, Math.min(1, p)) * this._duration;
+		this._easeDuration = Math.max(0.001, duration);
+		this._easeElapsed = 0;
+		this._easeActive = true;
+		this._playing = false;
+	}
 
 	Update(time:number,frameCount:number,onceSecond:boolean)
 	{
-		if(this.playing)
+		if(this._anim == null) return;
+
+		if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController - ' + this._name);
+		if(this._playing)
 		{
-			this.anim.advance(time * this.speed);
+			if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController.playing --- '+(time * this._speed));
+			this._anim.advance(time * this._speed);
+		}
+		else
+		{
+			if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController NOT PLAYING');
 		}
 
-		if(this.easeActive)
+		if(this._easeActive)
 		{
-			this.easeElapsed += time;
-			const a = Math.min(this.easeElapsed / this.easeDuration, 1);
+			this._easeElapsed += time;
+			const a = Math.min(this._easeElapsed / this._easeDuration, 1);
 			// easeInOutQuad
 			const e = a < 0.5 ? 2 * a * a : 1 - Math.pow(-2 * a + 2, 2) / 2;
-			this.anim.time = this.easeStart + (this.easeEnd - this.easeStart) * e;
-			if (a >= 1) this.easeActive = false;
+			this._anim.time = this._easeStart + (this._easeEnd - this._easeStart) * e;
+			if (a >= 1) this._easeActive = false;
 		}
 
-		this.anim.apply(1);
+		this._anim.apply(1);
 	}
 
 	Dispose()
 	{
-		this.anim = null!;
-		this.artboard = null!;
+		this._anim = null;
 	}
 }

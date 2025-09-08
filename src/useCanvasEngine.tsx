@@ -1,12 +1,13 @@
 import { Renderer } from "@rive-app/webgl-advanced";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
-import { RiveInstance } from "./canvasObjects/CanvasRiveObj";
+import { AnimationMetadata, RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX, useEffect, useRef } from "react";
 import { CanvasObj, GlobalUIDGenerator } from "./canvasObjects/CanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
+import { RiveTimelineController } from "./canvasObjects/RiveTimelineController";
 
 export enum CANVAS_ENGINE_RUN_STATE
 {
@@ -17,6 +18,7 @@ export enum CANVAS_ENGINE_RUN_STATE
 
 export class ResizeCanvasObj
 {
+	private _disposed = false;
 	public width:number;
 	public height:number;
 	public scale:number;
@@ -79,13 +81,20 @@ export class CanvasEngine
 	public fpsLabel:HTMLDivElement | null = null;
 	public fpsSpinner:HTMLDivElement | null = null;
 
-	public rive:RiveInstance | null = null;
-	public canvasObjects:Map<string, CanvasObj[]> = new Map();
+	private _rive:RiveInstance | null = null;
+	public get RiveInstance():RiveInstance | null { return this._rive; }
 
-	private animationFrameId:number | null = null;
-	private riveInstance:RiveInstance | null = null;
-	private runState:CANVAS_ENGINE_RUN_STATE = CANVAS_ENGINE_RUN_STATE.STOPPED;
-	private engine:Matter.Engine | null = null;
+	private _canvasObjects: Map<string, CanvasObj[]> = new Map();
+	public get CanvasObjects(): Map<string, CanvasObj[]> { return this._canvasObjects;}
+
+	private _riveTimelineControllers:RiveTimelineController[] = [];
+	public get RiveTimelineControllers():RiveTimelineController[] { return this._riveTimelineControllers; }
+
+	private _animationFrameId:number | null = null;
+	private _riveInstance:RiveInstance | null = null;
+	public get Rive():RiveInstance | null { return this._riveInstance; }
+	private _runState:CANVAS_ENGINE_RUN_STATE = CANVAS_ENGINE_RUN_STATE.STOPPED;
+	private _engine:Matter.Engine | null = null;
 	public get EngineSettings():CanvasSettingsDef | null { return this._canvasSettings; }
 	private _canvasSettings:CanvasSettingsDef | null = null;
 
@@ -109,18 +118,18 @@ export class CanvasEngine
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
-		if (this.animationFrameId && this.riveInstance)
+		if (this._animationFrameId && this._riveInstance)
 		{
-			this.riveInstance.cancelAnimationFrame(this.animationFrameId);
-			this.animationFrameId = null;
+			this._riveInstance.cancelAnimationFrame(this._animationFrameId);
+			this._animationFrameId = null;
 		}
 
 		GlobalUIDGenerator.clear();
 
 		this._canvasSettings = canvasSettings;
 
-		this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
-		if (this.runStateLabel) { this.runStateLabel.innerText = this.runState; }
+		this._runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
+		if (this.runStateLabel) { this.runStateLabel.innerText = this._runState; }
 
 		const canvas = this.canvasRef;
 		this._currentCanvasScale = -1;
@@ -133,8 +142,7 @@ export class CanvasEngine
 		const riveInstance = RiveController.get().Rive;
 		//riveInstance.resizeDrawingSurfaceToCanvas?.();
 
-		this.rive = riveInstance;
-		this.riveInstance = riveInstance;
+		this._riveInstance = riveInstance;
 		const riveRenderer: Renderer = RiveController.get().Renderer;
 
 		let riveFps = 0;
@@ -166,30 +174,30 @@ export class CanvasEngine
 		let inFrame = false;
 		const updateLoop = (time:number) =>
 		{
-			if (inFrame) console.warn('updateLoop re-entered same frame');
+			if(inFrame) console.warn('updateLoop re-entered same frame');
 			inFrame = true;
 
-			if (this.runState !== CANVAS_ENGINE_RUN_STATE.RUNNING)
+			if(this._runState !== CANVAS_ENGINE_RUN_STATE.RUNNING)
 			{
 				lastTime = time;
 				inFrame = false;
-				this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+				this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 				return;
 			}
 
 			iterationCount++;
 			frameCount++;
 
-			if (!lastTime) lastTime = time;
+			if(!lastTime) lastTime = time;
 			let elapsedTimeSec = (time - lastTime) / 1000;
 			lastTime = time;
 			accumulatedTime += elapsedTimeSec;
 
-			if (accumulatedTime < MIN_TIME_STEP)
+			if(accumulatedTime < MIN_TIME_STEP)
 			{
 				skipsPerSecond++;
 				inFrame = false;
-				this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+				this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 				//console.log(`Skipping frame ${numSkips}/${numNoSkips} - elapsedTime=${elapsedTimeSec.toFixed(4)}, accumulatedTime=${accumulatedTime.toFixed(4)}`);
 				return;
 			}
@@ -198,7 +206,7 @@ export class CanvasEngine
 			accumulatedTime = 0;
 
 			const onceSecond = time - lastLogTime > 1000;
-			if (onceSecond)
+			if(onceSecond)
 			{
 				if (this.fpsCallback)
 				{
@@ -219,23 +227,24 @@ export class CanvasEngine
 
 			riveRenderer.clear();
 
-			this.canvasObjects.forEach((objects) =>
+			this._canvasObjects.forEach((objects) =>
 			{
 				objects.forEach((obj) =>
 				{
 					obj.Update(elapsedTimeSec, frameCount, onceSecond);
 				});
 			});
+
 			riveRenderer.flush();
 
 			PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
 
 			inFrame = false;
-			this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+			this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 		};
 
 		inFrame = false;
-		this.animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+		this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 		if (onInitComplete) onInitComplete();
 
 		window.removeEventListener("resize", this.ResizeWindowEvent);
@@ -249,19 +258,19 @@ export class CanvasEngine
 		setTimeout(() => this.ResizeCanvasToWindow(), 1000);
 	}
 
-	public get RunState():CANVAS_ENGINE_RUN_STATE { return this.runState; }
+	public get RunState():CANVAS_ENGINE_RUN_STATE { return this._runState; }
 
 	public ToggleRunState()
 	{
-		this.SetRunState( this.runState === CANVAS_ENGINE_RUN_STATE.RUNNING ? CANVAS_ENGINE_RUN_STATE.STOPPED : CANVAS_ENGINE_RUN_STATE.RUNNING );
+		this.SetRunState( this._runState === CANVAS_ENGINE_RUN_STATE.RUNNING ? CANVAS_ENGINE_RUN_STATE.STOPPED : CANVAS_ENGINE_RUN_STATE.RUNNING );
 	}
 
 	public SetRunState(state: CANVAS_ENGINE_RUN_STATE)
 	{
-		this.runState = state;
+		this._runState = state;
 		if (this.runStateLabel)
 		{
-			this.runStateLabel.innerText = this.runState;
+			this.runStateLabel.innerText = this._runState;
 		}
 	}
 
@@ -278,15 +287,46 @@ export class CanvasEngine
 		return this.fpsValue.toString();
 	}
 
-	public AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
+	public GetTimelineController(animationMetaData:AnimationMetadata):RiveTimelineController | null
 	{
-		let add: CanvasObj[] = [];
+		return this._riveTimelineControllers.find(controller => controller.AnimationMetaDataId === animationMetaData.uuid) || null;
+	}
+
+	public CreateTimelineController(animationMetaData:AnimationMetadata):RiveTimelineController
+	{
+		animationMetaData.isTimelineControlled = true;
+
+		const timelineController = new RiveTimelineController(
+			animationMetaData.uuid,
+			animationMetaData.animation,
+			animationMetaData.duration,
+			animationMetaData.name
+		);
+		this._riveTimelineControllers.push(timelineController);
+		return timelineController;
+	}
+
+	public DestroyTimelineController(animationMetaData:AnimationMetadata)
+	{
+		for (let i = 0; i < this._riveTimelineControllers.length; i++)
+		{
+			if (this._riveTimelineControllers[i].AnimationMetaDataId === animationMetaData.uuid)
+			{
+				this._riveTimelineControllers.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	public AddCanvasObjects(objs:CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
+	{
+		let add:CanvasObj[] = [];
 		if (objs instanceof RiveObjectsSet) add = objs.objects ?? [];
 		else if (Array.isArray(objs)) add = objs;
 		else add = [objs];
 
-		if (!this.canvasObjects.has(group)) this.canvasObjects.set(group, []);
-		const dest = this.canvasObjects.get(group)!;
+		if (!this._canvasObjects.has(group)) this._canvasObjects.set(group, []);
+		const dest = this._canvasObjects.get(group)!;
 
 		let maxZ = dest.reduce((m, o) => Math.max(m, o.z ?? 0), 0);
 
@@ -294,11 +334,11 @@ export class CanvasEngine
 		{
 			obj.OnZIndexChanged = this.updateZIndex.bind(this);
 
-			for (const [g, arr] of this.canvasObjects) {
+			for (const [g, arr] of this._canvasObjects) {
 				const i = arr.indexOf(obj);
 				if (i !== -1) {
 					arr.splice(i, 1);
-					if (arr.length === 0) this.canvasObjects.delete(g);
+					if (arr.length === 0) this._canvasObjects.delete(g);
 					break;
 				}
 			}
@@ -327,7 +367,7 @@ export class CanvasEngine
 
 	public RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
 	{
-		const groupArray = this.canvasObjects.get(group);
+		const groupArray = this._canvasObjects.get(group);
 		if (!groupArray) return;
 
 		const objsToRemove = Array.isArray(objs) ? objs : [objs];
@@ -344,7 +384,7 @@ export class CanvasEngine
 
 		if (groupArray.length === 0)
 		{
-			this.canvasObjects.delete(group);
+			this._canvasObjects.delete(group);
 		}
 	}
 
@@ -353,7 +393,7 @@ export class CanvasEngine
 		if (canvasObj.z === newZIndex) return;
 
 		const group = canvasObj.group ?? "main";
-		const groupArray = this.canvasObjects.get(group);
+		const groupArray = this._canvasObjects.get(group);
 		if (!groupArray) return;
 
 		const index = groupArray.indexOf(canvasObj);
@@ -373,13 +413,13 @@ export class CanvasEngine
 			clearTimeout(this._resizeDebounceTimeout);
 		}
 
-		this.runState = CANVAS_ENGINE_RUN_STATE.PAUSED;
+		this._runState = CANVAS_ENGINE_RUN_STATE.PAUSED;
 		CanvasEngineStartResizePubSub.Publish({});
 		this._resizeDebounceTimeout = window.setTimeout(() =>
 		{
 			this.ResizeCanvasToWindow();
 			this._resizeDebounceTimeout = null;
-			this.runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
+			this._runState = CANVAS_ENGINE_RUN_STATE.RUNNING;
 		}, 250);
 	}
 
@@ -425,7 +465,7 @@ export class CanvasEngine
 		PhysicsController.get().SetSize(newWidth, newHeight);
 
 		// Apply canvas scale to all objects
-		this.canvasObjects.forEach((group) =>
+		this._canvasObjects.forEach((group) =>
 		{
 			group.forEach((obj) =>
 			{
@@ -438,22 +478,22 @@ export class CanvasEngine
 
 	public Dispose()
 	{
-		this.runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
-
-		if (this.engine)
+		this._runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
+		if (this._engine)
 		{
-			Matter.Events.off(this.engine, "collisionStart");
-			Matter.World.clear(this.engine.world, false);
-			Matter.Engine.clear(this.engine);
+
+			Matter.Events.off(this._engine, "collisionStart");
+			Matter.World.clear(this._engine.world, false);
+			Matter.Engine.clear(this._engine);
 		}
 
-		this.canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
-		this.canvasObjects.clear();
+		this._canvasObjects.forEach((objs) => objs.forEach((o) => o.Dispose()));
+		this._canvasObjects.clear();
 
-		if (this.animationFrameId && this.riveInstance)
+		if (this._animationFrameId && this._riveInstance)
 		{
-			this.riveInstance.cancelAnimationFrame(this.animationFrameId);
-			this.animationFrameId = null;
+			this._riveInstance.cancelAnimationFrame(this._animationFrameId);
+			this._animationFrameId = null;
 		}
 
 		RiveController.get().Dispose();
@@ -468,8 +508,8 @@ export class CanvasEngine
 
 		if(this.updateListeners != null) this.updateListeners.clear();
 
-		if (this.rive) this.rive = null;
-		if (this.engine) this.engine = null;
+		if (this._riveInstance) this._riveInstance = null;
+		if (this._engine) this._engine = null;
 	}
 
 	public SetRefs({
@@ -607,7 +647,7 @@ export function UseCanvasEngineHook(
 		pixiCanvasRefAbove,
 		pixiCanvasRefBelow,
 		debugContainerRef,
-		canvasObjects: CanvasEngine.get().canvasObjects,
+		canvasObjects: CanvasEngine.get().CanvasObjects,
 		addCanvasObjects: CanvasEngine.get().AddCanvasObjects.bind(CanvasEngine.get()),
 		ToggleRunState,
 		SetRunState,

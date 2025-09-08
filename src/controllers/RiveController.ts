@@ -87,6 +87,8 @@ export class RiveController
 	private _initCalled: boolean = false;
 	private _cache: Map<string, Uint8Array> = new Map();
 
+	private _disposed:boolean = false;
+
 	public async Init(canvas: HTMLCanvasElement)
 	{
 		if (this._initCalled) { return; }
@@ -118,10 +120,13 @@ export class RiveController
 
 	public SetSize(width: number, height: number)
 	{
-		this._canvas?.setAttribute("width", `${width}`);
-		this._canvas?.setAttribute("height", `${height}`);
+		if(this._canvas != null && !this._disposed)
+		{
+			this._canvas?.setAttribute("width", `${width}`);
+			this._canvas?.setAttribute("height", `${height}`);
 
-		this._canvasBounds = this._canvas!.getBoundingClientRect();
+			this._canvasBounds = this._canvas!.getBoundingClientRect();
+		}
 	}
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
@@ -464,6 +469,8 @@ export class RiveController
 
 	public Dispose()
 	{
+		this._disposed = true;
+
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
 		try
 		{

@@ -386,6 +386,7 @@ export abstract class CanvasObj
 
 	public Dispose():void
 	{
+		//console.log("Disposing CanvasObj: "+this._uuid+" / "+this._label);
 		this._propertyChangeListeners.clear();
 		this._parent = null;
 		this._defObj = null;

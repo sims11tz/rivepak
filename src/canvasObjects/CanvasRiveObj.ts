@@ -1,6 +1,6 @@
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl-advanced";
 import { RiveController, RiveObjectDef } from "../controllers/RiveController";
-import { CanvasObj, CanvasObjectEntity } from "./CanvasObj";
+import { CanvasObj, CanvasObjectEntity, GlobalUIDGenerator } from "./CanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
@@ -15,9 +15,14 @@ export class AnimationMetadata
 	public readonly speed: number;
 	public readonly fps: number;
 	public autoPlay: boolean = true;
+	public isTimelineControlled: boolean = false;
+	private _uuid:string;
+	public get uuid():string { return this._uuid; }
 
 	constructor(animation: LinearAnimationInstance, index: number, name: string, duration: number, autoPlay: boolean = true)
 	{
+		this._uuid = GlobalUIDGenerator.generateUID();
+
 		this.animation = animation;
 		this.index = index;
 		this.name = name;
@@ -25,6 +30,7 @@ export class AnimationMetadata
 		this.speed = (animation as any).speed ?? 1;
 		this.fps = (animation as any).fps ?? 60;
 		this.autoPlay = autoPlay;
+		this.isTimelineControlled = false;
 	}
 }
 
@@ -54,7 +60,6 @@ export class CanvasRiveObj extends CanvasObj
 	protected _riveInstance: Awaited<ReturnType<typeof RiveCanvas>>;
 
 	protected  _animations:AnimationMetadata[];
-	protected  _timelineControllers:RiveTimelineController[];
 	protected _stateMachine:StateMachineInstance | null = null;
 	protected _inputs = new Map<string, SMIInput>();
 
@@ -96,7 +101,7 @@ export class CanvasRiveObj extends CanvasObj
 		this._riveInstance = RiveController.get().Rive!;
 		this._artboard = artboard;
 		this._animations = [];
-		this._timelineControllers = [];
+
 	}
 
 	private _lastMousePos = { x: -1, y: -1 };
@@ -388,70 +393,78 @@ export class CanvasRiveObj extends CanvasObj
 		});
 	}
 
-	public CreateTimelineController(animationName: string): RiveTimelineController | null
-	{
-		const animMeta = this.GetAnimationByName(animationName);
-		if (animMeta)
-		{
-			animMeta.autoPlay = false;
-			const timelineController = new RiveTimelineController(
-				animMeta.animation,
-				this.artboard,
-				animMeta.duration,
-				animMeta.name
-			);
-			this._timelineControllers.push(timelineController);
-			return timelineController;
-		}
-		console.warn(`Animation not found: ${animationName}`);
-		return null;
-	}
-
-	public Update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time:number, frameCount:number, onceSecond:boolean): void
 	{
 		if(this.enabled === false) return;
 
-		this._animations.forEach((animationMeta) =>
+		// Process animations - skip if timeline controlled or autoPlay is false
+		for (let i = 0; i < this._animations.length; i++)
 		{
-			if (animationMeta.autoPlay)
+			const animationMeta = this._animations[i];
+			if(!animationMeta.isTimelineControlled)
 			{
-				animationMeta.animation.advance(time);
-				animationMeta.animation.apply(1);
+				if(animationMeta.autoPlay)
+				{
+					if(onceSecond)
+					{
+						//console.log('YES Update('+time+' me : '+this._riveObjDef.artboardName+'-'+animationMeta.name+')');
+					}
+					animationMeta.animation.advance(time);
+					animationMeta.animation.apply(1);
+				}
 			}
-		});
-
-		this._timelineControllers.forEach(controller => {
-			controller.Update(time, frameCount, onceSecond);
-		});
+			else
+			{
+				const timelineController = CanvasEngine.get().GetTimelineController(animationMeta);
+				if(timelineController)
+				{
+					timelineController.Update(time, frameCount, onceSecond);
+				}
+			}
+		}
 
 		if(this._stateMachine)
 		{
 			this._stateMachine.advance(time);
-			for(let i = 0; i < this._stateMachine.reportedEventCount(); i++)
+
+			// Only check for events if we're logging them
+			const eventCount = this._stateMachine.reportedEventCount();
+			if (eventCount > 0)
 			{
-				const event = this._stateMachine.reportedEventAt(i);
-				if (event != undefined)
+				for(let i = 0; i < eventCount; i++)
 				{
-					console.log('RIVE EVENT<'+i+'>: ', event);
+					const event = this._stateMachine.reportedEventAt(i);
+					if (event != undefined)
+					{
+						console.log('RIVE EVENT<'+i+'>: ', event);
+					}
 				}
 			}
 
-			for(let x = 0; x < this._stateMachine.stateChangedCount(); x++)
+			// Skip state change checks if we're not using them
+			/*
+			const stateChangeCount = this._stateMachine.stateChangedCount();
+			if (stateChangeCount > 0)
 			{
-				const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-				if (stateChange != undefined)
+				for(let x = 0; x < stateChangeCount; x++)
 				{
-					//console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+					const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+					if (stateChange != undefined)
+					{
+						//console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+					}
 				}
 			}
+			*/
 
 			if(this.defObj.riveInteractive)
 			{
 				this.updateEntityObj();
 
 				const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj!);
-
 				const mouseDown = RiveController.get().MouseDown;
+
+				// Cache comparison values
 				const mousePosChanged = ( this._lastMousePos.x !== artboardMoveSpace.x || this._lastMousePos.y !== artboardMoveSpace.y);
 				const mouseDownChanged = ( this._lastMouseDown !== mouseDown );
 
@@ -519,12 +532,15 @@ export class CanvasRiveObj extends CanvasObj
 
 		if(this._textLabel)
 		{
-			const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
-			const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
+			// Cache resolution scale check
+			const resScale = this._resolutionScale !== -1 ? this._resolutionScale : 1;
+			const combinedScaleX = resScale * this.xScale;
+			const combinedScaleY = resScale * this.yScale;
 
 			this._textLabel.x = this._objBoundsReuse.minX;
 			this._textLabel.y = this._objBoundsReuse.maxY - (this._textLabel.height * combinedScaleY) - 5;
 
+			// Only update scale if it changed
 			if(this._textLabel.scale.x !== combinedScaleX || this._textLabel.scale.y !== combinedScaleY)
 			{
 				this._textLabel.scale.set(combinedScaleX, combinedScaleY);
@@ -641,25 +657,38 @@ export class CanvasRiveObj extends CanvasObj
 
 	public Dispose(): void
 	{
+		const debug = false;
+		if(debug)
+		{
+			console.log('');
+			console.log('Canvas rive obj dispose');
+		}
 		// Clean up Rive resources properly
 		if(this._animations)
 		{
+			if(debug) console.log('dispose animations : '+this._animations.length);
 			this._animations.forEach((animationMeta) => {
-				try {
+				try
+				{
+					if(debug) console.log('dispose animation : '+animationMeta.name+',  isTimelineControlled:'+animationMeta.isTimelineControlled);
+					if(animationMeta.isTimelineControlled)
+					{
+						if(debug) console.log('OMG timeline controlled meta shit... lets destroy it');
+						CanvasEngine.get().DestroyTimelineController(animationMeta);
+					}
+
 					animationMeta.animation.delete();
-				} catch(e) {
+				}
+				catch(e)
+				{
 					console.warn("Failed to delete animation:", e);
 				}
 			});
 			this._animations = [];
 		}
-
-		if(this._timelineControllers.length > 0)
+		else
 		{
-			this._timelineControllers.forEach(controller => {
-				controller.Dispose();
-			});
-			this._timelineControllers = [];
+			if(debug) console.log('dispose NO animation... THERE IS NO ANIMATION ');
 		}
 
 		if(this._stateMachine)
