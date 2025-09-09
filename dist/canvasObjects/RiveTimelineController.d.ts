@@ -1,0 +1,38 @@
+import { LinearAnimationInstance } from "@rive-app/webgl-advanced";
+export declare class RiveTimelineController {
+    private _playing;
+    private _speed;
+    private _easeActive;
+    private _easeElapsed;
+    private _easeDuration;
+    private _easeStart;
+    private _easeEnd;
+    private _duration;
+    private _name;
+    private _animationMeataDataId;
+    private _anim;
+    constructor(animationMeataDataId: string, anim: LinearAnimationInstance, duration?: number, name?: string);
+    private get _fps();
+    get AnimationMetaDataId(): string;
+    get Animation(): LinearAnimationInstance | null;
+    get TimeSeconds(): number;
+    get DurationSeconds(): number;
+    get Percent(): number;
+    get Percent100(): number;
+    get Fps(): number;
+    get Frame(): number;
+    get FrameCount(): number;
+    get RemainingSeconds(): number;
+    get RemainingFrames(): number;
+    get IsPlaying(): boolean;
+    get IsEasing(): boolean;
+    Play(speed?: number): void;
+    Pause(): void;
+    SeekSeconds(t: number): void;
+    SeekPercent(p: number): void;
+    SeekFrame(f: number): void;
+    AdvanceFrame(n?: number): void;
+    EaseToPercent(p: number, duration?: number): void;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Dispose(): void;
+}

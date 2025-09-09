@@ -1,0 +1,105 @@
+/// <reference types="matter-js" />
+import { CanvasObjectDef } from "./CanvasObj";
+import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
+declare const BaseShapePhysicsObj_base: {
+    new (...args: any[]): {
+        _body: import("matter-js").Body | null;
+        _resolutionScaleMixLast: number;
+        _transformedMixWidthlast: number;
+        _transformedMixHeightlast: number;
+        _transformedMixXlast: number;
+        _transformedMixYlast: number;
+        InitPhysics(): void;
+        x: number;
+        y: number;
+        checkBody(): void;
+        readonly _EPSILON: 0.0001;
+        shouldScale(scaleDelta: number): boolean;
+        ApplyResolutionScale(scale: number, property?: string): void;
+        UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
+        Update(time: number, frameCount: number, onceSecond: boolean): void;
+        OnCollision(other: import("./CanvasObj").CanvasObj, impactForce: number): void;
+        Dispose(): void;
+        _uuid: string;
+        readonly uuid: string;
+        _id: string;
+        readonly id: string;
+        _label: string;
+        readonly label: string;
+        _defObj: CanvasObjectDef | null;
+        readonly defObj: CanvasObjectDef;
+        enabled: boolean;
+        _state: {
+            x: number;
+            y: number;
+            z: number;
+            xScale: number;
+            yScale: number;
+        };
+        centerLocally: boolean;
+        centerGlobally: boolean;
+        group: string;
+        width: number;
+        height: number;
+        _parent: import("./CanvasObj").CanvasObj | null;
+        SetParent(parent: import("./CanvasObj").CanvasObj | null): void;
+        readonly parent: import("./CanvasObj").CanvasObj | null;
+        _worldX: number;
+        _worldY: number;
+        _worldXScale: number;
+        _worldYScale: number;
+        constrainProportions: boolean;
+        baseX: number;
+        baseY: number;
+        baseWidth: number;
+        baseHeight: number;
+        baseXScale: number;
+        baseYScale: number;
+        readonly resolutionScale: number;
+        _resolutionScale: number;
+        readonly transformedWidth: number;
+        _transformedWidth: number;
+        _transformedWidthlast: number;
+        readonly transformedHeight: number;
+        _transformedHeight: number;
+        _transformedHeightlast: number;
+        readonly transformedX: number;
+        _transformedX: number;
+        _transformedXlast: number;
+        readonly transformedY: number;
+        _transformedY: number;
+        _transformedYlast: number;
+        _objBoundsReuse: {
+            minX: number;
+            minY: number;
+            maxX: number;
+            maxY: number;
+        };
+        _debug: boolean;
+        _debugLogs: boolean;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
+        UpdateBaseProps(): void;
+        z: number;
+        xScale: number;
+        yScale: number;
+        readonly renderX: number;
+        readonly renderY: number;
+        readonly renderXScale: number;
+        readonly renderYScale: number;
+        InitVisuals(): void;
+        SwapDepths(other: import("./CanvasObj").CanvasObj): void;
+        BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
+        UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;
+        OnZIndexChanged: ((canvasObj: import("./CanvasObj").CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        _OnZIndexChanged: ((canvasObj: import("./CanvasObj").CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+    };
+} & typeof CanvasPixiShapeObj;
+declare class BaseShapePhysicsObj extends BaseShapePhysicsObj_base {
+}
+export declare class PixiShapePhysicsObj extends BaseShapePhysicsObj {
+    constructor(canvasDef: CanvasObjectDef);
+    ApplyResolutionScale(scale: number, property?: string): void;
+    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Dispose(): void;
+}
+export {};
