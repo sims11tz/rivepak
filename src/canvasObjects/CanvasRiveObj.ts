@@ -8,21 +8,23 @@ import { RiveTimelineController } from "./RiveTimelineController";
 
 export class AnimationMetadata
 {
-	public readonly animation: LinearAnimationInstance;
-	public readonly index: number;
-	public readonly name: string;
-	public readonly duration: number;
-	public readonly speed: number;
-	public readonly fps: number;
-	public autoPlay: boolean = true;
-	public isTimelineControlled: boolean = false;
+	public readonly animation:LinearAnimationInstance;
+	public readonly artboard:Artboard;
+	public readonly index:number;
+	public readonly name:string;
+	public readonly duration:number;
+	public readonly speed:number;
+	public readonly fps:number;
+	public autoPlay:boolean = true;
+	public isTimelineControlled:boolean = false;
 	private _uuid:string;
 	public get uuid():string { return this._uuid; }
 
-	constructor(animation: LinearAnimationInstance, index: number, name: string, duration: number, autoPlay: boolean = true)
+	constructor(artboard:Artboard, animation: LinearAnimationInstance, index: number, name: string, duration: number, autoPlay: boolean = true)
 	{
 		this._uuid = GlobalUIDGenerator.generateUID();
 
+		this.artboard = artboard;
 		this.animation = animation;
 		this.index = index;
 		this.name = name;
@@ -109,9 +111,113 @@ export class CanvasRiveObj extends CanvasObj
 
 	private _entityObj:CanvasObjectEntity | null = null;
 
+	// Inspect all props/methods on a WASM-wrapped object (e.g., a Rive Node)
+	private dumpWasmObject(obj: any)
+	{
+		const seen = new Set<string>();
+		let level = 0;
+		let proto: any = obj;
+
+		while (proto && proto !== Object.prototype) {
+			const ctorName = proto.constructor?.name ?? '(anonymous proto)';
+			const keys = Reflect.ownKeys(proto) as (string | symbol)[];
+
+			console.groupCollapsed(`[[proto level ${level}]] ${ctorName} — ${keys.length} keys`);
+
+			for (const k of keys) {
+			if (k === 'constructor') continue;
+			const desc = Object.getOwnPropertyDescriptor(proto, k as any);
+			if (!desc) continue;
+
+			let kind = 'field';
+			let arity = '';
+			if (desc.get || desc.set) {
+				kind = `accessor${desc.get ? '(get' : ''}${desc.set ? '/set)' : ')'}`;
+			} else if (typeof desc.value === 'function') {
+				kind = 'method';
+				arity = `/${(desc.value as Function).length}`; // param count
+			}
+
+			const tag = `${String(k)}@${level}`;
+			if (seen.has(tag)) continue;
+			seen.add(tag);
+
+			console.log(kind.padEnd(12), String(k), arity);
+			}
+
+			console.groupEnd();
+			proto = Object.getPrototypeOf(proto);
+			level++;
+		}
+	}
+
+
 	public InitRiveObject():void
 	{
-		//console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
+		console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
+
+		//console.warn("do that one thing bruh -- "+this._artboardName+" / "+this._filePath);
+		//const name = "CAR PINK";
+		//const ab: any = this.artboard as any;
+		//let node = this.artboard.node(name);
+		//if (node)
+		//{
+		//	console.log('Node FOUND FOUND : '+name);
+		//	this.dumpWasmObject(node);
+		//	console.log('Node FOUND : ',node);
+		//}
+		//else
+		//{
+		//	console.log('Node not found');
+		//}
+		//const attempts = [
+		//	{ count: 'componentCount', byIdx: 'componentByIndex' },
+		//	{ count: 'nodeCount',      byIdx: 'nodeByIndex'      },
+		//	{ count: 'drawableCount',  byIdx: 'drawableByIndex'  },
+		//];
+		//for (const a of attempts)
+		//{
+		//	const getCount = ab?.[a.count], getByIdx = ab?.[a.byIdx];
+		//	if (typeof getCount !== 'function' || typeof getByIdx !== 'function')
+		//	{
+		//		console.error("FIRST CONTINUE <"+name+"> no fn "+a.count+" / "+a.byIdx);
+		//		continue;
+		//	}
+
+		//	const n = getCount.call(ab);
+		//	console.warn("TRYING <"+name+"> n.a:"+n.a+" "+getCount.name+" / "+getByIdx.name);
+		//	for (let i = 0; i < n; i++)
+		//	{
+		//		const node: any = getByIdx.call(ab, i);
+		//		const nm = typeof node.name === 'function' ? node.name() : node.name;
+		//		if (nm === name)
+		//		{
+		//			console.warn("FOUND COMPONENT 1 <"+name+"> : ",node);
+		//		}
+		//	}
+		//}
+		//// optional direct-by-name fallbacks
+		//for (const fn of ['component','node','drawable','findNode','findComponent'])
+		//{
+		//	const f = (ab as any)[fn];
+		//	if (typeof f === 'function')
+		//	{
+		//		try
+		//		{
+		//			console.warn("TRYING direct<"+name+"> fn "+fn);
+		//			const found = f.call(ab, name);
+		//			console.log('found =',found);
+		//			if (found) console.warn("FOUND COMPONENT 2 <"+name+"> : ",found);
+		//		}
+		//		catch
+		//		{
+		//			console.error("error 2");
+		//		}
+		//	}
+		//}
+		//console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
+		//console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
+		//console.log('');
 
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
@@ -223,7 +329,7 @@ export class CanvasRiveObj extends CanvasObj
 
 			if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
 
-			const metadata = new AnimationMetadata(animation, j, animationDefinition.name, duration);
+			const metadata = new AnimationMetadata(this.artboard, animation, j, animationDefinition.name, duration);
 			this._animations.push(metadata);
 		}
 		if(this._debugLogs) console.log("Animations Loaded : "+this._animations.length);
