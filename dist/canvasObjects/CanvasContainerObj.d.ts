@@ -1,7 +1,7 @@
-import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import { BaseCanvasObj, CanvasObjectDef } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
-export declare class CanvasContainerObj extends CanvasObj {
-    children: CanvasObj[];
+export declare class CanvasContainerObj extends BaseCanvasObj {
+    children: BaseCanvasObj[];
     private _childOriginalTransforms;
     private _visible;
     get visible(): boolean;
@@ -13,11 +13,11 @@ export declare class CanvasContainerObj extends CanvasObj {
     /**
      * Adds a child object to this container
      */
-    AddChild(child: CanvasObj): void;
+    AddChild(child: BaseCanvasObj): void;
     /**
      * Removes a child object from this container
      */
-    RemoveChild(child: CanvasObj): boolean;
+    RemoveChild(child: BaseCanvasObj): boolean;
     /**
      * Removes a child by its ID or label
      */
@@ -25,8 +25,8 @@ export declare class CanvasContainerObj extends CanvasObj {
     /**
      * Gets a child by its ID or label
      */
-    GetChildById(id: string): CanvasObj | null;
-    GetChildrenByType<T extends CanvasObj>(type: new (...args: any[]) => T): T[];
+    GetChildById(id: string): BaseCanvasObj | null;
+    GetChildrenByType<T extends BaseCanvasObj>(type: new (...args: any[]) => T): T[];
     /**
      * Removes all children from this container
      */
@@ -34,11 +34,11 @@ export declare class CanvasContainerObj extends CanvasObj {
     /**
      * Brings a child to the front (highest z-order)
      */
-    BringChildToFront(child: CanvasObj): void;
+    BringChildToFront(child: BaseCanvasObj): void;
     /**
      * Sends a child to the back (lowest z-order)
      */
-    SendChildToBack(child: CanvasObj): void;
+    SendChildToBack(child: BaseCanvasObj): void;
     /**
      * Updates z-order of all children based on their position in the array
      */
@@ -68,7 +68,7 @@ export declare class CanvasContainerObj extends CanvasObj {
     /**
      * Gets a child at a specific point (useful for hit testing)
      */
-    GetChildAtPoint(x: number, y: number): CanvasObj | null;
+    GetChildAtPoint(x: number, y: number): BaseCanvasObj | null;
     /**
      * Updates container and all its children
      */

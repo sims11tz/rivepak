@@ -57,6 +57,16 @@ export interface CanvasObjectDef
 
 	drawFunction?:(pixiGraphics:any, defObj:CanvasObjectDef) => void;
 
+	bgColor?:string | number;
+	bgAlpha?:number;
+	borderColor?:string | number;
+	borderWidth?:number;
+	borderAlpha?:number;
+	borderRadius?:number;
+
+	diameter?:number;
+	radius?:number;
+
 	// Text bounds and wrapping
 	wordWrap?:boolean;
 	wordWrapWidth?:number;
@@ -121,7 +131,7 @@ export interface CanvasObjectDef
 	riveInteractiveLocalOnly?:boolean;
 }
 
-export abstract class CanvasObj
+export abstract class BaseCanvasObj
 {
 	public _uuid:string = "";
 	public get uuid():string { return this._uuid; }
@@ -145,9 +155,9 @@ export abstract class CanvasObj
 	public width:number = 0;
 	public height:number = 0;
 
-	public _parent:CanvasObj | null = null;
-	public SetParent(parent:CanvasObj | null): void {this._parent = parent;}
-	public get parent():CanvasObj | null { return this._parent; }
+	public _parent:BaseCanvasObj | null = null;
+	public SetParent(parent:BaseCanvasObj | null): void {this._parent = parent;}
+	public get parent():BaseCanvasObj | null { return this._parent; }
 
 	// Store world coordinates separately for rendering (calculated by parent)
 	public _worldX:number = 0;
@@ -241,8 +251,8 @@ export abstract class CanvasObj
 		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
 	}
 
-	public get x(): number { return this._state.x; }
-	public set x(value: number)
+	public get x():number { return this._state.x; }
+	public set x(value:number)
 	{
 		if(value == this._state.x) return;
 		//console.log('__CanvasObj['+this._uuid+']  set x='+value);
@@ -250,15 +260,15 @@ export abstract class CanvasObj
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"x");
 	}
 
-	public get y(): number {  return this._state.y; }
-	public set y(value: number)
+	public get y():number { return this._state.y; }
+	public set y(value:number)
 	{
 		this._state.y = value;
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"y");
 	}
 
-	public get z(): number { return this._state.z; }
-	public set z(value: number)
+	public get z():number { return this._state.z; }
+	public set z(value:number)
 	{
 		if (this._state.z !== value)
 		{
@@ -268,15 +278,15 @@ export abstract class CanvasObj
 		}
 	}
 
-	public get xScale(): number { return this._state.xScale; }
-	public set xScale(value: number)
+	public get xScale():number { return this._state.xScale; }
+	public set xScale(value:number)
 	{
 		this._state.xScale = value;
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"xScale");
 	}
 
-	public get yScale(): number { return this._state.yScale; }
-	public set yScale(value: number)
+	public get yScale():number { return this._state.yScale; }
+	public set yScale(value:number)
 	{
 		this._state.yScale = value;
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"yScale");
@@ -361,7 +371,7 @@ export abstract class CanvasObj
 
 	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
 
-	public SwapDepths(other: CanvasObj)
+	public SwapDepths(other: BaseCanvasObj)
 	{
 		const temp = this.z;
 		this.z = other.z;
@@ -378,11 +388,11 @@ export abstract class CanvasObj
 		this._propertyChangeListeners.delete(property);
 	}
 
-	public set OnZIndexChanged(func: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
+	public set OnZIndexChanged(func: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
 	{
 		this._OnZIndexChanged = func;
 	}
-	public _OnZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
+	public _OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
 
 	public Dispose():void
 	{

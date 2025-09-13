@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { CanvasObjectDef } from "../canvasObjects/CanvasObj";
+import { CanvasObjectDef } from "../canvasObjects/_baseCanvasObj";
 export declare enum PIXI_OBJECT_TYPE {
     GRAPHICS = "GRAPHICS",
     TEXTURE = "TEXTURE"

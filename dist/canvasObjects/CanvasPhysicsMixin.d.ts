@@ -1,7 +1,7 @@
 import Matter from "matter-js";
-import { CanvasObj } from "./CanvasObj";
+import { BaseCanvasObj } from "./_baseCanvasObj";
 type Constructor<T = {}> = new (...args: any[]) => T;
-export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base: T): {
+export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base: T): {
     new (...args: any[]): {
         _body: Matter.Body | null;
         _resolutionScaleMixLast: number;
@@ -18,7 +18,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         ApplyResolutionScale(scale: number, property?: string): void;
         UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
         Update(time: number, frameCount: number, onceSecond: boolean): void;
-        OnCollision(other: CanvasObj, impactForce: number): void;
+        OnCollision(other: BaseCanvasObj, impactForce: number): void;
         Dispose(): void;
         _uuid: string;
         readonly uuid: string;
@@ -26,8 +26,8 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         readonly id: string;
         _label: string;
         readonly label: string;
-        _defObj: import("./CanvasObj").CanvasObjectDef | null;
-        readonly defObj: import("./CanvasObj").CanvasObjectDef;
+        _defObj: import("./_baseCanvasObj").CanvasObjectDef | null;
+        readonly defObj: import("./_baseCanvasObj").CanvasObjectDef;
         enabled: boolean;
         _state: {
             x: number;
@@ -41,9 +41,9 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         group: string;
         width: number;
         height: number;
-        _parent: CanvasObj | null;
-        SetParent(parent: CanvasObj | null): void;
-        readonly parent: CanvasObj | null;
+        _parent: BaseCanvasObj | null;
+        SetParent(parent: BaseCanvasObj | null): void;
+        readonly parent: BaseCanvasObj | null;
         _worldX: number;
         _worldY: number;
         _worldXScale: number;
@@ -87,11 +87,11 @@ export declare function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Bas
         readonly renderXScale: number;
         readonly renderYScale: number;
         InitVisuals(): void;
-        SwapDepths(other: CanvasObj): void;
+        SwapDepths(other: BaseCanvasObj): void;
         BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
         UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;
-        OnZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
-        _OnZIndexChanged: ((canvasObj: CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        _OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
     };
 } & T;
 export {};

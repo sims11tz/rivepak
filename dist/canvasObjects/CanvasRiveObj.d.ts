@@ -1,7 +1,7 @@
 /// <reference types="matter-js" />
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
-import { CanvasObj } from "./CanvasObj";
+import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 export declare class AnimationMetadata {
     readonly animation: LinearAnimationInstance;
@@ -31,7 +31,7 @@ export interface EntityObj {
     height: number;
     body: Matter.Body | null;
 }
-export declare class CanvasRiveObj extends CanvasObj {
+export declare class CanvasRiveObj extends BaseCanvasObj {
     private _artboard;
     protected _renderer: Renderer;
     protected _riveInstance: Awaited<ReturnType<typeof RiveCanvas>>;

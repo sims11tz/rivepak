@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { CanvasObj } from "./CanvasObj";
+import { BaseCanvasObj } from "./_baseCanvasObj";
 import { PhysicsController } from "../controllers/PhysicsController";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,14 +8,14 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 interface iCollisionMixin
 {
 	InitPhysics(): void;
-	OnCollision(other: CanvasObj, impactForce: number): void;
+	OnCollision(other: BaseCanvasObj, impactForce: number): void;
 	UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
 	Dispose(): void;
 }
 
-interface PhysicsPluginData { object: CanvasObj; }
+interface PhysicsPluginData { object: BaseCanvasObj; }
 
-export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
+export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 {
 	return class extends Base implements iCollisionMixin
 	{
@@ -253,7 +253,7 @@ export function CanvasPhysicsMixin<T extends Constructor<CanvasObj>>(Base:T)
 			//super.Update(time, frameCount, onceSecond);
 		}
 
-		public OnCollision(other: CanvasObj, impactForce: number): void
+		public OnCollision(other: BaseCanvasObj, impactForce: number): void
 		{
 			//console.log(`💥💥💥💥💥💥 MIXIN Collision! ${this.label} hit ${other.label} with force ${impactForce}`);
 

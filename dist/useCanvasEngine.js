@@ -11,7 +11,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { useEffect, useRef } from "react";
-import { GlobalUIDGenerator } from "./canvasObjects/CanvasObj";
+import { GlobalUIDGenerator } from "./canvasObjects/_baseCanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
@@ -280,6 +280,7 @@ export class CanvasEngine {
     AddCanvasObjects(objs, group = "main") {
         var _a, _b;
         var _c;
+        console.log('%c AddCanvasObjects called', "color:#21c4e7; font-weight:bold;", new Error('AddCanvasObjects called').stack);
         let add = [];
         if (objs instanceof RiveObjectsSet)
             add = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
@@ -292,6 +293,7 @@ export class CanvasEngine {
         const dest = this._canvasObjects.get(group);
         let maxZ = dest.reduce((m, o) => { var _a; return Math.max(m, (_a = o.z) !== null && _a !== void 0 ? _a : 0); }, 0);
         for (const obj of add) {
+            console.log('%c engine... add canvas objects<' + obj.uuid + '> ', "color:#21c4e7; font-weight:bold;");
             obj.OnZIndexChanged = this.updateZIndex.bind(this);
             for (const [g, arr] of this._canvasObjects) {
                 const i = arr.indexOf(obj);

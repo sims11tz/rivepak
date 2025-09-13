@@ -1,4 +1,4 @@
-import { CanvasObjectDef } from "./CanvasObj";
+import { CanvasObjectDef } from "./_baseCanvasObj";
 import { CanvasPhysicsMixin } from "./CanvasPhysicsMixin";
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 

@@ -3,7 +3,7 @@ import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController } from "./controllers/PixiController";
 import { AnimationMetadata, RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX, useEffect, useRef } from "react";
-import { CanvasObj, GlobalUIDGenerator } from "./canvasObjects/CanvasObj";
+import { BaseCanvasObj, GlobalUIDGenerator } from "./canvasObjects/_baseCanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
@@ -84,8 +84,8 @@ export class CanvasEngine
 	private _rive:RiveInstance | null = null;
 	public get RiveInstance():RiveInstance | null { return this._rive; }
 
-	private _canvasObjects: Map<string, CanvasObj[]> = new Map();
-	public get CanvasObjects(): Map<string, CanvasObj[]> { return this._canvasObjects;}
+	private _canvasObjects: Map<string, BaseCanvasObj[]> = new Map();
+	public get CanvasObjects(): Map<string, BaseCanvasObj[]> { return this._canvasObjects;}
 
 	private _riveTimelineControllers:RiveTimelineController[] = [];
 	public get RiveTimelineControllers():RiveTimelineController[] { return this._riveTimelineControllers; }
@@ -318,9 +318,10 @@ export class CanvasEngine
 		}
 	}
 
-	public AddCanvasObjects(objs:CanvasObj | CanvasObj[] | RiveObjectsSet, group = "main")
+	public AddCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group = "main")
 	{
-		let add:CanvasObj[] = [];
+		console.log('%c AddCanvasObjects called', "color:#21c4e7; font-weight:bold;", new Error('AddCanvasObjects called').stack);
+		let add:BaseCanvasObj[] = [];
 		if (objs instanceof RiveObjectsSet) add = objs.objects ?? [];
 		else if (Array.isArray(objs)) add = objs;
 		else add = [objs];
@@ -332,6 +333,8 @@ export class CanvasEngine
 
 		for (const obj of add)
 		{
+			console.log('%c engine... add canvas objects<'+obj.uuid+'> ', "color:#21c4e7; font-weight:bold;" );
+
 			obj.OnZIndexChanged = this.updateZIndex.bind(this);
 
 			for (const [g, arr] of this._canvasObjects) {
@@ -365,7 +368,7 @@ export class CanvasEngine
 		dest.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
 	}
 
-	public RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group = "main")
+	public RemoveCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[], group = "main")
 	{
 		const groupArray = this._canvasObjects.get(group);
 		if (!groupArray) return;
@@ -388,7 +391,7 @@ export class CanvasEngine
 		}
 	}
 
-	private updateZIndex(canvasObj: CanvasObj, newZIndex: number)
+	private updateZIndex(canvasObj:BaseCanvasObj, newZIndex:number)
 	{
 		if (canvasObj.z === newZIndex) return;
 
@@ -405,7 +408,7 @@ export class CanvasEngine
 		}
 	}
 
-	private _resizeDebounceTimeout: number | null = null;
+	private _resizeDebounceTimeout:number | null = null;
 	public ResizeWindowEvent = (): void =>
 	{
 		if (this._resizeDebounceTimeout !== null)
@@ -423,7 +426,7 @@ export class CanvasEngine
 		}, 250);
 	}
 
-	private _currentCanvasScale: number = -1;
+	private _currentCanvasScale:number = -1;
 	public get CurrentCanvasScale(): number { return this._currentCanvasScale; }
 	public ResizeCanvasToWindow = (): void =>
 	{
@@ -553,9 +556,9 @@ export function UseCanvasEngineHook(
 	canvasRef:React.RefObject<HTMLCanvasElement>;
 	pixiCanvasRefAbove:React.RefObject<HTMLCanvasElement>;
 	pixiCanvasRefBelow:React.RefObject<HTMLCanvasElement>;
-	canvasObjects:Map<string, CanvasObj[]>;
+	canvasObjects:Map<string, BaseCanvasObj[]>;
 	debugContainerRef:React.RefObject<HTMLDivElement>;
-	addCanvasObjects:(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;
+	addCanvasObjects:(objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string) => void;
 	fpsRef:React.RefObject<HTMLDivElement>;
 	runStateLabel:React.RefObject<HTMLDivElement>;
 	ToggleRunState:() => void;

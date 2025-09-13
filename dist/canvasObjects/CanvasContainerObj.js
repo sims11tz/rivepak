@@ -1,9 +1,9 @@
 import { PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
-import { CanvasObj } from "./CanvasObj";
+import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
-export class CanvasContainerObj extends CanvasObj {
+export class CanvasContainerObj extends BaseCanvasObj {
     get visible() { return this._visible; }
     set visible(value) {
         this._visible = value;
@@ -38,7 +38,6 @@ export class CanvasContainerObj extends CanvasObj {
             this.y -= (this.height / 2);
         }
         if (this._debug) {
-            //console.log(`CANVAS CONTAINER... DEBUG MODE!!!!! `);
             this._debugGraphics = new PIXI.Graphics();
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
             this._debugGraphics.x = this.x;

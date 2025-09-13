@@ -1,6 +1,6 @@
 import { Artboard, Renderer } from "@rive-app/webgl-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
-import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
+import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import * as PIXI from "pixi.js";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",

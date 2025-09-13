@@ -1,6 +1,9 @@
-import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import { BaseCanvasObj, CanvasObjectDef } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
-export declare class CanvasPixiShapeObj extends CanvasObj {
+export declare class CanvasPixiShapeDrawFunctions {
+    static DrawRectangle(graphics: PIXI.Graphics, def: CanvasObjectDef): void;
+}
+export declare class CanvasPixiShapeObj extends BaseCanvasObj {
     protected _graphics: PIXI.Graphics | null;
     protected _debugGraphics: PIXI.Graphics | null;
     constructor(canvasDef: CanvasObjectDef);

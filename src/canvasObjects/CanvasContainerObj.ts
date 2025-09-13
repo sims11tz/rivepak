@@ -1,12 +1,12 @@
 import { PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
-import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import { BaseCanvasObj, CanvasObjectDef } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 
-export class CanvasContainerObj extends CanvasObj
+export class CanvasContainerObj extends BaseCanvasObj
 {
-	public children: CanvasObj[] = [];
+	public children: BaseCanvasObj[] = [];
 
 	// Store original child transforms for relative positioning
 	private _childOriginalTransforms: Map<string, {
@@ -25,13 +25,13 @@ export class CanvasContainerObj extends CanvasObj
 		// Could propagate to children if needed
 	}
 
-	constructor(canvasDef: CanvasObjectDef)
+	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
 		this.InitContainer();
 	}
 
-	protected _debugGraphics: PIXI.Graphics | null = null;
+	protected _debugGraphics:PIXI.Graphics | null = null;
 	protected InitContainer(): void
 	{
 		this.width = this.defObj.width ?? 100;
@@ -58,7 +58,6 @@ export class CanvasContainerObj extends CanvasObj
 
 		if (this._debug)
 		{
-			//console.log(`CANVAS CONTAINER... DEBUG MODE!!!!! `);
 			this._debugGraphics = new PIXI.Graphics();
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
 
@@ -90,7 +89,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Adds a child object to this container
 	 */
-	public AddChild(child: CanvasObj): void
+	public AddChild(child:BaseCanvasObj):void
 	{
 		if (this.children.includes(child))
 		{
@@ -134,7 +133,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Removes a child object from this container
 	 */
-	public RemoveChild(child: CanvasObj): boolean
+	public RemoveChild(child:BaseCanvasObj):boolean
 	{
 		const index = this.children.indexOf(child);
 		if (index === -1) return false;
@@ -171,12 +170,12 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Gets a child by its ID or label
 	 */
-	public GetChildById(id: string): CanvasObj | null
+	public GetChildById(id: string):BaseCanvasObj | null
 	{
 		return this.children.find(c => c.id === id || c.label === id) || null;
 	}
 
-	public GetChildrenByType<T extends CanvasObj>(type: new (...args: any[]) => T): T[]
+	public GetChildrenByType<T extends BaseCanvasObj>(type: new (...args: any[]) => T): T[]
 	{
 		return this.children.filter(c => c instanceof type) as T[];
 	}
@@ -184,7 +183,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Removes all children from this container
 	 */
-	public ClearChildren(): void
+	public ClearChildren():void
 	{
 		// Create a copy to avoid modification during iteration
 		const childrenCopy = [...this.children];
@@ -198,7 +197,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Brings a child to the front (highest z-order)
 	 */
-	public BringChildToFront(child: CanvasObj): void
+	public BringChildToFront(child:BaseCanvasObj):void
 	{
 		const index = this.children.indexOf(child);
 		if (index > -1 && index < this.children.length - 1)
@@ -212,7 +211,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Sends a child to the back (lowest z-order)
 	 */
-	public SendChildToBack(child: CanvasObj): void
+	public SendChildToBack(child:BaseCanvasObj):void
 	{
 		const index = this.children.indexOf(child);
 		if (index > 0)
@@ -226,7 +225,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Updates z-order of all children based on their position in the array
 	 */
-	private updateChildrenZOrder(): void
+	private updateChildrenZOrder():void
 	{
 		const baseZ = this.z || 0;
 		this.children.forEach((child, index) => {
@@ -237,7 +236,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Updates a child's transform based on container's transform
 	 */
-	private updateChildTransform(child:CanvasObj, oncePerSecond:boolean=false): void
+	private updateChildTransform(child:BaseCanvasObj, oncePerSecond:boolean=false):void
 	{
 		// Update the stored relative position to match current child.x/y
 		// Child x,y are always treated as parent-relative
@@ -334,7 +333,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Gets a child at a specific point (useful for hit testing)
 	 */
-	public GetChildAtPoint(x: number, y: number): CanvasObj | null
+	public GetChildAtPoint(x: number, y: number):BaseCanvasObj | null
 	{
 		// Check children in reverse order (top to bottom)
 		for (let i = this.children.length - 1; i >= 0; i--)
@@ -363,7 +362,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Updates container and all its children
 	 */
-	public Update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time: number, frameCount: number, onceSecond: boolean):void
 	{
 		if (!this.enabled || !this._visible) return;
 
@@ -463,7 +462,7 @@ export class CanvasContainerObj extends CanvasObj
 	}
 	*/
 
-	public Dispose(): void
+	public Dispose():void
 	{
 		// Clear parent references for all children
 		for (const child of this.children)
@@ -494,7 +493,7 @@ export class CanvasContainerObj extends CanvasObj
 	/**
 	 * Gets debug info about the container
 	 */
-	public GetDebugInfo(): string
+	public GetDebugInfo():string
 	{
 		return `Container: ${this.label}
 Position: (${this.x}, ${this.y})

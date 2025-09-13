@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import { CanvasObjectDef } from "./CanvasObj";
+import { CanvasObjectDef } from "./_baseCanvasObj";
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 declare const BaseShapePhysicsObj_base: {
     new (...args: any[]): {
@@ -18,7 +18,7 @@ declare const BaseShapePhysicsObj_base: {
         ApplyResolutionScale(scale: number, property?: string): void;
         UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
         Update(time: number, frameCount: number, onceSecond: boolean): void;
-        OnCollision(other: import("./CanvasObj").CanvasObj, impactForce: number): void;
+        OnCollision(other: import("./_baseCanvasObj").BaseCanvasObj, impactForce: number): void;
         Dispose(): void;
         _uuid: string;
         readonly uuid: string;
@@ -41,9 +41,9 @@ declare const BaseShapePhysicsObj_base: {
         group: string;
         width: number;
         height: number;
-        _parent: import("./CanvasObj").CanvasObj | null;
-        SetParent(parent: import("./CanvasObj").CanvasObj | null): void;
-        readonly parent: import("./CanvasObj").CanvasObj | null;
+        _parent: import("./_baseCanvasObj").BaseCanvasObj | null;
+        SetParent(parent: import("./_baseCanvasObj").BaseCanvasObj | null): void;
+        readonly parent: import("./_baseCanvasObj").BaseCanvasObj | null;
         _worldX: number;
         _worldY: number;
         _worldXScale: number;
@@ -87,11 +87,11 @@ declare const BaseShapePhysicsObj_base: {
         readonly renderXScale: number;
         readonly renderYScale: number;
         InitVisuals(): void;
-        SwapDepths(other: import("./CanvasObj").CanvasObj): void;
+        SwapDepths(other: import("./_baseCanvasObj").BaseCanvasObj): void;
         BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
         UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;
-        OnZIndexChanged: ((canvasObj: import("./CanvasObj").CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
-        _OnZIndexChanged: ((canvasObj: import("./CanvasObj").CanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        _OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
     };
 } & typeof CanvasPixiShapeObj;
 declare class BaseShapePhysicsObj extends BaseShapePhysicsObj_base {

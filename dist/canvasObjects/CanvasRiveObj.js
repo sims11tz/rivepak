@@ -1,5 +1,5 @@
 import { RiveController } from "../controllers/RiveController";
-import { CanvasObj, GlobalUIDGenerator } from "./CanvasObj";
+import { BaseCanvasObj, GlobalUIDGenerator } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
@@ -21,7 +21,7 @@ export class AnimationMetadata {
         this.isTimelineControlled = false;
     }
 }
-export class CanvasRiveObj extends CanvasObj {
+export class CanvasRiveObj extends BaseCanvasObj {
     SetViewModelInstance(vmi) {
         this._viewModelInstance = vmi;
     }

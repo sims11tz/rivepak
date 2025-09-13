@@ -1,5 +1,5 @@
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
-import { CanvasObjectDef } from "./CanvasObj";
+import { CanvasObjectDef } from "./_baseCanvasObj";
 export declare class PixiGraphicsObject extends CanvasPixiShapeObj {
     constructor(canvasDef: CanvasObjectDef);
     DrawVectors(): void;

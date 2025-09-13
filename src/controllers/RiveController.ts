@@ -2,7 +2,7 @@ import RiveCanvas, { File as RiveFile, Artboard, Renderer, ViewModel, ViewModelI
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
-import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/CanvasObj";
+import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import { CanvasEngine } from "../useCanvasEngine";
 import * as PIXI from "pixi.js";
 

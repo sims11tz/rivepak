@@ -1,6 +1,6 @@
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl-advanced";
 import { RiveController, RiveObjectDef } from "../controllers/RiveController";
-import { CanvasObj, CanvasObjectEntity, GlobalUIDGenerator } from "./CanvasObj";
+import { BaseCanvasObj, CanvasObjectEntity, GlobalUIDGenerator } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
@@ -55,7 +55,7 @@ export interface EntityObj
 	body:Matter.Body | null;
 }
 
-export class CanvasRiveObj extends CanvasObj
+export class CanvasRiveObj extends BaseCanvasObj
 {
 	private _artboard:Artboard;
 	protected _renderer:Renderer;

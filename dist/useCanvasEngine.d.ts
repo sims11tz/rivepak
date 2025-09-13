@@ -1,6 +1,6 @@
 import { AnimationMetadata, RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX } from "react";
-import { CanvasObj } from "./canvasObjects/CanvasObj";
+import { BaseCanvasObj } from "./canvasObjects/_baseCanvasObj";
 import { RiveObjectsSet } from "./controllers/RiveController";
 import { RiveTimelineController } from "./canvasObjects/RiveTimelineController";
 export declare enum CANVAS_ENGINE_RUN_STATE {
@@ -52,7 +52,7 @@ export declare class CanvasEngine {
     private _rive;
     get RiveInstance(): RiveInstance | null;
     private _canvasObjects;
-    get CanvasObjects(): Map<string, CanvasObj[]>;
+    get CanvasObjects(): Map<string, BaseCanvasObj[]>;
     private _riveTimelineControllers;
     get RiveTimelineControllers(): RiveTimelineController[];
     private _animationFrameId;
@@ -80,8 +80,8 @@ export declare class CanvasEngine {
     GetTimelineController(animationMetaData: AnimationMetadata): RiveTimelineController | null;
     CreateTimelineController(animationMetaData: AnimationMetadata): RiveTimelineController;
     DestroyTimelineController(animationMetaData: AnimationMetadata): void;
-    AddCanvasObjects(objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string): void;
-    RemoveCanvasObjects(objs: CanvasObj | CanvasObj[], group?: string): void;
+    AddCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string): void;
+    RemoveCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[], group?: string): void;
     private updateZIndex;
     private _resizeDebounceTimeout;
     ResizeWindowEvent: () => void;
@@ -106,9 +106,9 @@ export declare function UseCanvasEngineHook(settings?: Partial<ConstructorParame
     canvasRef: React.RefObject<HTMLCanvasElement>;
     pixiCanvasRefAbove: React.RefObject<HTMLCanvasElement>;
     pixiCanvasRefBelow: React.RefObject<HTMLCanvasElement>;
-    canvasObjects: Map<string, CanvasObj[]>;
+    canvasObjects: Map<string, BaseCanvasObj[]>;
     debugContainerRef: React.RefObject<HTMLDivElement>;
-    addCanvasObjects: (objs: CanvasObj | CanvasObj[] | RiveObjectsSet, group?: string) => void;
+    addCanvasObjects: (objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string) => void;
     fpsRef: React.RefObject<HTMLDivElement>;
     runStateLabel: React.RefObject<HTMLDivElement>;
     ToggleRunState: () => void;

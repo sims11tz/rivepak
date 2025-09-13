@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
-import { CanvasObjectDef } from "./CanvasObj";
+import { CanvasObjectDef } from "./_baseCanvasObj";
 import { CanvasEngine } from "../useCanvasEngine";
 import { PixiController } from "../controllers/PixiController";
 

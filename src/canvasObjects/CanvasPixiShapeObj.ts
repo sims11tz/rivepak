@@ -1,13 +1,23 @@
 import { PIXI_LAYER, PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
-import { CanvasObj, CanvasObjectDef } from "./CanvasObj";
+import { BaseCanvasObj, CanvasObjectDef } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 
-export class CanvasPixiShapeObj extends CanvasObj
+export class CanvasPixiShapeDrawFunctions
 {
-	protected _graphics: PIXI.Graphics | null = null;
-	protected _debugGraphics: PIXI.Graphics | null = null;
+	public static DrawRectangle(graphics:PIXI.Graphics, def:CanvasObjectDef)
+	{
+		graphics.rect(0, 0, def.width ?? 0, def.height ?? 0);
+		graphics.fill({color: def.bgColor ?? 0x6cf4f6, alpha: def.bgAlpha ?? 1});
+		graphics.stroke({width: def.borderWidth ?? 6, color: def.borderColor ?? 0x5b7d62});
+	}
+}
+
+export class CanvasPixiShapeObj extends BaseCanvasObj
+{
+	protected _graphics:PIXI.Graphics | null = null;
+	protected _debugGraphics:PIXI.Graphics | null = null;
 
 	constructor(canvasDef:CanvasObjectDef)
 	{
@@ -73,7 +83,7 @@ export class CanvasPixiShapeObj extends CanvasObj
 		if(this._graphics === null) return;
 		if(this._debug && this._debugGraphics)
 		{
-
+			console.log('%c CanvasPixiShapeOBJ.DrawVectors3', 'color:#ee661c; font-weight:bold;');
 			this._debugGraphics.clear();
 			this._debugGraphics.rect(0, 0, this.width, this.height);
 			this._debugGraphics.fill({color: 0x650a5a, alpha: 0.75});
