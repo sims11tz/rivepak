@@ -56,6 +56,7 @@ export interface CanvasObjectDef
 	debugLogs?:boolean;
 
 	drawFunction?:(pixiGraphics:any, defObj:CanvasObjectDef) => void;
+	clickFunction?:(canvasObj:BaseCanvasObj) => void;
 
 	bgColor?:string | number;
 	bgAlpha?:number;
@@ -63,9 +64,23 @@ export interface CanvasObjectDef
 	borderWidth?:number;
 	borderAlpha?:number;
 	borderRadius?:number;
+	cornerRadius?:number; // For rounded rectangles
 
 	diameter?:number;
 	radius?:number;
+
+	// Shape-specific properties
+	starPoints?:number;
+	starInnerRadiusRatio?:number;
+	polygonSides?:number;
+	arrowHeadSize?:number;
+	crossThickness?:number;
+	gradientFrom?:number;
+	gradientTo?:number;
+	burstSpikes?:number;
+	burstInnerRadiusRatio?:number;
+	tailSize?:number;
+	gearTeeth?:number;
 
 	// Text bounds and wrapping
 	wordWrap?:boolean;

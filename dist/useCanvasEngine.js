@@ -180,10 +180,16 @@ export class CanvasEngine {
             if (canvasSettings.debugMode == null || !canvasSettings.debugMode) {
             }
             let inFrame = false;
+            let firstFrameRan = false;
             const updateLoop = (time) => {
                 if (inFrame)
                     console.warn('updateLoop re-entered same frame');
                 inFrame = true;
+                if (!firstFrameRan) {
+                    firstFrameRan = true;
+                    if (onInitComplete)
+                        onInitComplete();
+                }
                 if (this._runState !== CANVAS_ENGINE_RUN_STATE.RUNNING) {
                     lastTime = time;
                     inFrame = false;
@@ -234,8 +240,7 @@ export class CanvasEngine {
             };
             inFrame = false;
             this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
-            if (onInitComplete)
-                onInitComplete();
+            //if (onInitComplete) onInitComplete();
             window.removeEventListener("resize", this.ResizeWindowEvent);
             if (canvasSettings.autoScale) {
                 window.addEventListener("resize", this.ResizeWindowEvent);
@@ -280,7 +285,6 @@ export class CanvasEngine {
     AddCanvasObjects(objs, group = "main") {
         var _a, _b;
         var _c;
-        console.log('%c AddCanvasObjects called', "color:#21c4e7; font-weight:bold;", new Error('AddCanvasObjects called').stack);
         let add = [];
         if (objs instanceof RiveObjectsSet)
             add = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
@@ -293,7 +297,6 @@ export class CanvasEngine {
         const dest = this._canvasObjects.get(group);
         let maxZ = dest.reduce((m, o) => { var _a; return Math.max(m, (_a = o.z) !== null && _a !== void 0 ? _a : 0); }, 0);
         for (const obj of add) {
-            console.log('%c engine... add canvas objects<' + obj.uuid + '> ', "color:#21c4e7; font-weight:bold;");
             obj.OnZIndexChanged = this.updateZIndex.bind(this);
             for (const [g, arr] of this._canvasObjects) {
                 const i = arr.indexOf(obj);

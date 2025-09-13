@@ -224,6 +224,10 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     }
     onTextClick(event) {
         console.log("Text clicked:", this.defObj.text);
+        if (this._defObj.clickFunction) {
+            console.log("Text clicked: yes call function");
+            this._defObj.clickFunction(this);
+        }
     }
     onTextHover() {
         if (!this._textField)

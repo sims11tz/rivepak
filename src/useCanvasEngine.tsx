@@ -172,10 +172,18 @@ export class CanvasEngine
 		}
 
 		let inFrame = false;
+		let firstFrameRan = false;
 		const updateLoop = (time:number) =>
 		{
 			if(inFrame) console.warn('updateLoop re-entered same frame');
 			inFrame = true;
+
+			if(!firstFrameRan)
+			{
+				firstFrameRan = true;
+
+				if (onInitComplete) onInitComplete();
+			}
 
 			if(this._runState !== CANVAS_ENGINE_RUN_STATE.RUNNING)
 			{
@@ -245,7 +253,7 @@ export class CanvasEngine
 
 		inFrame = false;
 		this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
-		if (onInitComplete) onInitComplete();
+		//if (onInitComplete) onInitComplete();
 
 		window.removeEventListener("resize", this.ResizeWindowEvent);
 
@@ -320,7 +328,6 @@ export class CanvasEngine
 
 	public AddCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group = "main")
 	{
-		console.log('%c AddCanvasObjects called', "color:#21c4e7; font-weight:bold;", new Error('AddCanvasObjects called').stack);
 		let add:BaseCanvasObj[] = [];
 		if (objs instanceof RiveObjectsSet) add = objs.objects ?? [];
 		else if (Array.isArray(objs)) add = objs;
@@ -333,8 +340,6 @@ export class CanvasEngine
 
 		for (const obj of add)
 		{
-			console.log('%c engine... add canvas objects<'+obj.uuid+'> ', "color:#21c4e7; font-weight:bold;" );
-
 			obj.OnZIndexChanged = this.updateZIndex.bind(this);
 
 			for (const [g, arr] of this._canvasObjects) {
@@ -623,15 +628,15 @@ export function UseCanvasEngineHook(
 			});
 
 			engine.SetRefs({
-				canvasContainerRef: canvasContainerRef.current!,
-				canvasAreaRef: canvasAreaRef.current!,
-				canvasRef: canvasRef.current!,
-				pixiCanvasRefAbove: pixiCanvasRefAbove.current!,
-				pixiCanvasRefBelow: pixiCanvasRefBelow.current!,
-				debugContainerRef: debugContainerRef.current!,
-				runStateLabel: runStateLabel.current!,
-				fpsLabel: fpsRef.current!,
-				fpsSpinner: fpsSpinner.current!,
+				canvasContainerRef:canvasContainerRef.current!,
+				canvasAreaRef:canvasAreaRef.current!,
+				canvasRef:canvasRef.current!,
+				pixiCanvasRefAbove:pixiCanvasRefAbove.current!,
+				pixiCanvasRefBelow:pixiCanvasRefBelow.current!,
+				debugContainerRef:debugContainerRef.current!,
+				runStateLabel:runStateLabel.current!,
+				fpsLabel:fpsRef.current!,
+				fpsSpinner:fpsSpinner.current!,
 			});
 
 			engine.Init(canvasSettings, onInit);

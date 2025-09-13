@@ -154,71 +154,6 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public InitRiveObject():void
 	{
-		console.log('%c 22222 initRiveObj(*) width:'+this.artboard.width+', height:'+this.artboard.height,'color:#00FF88; font-weight:bold;');
-
-		//console.warn("do that one thing bruh -- "+this._artboardName+" / "+this._filePath);
-		//const name = "CAR PINK";
-		//const ab: any = this.artboard as any;
-		//let node = this.artboard.node(name);
-		//if (node)
-		//{
-		//	console.log('Node FOUND FOUND : '+name);
-		//	this.dumpWasmObject(node);
-		//	console.log('Node FOUND : ',node);
-		//}
-		//else
-		//{
-		//	console.log('Node not found');
-		//}
-		//const attempts = [
-		//	{ count: 'componentCount', byIdx: 'componentByIndex' },
-		//	{ count: 'nodeCount',      byIdx: 'nodeByIndex'      },
-		//	{ count: 'drawableCount',  byIdx: 'drawableByIndex'  },
-		//];
-		//for (const a of attempts)
-		//{
-		//	const getCount = ab?.[a.count], getByIdx = ab?.[a.byIdx];
-		//	if (typeof getCount !== 'function' || typeof getByIdx !== 'function')
-		//	{
-		//		console.error("FIRST CONTINUE <"+name+"> no fn "+a.count+" / "+a.byIdx);
-		//		continue;
-		//	}
-
-		//	const n = getCount.call(ab);
-		//	console.warn("TRYING <"+name+"> n.a:"+n.a+" "+getCount.name+" / "+getByIdx.name);
-		//	for (let i = 0; i < n; i++)
-		//	{
-		//		const node: any = getByIdx.call(ab, i);
-		//		const nm = typeof node.name === 'function' ? node.name() : node.name;
-		//		if (nm === name)
-		//		{
-		//			console.warn("FOUND COMPONENT 1 <"+name+"> : ",node);
-		//		}
-		//	}
-		//}
-		//// optional direct-by-name fallbacks
-		//for (const fn of ['component','node','drawable','findNode','findComponent'])
-		//{
-		//	const f = (ab as any)[fn];
-		//	if (typeof f === 'function')
-		//	{
-		//		try
-		//		{
-		//			console.warn("TRYING direct<"+name+"> fn "+fn);
-		//			const found = f.call(ab, name);
-		//			console.log('found =',found);
-		//			if (found) console.warn("FOUND COMPONENT 2 <"+name+"> : ",found);
-		//		}
-		//		catch
-		//		{
-		//			console.error("error 2");
-		//		}
-		//	}
-		//}
-		//console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
-		//console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
-		//console.log('');
-
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
 
@@ -740,7 +675,18 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
-		if(this._onClickCallback) this._onClickCallback?.(event,this);
+		console.log("CanvasRiveObj.onClick() :: "+this._label);
+		if(this._onClickCallback)
+		{
+			console.log("CanvasRiveObj.onClick() :: yes1 call function");
+			this._onClickCallback?.(event,this);
+		}
+
+		if(this._defObj!.clickFunction)
+		{
+			console.log("CanvasRiveObj.onClick() :: yes2 call function");
+			this._defObj!.clickFunction(this);
+		}
 	}
 
 	protected onHover()

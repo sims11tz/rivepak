@@ -94,68 +94,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     InitRiveObject() {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-        console.log('%c 22222 initRiveObj(*) width:' + this.artboard.width + ', height:' + this.artboard.height, 'color:#00FF88; font-weight:bold;');
-        //console.warn("do that one thing bruh -- "+this._artboardName+" / "+this._filePath);
-        //const name = "CAR PINK";
-        //const ab: any = this.artboard as any;
-        //let node = this.artboard.node(name);
-        //if (node)
-        //{
-        //	console.log('Node FOUND FOUND : '+name);
-        //	this.dumpWasmObject(node);
-        //	console.log('Node FOUND : ',node);
-        //}
-        //else
-        //{
-        //	console.log('Node not found');
-        //}
-        //const attempts = [
-        //	{ count: 'componentCount', byIdx: 'componentByIndex' },
-        //	{ count: 'nodeCount',      byIdx: 'nodeByIndex'      },
-        //	{ count: 'drawableCount',  byIdx: 'drawableByIndex'  },
-        //];
-        //for (const a of attempts)
-        //{
-        //	const getCount = ab?.[a.count], getByIdx = ab?.[a.byIdx];
-        //	if (typeof getCount !== 'function' || typeof getByIdx !== 'function')
-        //	{
-        //		console.error("FIRST CONTINUE <"+name+"> no fn "+a.count+" / "+a.byIdx);
-        //		continue;
-        //	}
-        //	const n = getCount.call(ab);
-        //	console.warn("TRYING <"+name+"> n.a:"+n.a+" "+getCount.name+" / "+getByIdx.name);
-        //	for (let i = 0; i < n; i++)
-        //	{
-        //		const node: any = getByIdx.call(ab, i);
-        //		const nm = typeof node.name === 'function' ? node.name() : node.name;
-        //		if (nm === name)
-        //		{
-        //			console.warn("FOUND COMPONENT 1 <"+name+"> : ",node);
-        //		}
-        //	}
-        //}
-        //// optional direct-by-name fallbacks
-        //for (const fn of ['component','node','drawable','findNode','findComponent'])
-        //{
-        //	const f = (ab as any)[fn];
-        //	if (typeof f === 'function')
-        //	{
-        //		try
-        //		{
-        //			console.warn("TRYING direct<"+name+"> fn "+fn);
-        //			const found = f.call(ab, name);
-        //			console.log('found =',found);
-        //			if (found) console.warn("FOUND COMPONENT 2 <"+name+"> : ",found);
-        //		}
-        //		catch
-        //		{
-        //			console.error("error 2");
-        //		}
-        //	}
-        //}
-        //console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
-        //console.log('ALALALALALALALALALALALALALALALALALALALAL DONE DONE DONE DONE ');
-        //console.log('');
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
         const artboardWidth = this.artboard.width;
@@ -543,8 +481,15 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     onClick(event) {
         var _a;
-        if (this._onClickCallback)
+        console.log("CanvasRiveObj.onClick() :: " + this._label);
+        if (this._onClickCallback) {
+            console.log("CanvasRiveObj.onClick() :: yes1 call function");
             (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
+        }
+        if (this._defObj.clickFunction) {
+            console.log("CanvasRiveObj.onClick() :: yes2 call function");
+            this._defObj.clickFunction(this);
+        }
     }
     onHover() {
         var _a;

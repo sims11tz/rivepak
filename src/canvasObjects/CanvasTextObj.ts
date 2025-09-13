@@ -249,7 +249,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		return this._styleDirty;
 	}
 
-	public SetText(text:string): void
+	public SetText(text:string):void
 	{
 		this.defObj.text = text;
 
@@ -263,14 +263,14 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
-	public SetTextStyle(style: Partial<PIXI.TextStyleOptions>): void
+	public SetTextStyle(style:Partial<PIXI.TextStyleOptions>):void
 	{
 		this._styleDirty = true;
 		this.defObj.textStyle = { ...this.defObj.textStyle, ...style };
 		this.DrawVectors();
 	}
 
-	public SetAlignment(horizontal?: 'left' | 'center' | 'right' | 'justify', vertical?: 'top' | 'middle' | 'bottom'): void
+	public SetAlignment(horizontal?:'left' | 'center' | 'right' | 'justify', vertical?:'top' | 'middle' | 'bottom'):void
 	{
 		if(horizontal) this.defObj.textAlign = horizontal;
 		if(vertical) this.defObj.verticalAlign = vertical;
@@ -279,7 +279,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.updateTextTransform();
 	}
 
-	public StartTypewriter(speed?: number): void
+	public StartTypewriter(speed?:number):void
 	{
 		this.defObj.typewriterEffect = true;
 		this.defObj.typewriterSpeed = speed ?? 10;
@@ -288,19 +288,24 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._typewriterTimer = 0;
 	}
 
-	public StopTypewriter(): void
+	public StopTypewriter():void
 	{
 		this.defObj.typewriterEffect = false;
 		this._typewriterIndex = this._fullText.length;
 		this.DrawVectors();
 	}
 
-	private onTextClick(event: PIXI.FederatedPointerEvent): void
+	private onTextClick(event:PIXI.FederatedPointerEvent):void
 	{
 		console.log("Text clicked:", this.defObj.text);
+		if(this._defObj!.clickFunction)
+		{
+			console.log("Text clicked: yes call function");
+			this._defObj!.clickFunction(this);
+		}
 	}
 
-	private onTextHover(): void
+	private onTextHover():void
 	{
 		if(!this._textField) return;
 
@@ -311,7 +316,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		);
 	}
 
-	private onTextHoverOut(): void
+	private onTextHoverOut():void
 	{
 		if(!this._textField) return;
 
