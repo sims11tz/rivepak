@@ -80,7 +80,7 @@ export declare class CanvasEngine {
     GetTimelineController(animationMetaData: AnimationMetadata): RiveTimelineController | null;
     CreateTimelineController(animationMetaData: AnimationMetadata): RiveTimelineController;
     DestroyTimelineController(animationMetaData: AnimationMetadata): void;
-    AddCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string): void;
+    AddCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string): BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet;
     RemoveCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[], group?: string): void;
     private updateZIndex;
     private _resizeDebounceTimeout;

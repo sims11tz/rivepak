@@ -326,7 +326,7 @@ export class CanvasEngine
 		}
 	}
 
-	public AddCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group = "main")
+	public AddCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group = "main"):BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet
 	{
 		let add:BaseCanvasObj[] = [];
 		if (objs instanceof RiveObjectsSet) add = objs.objects ?? [];
@@ -371,6 +371,8 @@ export class CanvasEngine
 		}
 
 		dest.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+
+		return objs;
 	}
 
 	public RemoveCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[], group = "main")

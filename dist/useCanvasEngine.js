@@ -322,6 +322,7 @@ export class CanvasEngine {
             dest.push(obj);
         }
         dest.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
+        return objs;
     }
     RemoveCanvasObjects(objs, group = "main") {
         const groupArray = this._canvasObjects.get(group);
