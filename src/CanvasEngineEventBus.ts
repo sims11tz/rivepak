@@ -33,3 +33,48 @@ class PubSub<T>
 
 export const CanvasEngineResizePubSub = new PubSub<ResizeCanvasObj>();
 export const CanvasEngineStartResizePubSub = new PubSub();
+
+/**
+ * Generic event bus for UI components
+ */
+export class CanvasEngineEventBus
+{
+	private static listeners:Map<string, Set<(data:any) => void>> = new Map();
+	
+	public static on(event:string, handler:(data:any) => void):void
+	{
+		if(!this.listeners.has(event))
+		{
+			this.listeners.set(event, new Set());
+		}
+		this.listeners.get(event)!.add(handler);
+	}
+	
+	public static off(event:string, handler:(data:any) => void):void
+	{
+		if(this.listeners.has(event))
+		{
+			this.listeners.get(event)!.delete(handler);
+		}
+	}
+	
+	public static emit(event:string, data:any):void
+	{
+		if(this.listeners.has(event))
+		{
+			this.listeners.get(event)!.forEach(handler => handler(data));
+		}
+	}
+	
+	public static clear(event?:string):void
+	{
+		if(event)
+		{
+			this.listeners.delete(event);
+		}
+		else
+		{
+			this.listeners.clear();
+		}
+	}
+}

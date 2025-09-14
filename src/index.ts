@@ -14,4 +14,7 @@ export * from "./controllers/RiveController";
 export * from "./controllers/CanvasSequenceController";
 export * from "./controllers/CanvasSequence";
 export * from "./useCanvasEngine";
-export * from "./CanvasEngineEventBus"
+export * from "./CanvasEngineEventBus";
+
+// UI Components
+export * from "./ui";
