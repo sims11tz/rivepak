@@ -5,7 +5,6 @@ class BaseShapePhysicsObj extends CanvasPhysicsMixin(CanvasPixiShapeObj) {
 export class PixiShapePhysicsObj extends BaseShapePhysicsObj {
     constructor(canvasDef) {
         super(canvasDef);
-        this.InitPhysics();
     }
     ApplyResolutionScale(scale, property = "") {
         CanvasPixiShapeObj.prototype.ApplyResolutionScale.call(this, scale, property);

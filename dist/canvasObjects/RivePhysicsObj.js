@@ -5,13 +5,11 @@ class BaseRivePhysicsObject extends CanvasPhysicsMixin(CanvasRiveObj) {
 export class RivePhysicsObject extends BaseRivePhysicsObject {
     constructor(riveDef, artboard) {
         super(riveDef, artboard);
-        //this.initRiveObject();
+    }
+    InitRiveObject() {
+        super.InitRiveObject();
         this.InitPhysics();
     }
-    //protected initRiveObject()
-    //{
-    //	super.initRiveObject();
-    //}
     ApplyResolutionScale(scale, property = "") {
         CanvasRiveObj.prototype.ApplyResolutionScale.call(this, scale, property);
         super.ApplyResolutionScale(scale, property);

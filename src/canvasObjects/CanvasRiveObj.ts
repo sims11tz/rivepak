@@ -151,11 +151,23 @@ export class CanvasRiveObj extends BaseCanvasObj
 		}
 	}
 
-
 	public InitRiveObject():void
 	{
+		if(this._debugLogs)
+		{
+			console.log("");
+			console.log('%c ___________________ INIT RIVE OBJECT ________________________','color:#00FFFF');
+			console.log('%c Artboard Name: '+this.artboard.name,'color:#00FFFF');
+			console.log(" artboard: ",this.artboard);
+			console.log(" filePath: ",this.filePath);
+			console.log('%c Artboard Width: '+this.artboard.width,'color:#00FFFF');
+			console.log('%c Artboard Height: '+this.artboard.height,'color:#00FFFF');
+		}
+
 		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
+
+		console.log('%c InitRiveObject x:'+this.x+', y:'+this.y,'color:#00FFFF');
 
 		const artboardWidth = this.artboard.width;
 		const artboardHeight = this.artboard.height;
@@ -229,13 +241,6 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 		if(this._debugLogs)
 		{
-			console.log("");
-			console.log("___________________ INIT RIVE OBJECT ________________________");
-			console.log("");
-			console.log("Artboard Name: "+this.artboard.name);
-			//console.log(" artboard: ",this.artboard);
-			//console.log("Artboard Width: "+this.artboard.width);
-			//console.log("Artboard Height: "+this.artboard.height);
 			//console.log("Artboard Bounds: ", this.artboard.bounds);
 			//console.log("Artboard State Machine Count: "+this.artboard.stateMachineCount());
 			console.log("Artboard Animation Count: "+this.artboard.animationCount());
@@ -245,7 +250,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 		for (let j = 0; j < this.artboard.animationCount(); j++)
 		{
 			const animationDefinition = this.artboard.animationByIndex(j);
-			if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name+" loopValue:"+animationDefinition.loopValue);
+			//if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name+" loopValue:"+animationDefinition.loopValue);
 			const animation = new this.Rive.LinearAnimationInstance( animationDefinition, this.artboard );
 
 			const animDef = animationDefinition as any;
@@ -262,7 +267,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//	}
 			//}
 
-			if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
+			//if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
 
 			const metadata = new AnimationMetadata(this.artboard, animation, j, animationDefinition.name, duration);
 			this._animations.push(metadata);
@@ -280,7 +285,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			{
 				const input = this._stateMachine.input(j);
 				this._inputs.set(input.name, input);
-				if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
+				//if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
 			}
 		}
 		else

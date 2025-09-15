@@ -132,6 +132,7 @@ export class RiveController
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
 		const debug = false;
+		if(debug) console.log('%c RiveController: CreateRiveObj() ','color:#00FF88');
 
 		const defs:RiveObjectDef[] = [];
 		if(Array.isArray(riveObjDefs))
@@ -142,6 +143,7 @@ export class RiveController
 		{
 			for (let i = 0; i < (riveObjDefs.count ?? 1); i++) defs.push(riveObjDefs);
 		}
+		if(debug) console.log('%c RiveController: CreateRiveObj() defs:','color:#00FF88', defs);
 
 		const filePaths = defs.map((def) => def.filePath);
 		const loadPromise = new Promise<{ filename: string; riveFile: RiveFile | null }[]>((resolve) => this.loadRiveFiles(filePaths, resolve) );
@@ -190,8 +192,8 @@ export class RiveController
 			{
 				switch (def.objectType)
 				{
-					case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def, artboard); break;
-					case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def, artboard); break;
+					case RIVE_OBJECT_TYPE.ANIMATION: console.log('creating .ANIMATION'); canvasRiveObj = new RiveAnimationObject(def, artboard); break;
+					case RIVE_OBJECT_TYPE.PHYSICS: console.log('creating .PHYSICS'); canvasRiveObj = new RivePhysicsObject(def, artboard); break;
 				}
 			}
 

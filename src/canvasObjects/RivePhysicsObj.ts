@@ -7,17 +7,16 @@ class BaseRivePhysicsObject extends CanvasPhysicsMixin(CanvasRiveObj) {}
 
 export class RivePhysicsObject extends BaseRivePhysicsObject
 {
-	constructor(riveDef: RiveObjectDef, artboard: Artboard)
+	constructor(riveDef:RiveObjectDef, artboard:Artboard)
 	{
 		super(riveDef, artboard);
-		//this.initRiveObject();
-		this.InitPhysics();
 	}
 
-	//protected initRiveObject()
-	//{
-	//	super.initRiveObject();
-	//}
+	public override InitRiveObject()
+	{
+		super.InitRiveObject();
+		this.InitPhysics();
+	}
 
 	public ApplyResolutionScale(scale:number, property:string="")
 	{

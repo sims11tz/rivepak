@@ -29,6 +29,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 
 		public InitPhysics(): void
 		{
+			console.log('%c CanvasPhysicsMixin InitPhysics() ','color:#00FF88');
 			this._body = Matter.Bodies.rectangle(this.x+(this.width/2), this.y+(this.height/2), this.width, this.height, {
 				friction: 0,
 				frictionAir: 0,
@@ -64,10 +65,13 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 				initialYSpeed = 2;
 				Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
 			}
+
+			console.log('%c CanvasPhysicsMixin InitPhysics() END '+initialXSpeed+'-'+initialYSpeed+' | '+super.x+'-'+super.y+' || '+this._body?.position.x+'-'+this._body?.position.y,'color:#00FF88');
 		}
 
 		public set x(value:number)
 		{
+			//console.log('%c CanvasPhysicsMixin set x() '+value,'color:#00FF88');
 			if (this._resolutionScaleMixLast === -1 && this._body)
 			{
 				//this._body.position.x = value + this.width / 2;
@@ -80,6 +84,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 
 		public set y(value:number)
 		{
+			//console.log('%c CanvasPhysicsMixin set y() '+value,'color:#00FF88');
 			if (this._resolutionScaleMixLast === -1 && this._body)
 			{
 				//this._body.position.y = value + this.height / 2;

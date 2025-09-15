@@ -13,7 +13,8 @@ export function CanvasPhysicsMixin(Base) {
             this._EPSILON = 0.0001;
         }
         InitPhysics() {
-            var _a, _b;
+            var _a, _b, _c, _d;
+            console.log('%c CanvasPhysicsMixin InitPhysics() ', 'color:#00FF88');
             this._body = Matter.Bodies.rectangle(this.x + (this.width / 2), this.y + (this.height / 2), this.width, this.height, {
                 friction: 0,
                 frictionAir: 0,
@@ -41,8 +42,10 @@ export function CanvasPhysicsMixin(Base) {
                 initialYSpeed = 2;
                 Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
             }
+            console.log('%c CanvasPhysicsMixin InitPhysics() END ' + initialXSpeed + '-' + initialYSpeed + ' | ' + super.x + '-' + super.y + ' || ' + ((_c = this._body) === null || _c === void 0 ? void 0 : _c.position.x) + '-' + ((_d = this._body) === null || _d === void 0 ? void 0 : _d.position.y), 'color:#00FF88');
         }
         set x(value) {
+            //console.log('%c CanvasPhysicsMixin set x() '+value,'color:#00FF88');
             if (this._resolutionScaleMixLast === -1 && this._body) {
                 //this._body.position.x = value + this.width / 2;
                 Matter.Body.setPosition(this._body, { x: value + (this.width / 2), y: this._body.position.y });
@@ -51,6 +54,7 @@ export function CanvasPhysicsMixin(Base) {
         }
         get x() { return super.x; }
         set y(value) {
+            //console.log('%c CanvasPhysicsMixin set y() '+value,'color:#00FF88');
             if (this._resolutionScaleMixLast === -1 && this._body) {
                 //this._body.position.y = value + this.height / 2;
                 Matter.Body.setPosition(this._body, { x: this._body.position.x, y: value + (this.height / 2) });

@@ -9,8 +9,6 @@ export class PixiShapePhysicsObj extends BaseShapePhysicsObj
 	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
-
-		this.InitPhysics();
 	}
 
 	public ApplyResolutionScale(scale:number, property:string="")

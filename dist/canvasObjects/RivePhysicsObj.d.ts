@@ -1,4 +1,3 @@
-/// <reference types="matter-js" />
 import { Artboard } from "@rive-app/webgl-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasRiveObj } from "./CanvasRiveObj";
@@ -99,6 +98,7 @@ declare class BaseRivePhysicsObject extends BaseRivePhysicsObject_base {
 }
 export declare class RivePhysicsObject extends BaseRivePhysicsObject {
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
+    InitRiveObject(): void;
     ApplyResolutionScale(scale: number, property?: string): void;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
     Dispose(): void;

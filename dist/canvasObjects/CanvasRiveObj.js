@@ -93,9 +93,19 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     InitRiveObject() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        if (this._debugLogs) {
+            console.log("");
+            console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
+            console.log('%c Artboard Name: ' + this.artboard.name, 'color:#00FFFF');
+            console.log(" artboard: ", this.artboard);
+            console.log(" filePath: ", this.filePath);
+            console.log('%c Artboard Width: ' + this.artboard.width, 'color:#00FFFF');
+            console.log('%c Artboard Height: ' + this.artboard.height, 'color:#00FFFF');
+        }
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
+        console.log('%c InitRiveObject x:' + this.x + ', y:' + this.y, 'color:#00FFFF');
         const artboardWidth = this.artboard.width;
         const artboardHeight = this.artboard.height;
         const aspectRatio = artboardWidth / artboardHeight;
@@ -157,13 +167,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
         if (this.defObj.text && this.defObj.text.length > 0)
             this.drawTextLabel();
         if (this._debugLogs) {
-            console.log("");
-            console.log("___________________ INIT RIVE OBJECT ________________________");
-            console.log("");
-            console.log("Artboard Name: " + this.artboard.name);
-            //console.log(" artboard: ",this.artboard);
-            //console.log("Artboard Width: "+this.artboard.width);
-            //console.log("Artboard Height: "+this.artboard.height);
             //console.log("Artboard Bounds: ", this.artboard.bounds);
             //console.log("Artboard State Machine Count: "+this.artboard.stateMachineCount());
             console.log("Artboard Animation Count: " + this.artboard.animationCount());
@@ -171,8 +174,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._animations = [];
         for (let j = 0; j < this.artboard.animationCount(); j++) {
             const animationDefinition = this.artboard.animationByIndex(j);
-            if (this._debugLogs)
-                console.log("Animation[" + j + "]: ________ " + animationDefinition.name + " loopValue:" + animationDefinition.loopValue);
+            //if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name+" loopValue:"+animationDefinition.loopValue);
             const animation = new this.Rive.LinearAnimationInstance(animationDefinition, this.artboard);
             const animDef = animationDefinition;
             const duration = (_h = (_g = (_f = (_e = animDef.duration) !== null && _e !== void 0 ? _e : animDef.durationSeconds) !== null && _f !== void 0 ? _f : animDef.workEnd) !== null && _g !== void 0 ? _g : animDef.workStart) !== null && _h !== void 0 ? _h : 0;
@@ -186,8 +188,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //		}
             //	}
             //}
-            if (this._debugLogs)
-                console.log("Animation[" + j + "]: " + animationDefinition.name + " -- duration:" + duration + " -- fps:" + ((_j = animDef.fps) !== null && _j !== void 0 ? _j : 60));
+            //if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
             const metadata = new AnimationMetadata(this.artboard, animation, j, animationDefinition.name, duration);
             this._animations.push(metadata);
         }
@@ -203,8 +204,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
             for (let j = 0; j < this._stateMachine.inputCount(); j++) {
                 const input = this._stateMachine.input(j);
                 this._inputs.set(input.name, input);
-                if (this._debugLogs)
-                    console.log("Input[" + j + "]: " + input.name + " -- " + input.type + " -- " + input.value);
+                //if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
             }
         }
         else {

@@ -1,4 +1,3 @@
-/// <reference types="matter-js" />
 import { CanvasObjectDef } from "./_baseCanvasObj";
 import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 declare const BaseShapePhysicsObj_base: {
