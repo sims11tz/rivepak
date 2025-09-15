@@ -326,14 +326,25 @@ export class CanvasEngine {
     }
     RemoveCanvasObjects(objs, group = "main") {
         const groupArray = this._canvasObjects.get(group);
-        if (!groupArray)
+        if (!groupArray) {
             return;
+        }
         const objsToRemove = Array.isArray(objs) ? objs : [objs];
         for (const obj of objsToRemove) {
             const index = groupArray.indexOf(obj);
             if (index !== -1) {
                 groupArray.splice(index, 1);
                 obj.Dispose();
+            }
+            else if (obj.group != group) {
+                const myGroupArray = this._canvasObjects.get(obj.group);
+                if (myGroupArray) {
+                    const index = myGroupArray.indexOf(obj);
+                    if (index !== -1) {
+                        myGroupArray.splice(index, 1);
+                        obj.Dispose();
+                    }
+                }
             }
         }
         if (groupArray.length === 0) {

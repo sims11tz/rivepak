@@ -378,7 +378,10 @@ export class CanvasEngine
 	public RemoveCanvasObjects(objs:BaseCanvasObj | BaseCanvasObj[], group = "main")
 	{
 		const groupArray = this._canvasObjects.get(group);
-		if (!groupArray) return;
+		if (!groupArray)
+		{
+			return;
+		}
 
 		const objsToRemove = Array.isArray(objs) ? objs : [objs];
 
@@ -389,6 +392,19 @@ export class CanvasEngine
 			{
 				groupArray.splice(index, 1);
 				obj.Dispose();
+			}
+			else if(obj.group != group)
+			{
+				const myGroupArray = this._canvasObjects.get(obj.group);
+				if(myGroupArray)
+				{
+					const index = myGroupArray.indexOf(obj);
+					if (index !== -1)
+					{
+						myGroupArray.splice(index, 1);
+						obj.Dispose();
+					}
+				}
 			}
 		}
 

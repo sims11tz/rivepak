@@ -105,7 +105,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
-        console.log('%c InitRiveObject x:' + this.x + ', y:' + this.y, 'color:#00FFFF');
+        if (this._debugLogs)
+            console.log('%c InitRiveObject x:' + this.x + ', y:' + this.y, 'color:#00FFFF');
         const artboardWidth = this.artboard.width;
         const artboardHeight = this.artboard.height;
         const aspectRatio = artboardWidth / artboardHeight;
@@ -141,6 +142,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
             if (this.yScale > 0)
                 this.height = artboardHeight * this.yScale;
         }
+        if (this._debugLogs) {
+            console.log('%c CanvasRiveObj .. ALL done : x=' + this.x + ',y=' + this.y + ',w=' + this.width + ',h=' + this.height + ',xScale=' + this.xScale + ',yScale=' + this.yScale, 'color:#00FFFF');
+        }
         if (this.centerGlobally) {
             this.x = CanvasEngine.get().width / 2;
             this.y = CanvasEngine.get().height / 2;
@@ -155,12 +159,12 @@ export class CanvasRiveObj extends BaseCanvasObj {
             this._onHoverCallback = this.defObj.onHoverCallback;
         if (this.defObj.onHoverOutCallback)
             this._onHoverOutCallback = this.defObj.onHoverOutCallback;
-        //console.log("<"+this._label+"> CanvasRiveObj ---   position :: "+this.x+" - "+this.y+" ");
-        //console.log("<"+this._label+"> CanvasRiveObj --- dimensions :: "+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
-        //console.log("<"+this._label+"> CanvasRiveObj ---   artboard :: "+this.artboard.width+"x"+this.artboard.height);
+        console.log("<" + this._label + "> CanvasRiveObj ---   position :: " + this.x + " - " + this.y + " ");
+        console.log("<" + this._label + "> CanvasRiveObj --- dimensions :: " + this.width + "x" + this.height + " --- scale::" + this.xScale + "x" + this.yScale);
+        console.log("<" + this._label + "> CanvasRiveObj ---   artboard :: " + this.artboard.width + "x" + this.artboard.height);
         //console.log("");
-        //console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
-        //console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.x+"|"+this.y);
+        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.width + "x" + this.height + " --- " + this.xScale + "x" + this.yScale);
+        console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.x + "|" + this.y);
         this.UpdateBaseProps();
         if (this.defObj.interactive)
             this.initInteractive();
@@ -481,13 +485,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     onClick(event) {
         var _a;
-        console.log("CanvasRiveObj.onClick() :: " + this._label);
         if (this._onClickCallback) {
-            console.log("CanvasRiveObj.onClick() :: yes1 call function");
             (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
         }
         if (this._defObj.clickFunction) {
-            console.log("CanvasRiveObj.onClick() :: yes2 call function");
             this._defObj.clickFunction(this);
         }
     }
@@ -574,6 +575,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._onClickCallback = undefined;
         this._onHoverCallback = undefined;
         this._onHoverOutCallback = undefined;
+        if (debug)
+            console.log('canvasriveobj dispose complete call super.......... ');
         super.Dispose();
     }
     get Rive() {

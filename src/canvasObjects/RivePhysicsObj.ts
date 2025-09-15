@@ -14,8 +14,11 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 
 	public override InitRiveObject()
 	{
+		console.log('%c RivePhsysicsObj.InitRiveObj()  CALL SUPER!!!!','color:#00FF88');
 		super.InitRiveObject();
+		console.log('%c RivePhsysicsObj.InitRiveObj() > 1 CALL InitPHYSICS','color:#00FF88');
 		this.InitPhysics();
+		console.log('%c RivePhsysicsObj.InitRiveObj() > 2 ALL DONE','color:#00FF88');
 	}
 
 	public ApplyResolutionScale(scale:number, property:string="")
@@ -34,7 +37,7 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 
 	public Dispose(): void
 	{
-		CanvasRiveObj.prototype.Dispose.call(this);
 		super.Dispose();
+		CanvasRiveObj.prototype.Dispose.call(this);
 	}
 }
