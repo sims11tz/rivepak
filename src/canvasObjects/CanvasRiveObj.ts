@@ -231,13 +231,15 @@ export class CanvasRiveObj extends BaseCanvasObj
 		if((this.defObj as RiveObjectDef).onHoverCallback) this._onHoverCallback = (this.defObj as RiveObjectDef).onHoverCallback;
 		if((this.defObj as RiveObjectDef).onHoverOutCallback) this._onHoverOutCallback = (this.defObj as RiveObjectDef).onHoverOutCallback;
 
-		console.log("<"+this._label+"> CanvasRiveObj ---   position :: "+this.x+" - "+this.y+" ");
-		console.log("<"+this._label+"> CanvasRiveObj --- dimensions :: "+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
-		console.log("<"+this._label+"> CanvasRiveObj ---   artboard :: "+this.artboard.width+"x"+this.artboard.height);
+		if(this._debugLogs)
+		{
+			console.log("<"+this._label+"> CanvasRiveObj ---   position :: "+this.x+" - "+this.y+" ");
+			console.log("<"+this._label+"> CanvasRiveObj --- dimensions :: "+this.width+"x"+this.height+" --- scale::"+this.xScale+"x"+this.yScale);
+			console.log("<"+this._label+"> CanvasRiveObj ---   artboard :: "+this.artboard.width+"x"+this.artboard.height);
 
-		//console.log("");
-		console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
-		console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.x+"|"+this.y);
+			//console.log("");
+			console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
+		}
 		this.UpdateBaseProps();
 
 		if(this.defObj.interactive) this.initInteractive();
@@ -304,6 +306,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 		//}
 
 		this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale:this.xScale, yScale:this.yScale, riveInteractiveLocalOnly:this.defObj.riveInteractiveLocalOnly};
+
+		this.ApplyResolutionScale(this._resolutionScale,'*');
 	}
 
 	//private _autoplayVM = new Map<string, boolean>();

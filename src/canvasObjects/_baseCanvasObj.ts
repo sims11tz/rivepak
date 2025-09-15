@@ -329,7 +329,6 @@ export abstract class BaseCanvasObj
 
 	public ApplyResolutionScale(scale:number, property:string="")
 	{
-		//console.log(''+this.label+' ApplyResolutionScale() scale='+scale+', property='+property);
 		if(scale !== this._resolutionScale)
 		{
 			//console.log(""+this.label+"  1 * "+scale+" ");
@@ -341,6 +340,7 @@ export abstract class BaseCanvasObj
 			//console.log(""+this.label+"  2 ! "+scale+" ");
 		}
 
+		//console.log('%c '+this.label+' ApplyResolutionScale() scale='+scale+', property='+property,'color:#c94fff');
 		//console.log(""+this.label+"  3 prop="+property+" ");
 		if((property == "*") || (property == "x" && this._transformedXlast != this.x))
 		{
@@ -360,7 +360,7 @@ export abstract class BaseCanvasObj
 		{
 			this._transformedWidth = this.width * scale;
 			this._transformedWidthlast = this.width;
-			//console.log(""+this.label+"APRS  6 width "+this.width+"--TransW:"+this._transformedWidth);
+			//console.log('%c '+this.label+' 6 width '+this.width+'--TransW:'+this._transformedWidth,'color:#c94fff');
 		}
 
 		if((property == "*") || (property == "height" && this._transformedHeightlast != this.height))
@@ -375,6 +375,7 @@ export abstract class BaseCanvasObj
 		{
 			this._transformedWidth = this.width * scale;
 			this._transformedWidthlast = this.width;
+			//console.log('%c '+this.label+' 7 width '+this.width+'--TransW:'+this._transformedWidth,'color:#c94fff');
 		}
 
 		if((property == "*") || (property == "yScale"))

@@ -29,8 +29,8 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 
 		public InitPhysics(): void
 		{
-			console.log('%c CanvasPhysicsMixin InitPhysics() ','color:#d2bc1c8');
-			console.log('%c CanvasPhysicsMixin InitPhysics() width:'+this.width+',height:'+this.height,'color:#d2bc1c8');
+			//console.log('%c CanvasPhysicsMixin InitPhysics() ','color:#d2bc1c8');
+			//console.log('%c CanvasPhysicsMixin InitPhysics() width:'+this.width+',height:'+this.height,'color:#d2bc1c8');
 			this._body = Matter.Bodies.rectangle(this.x+(this.width/2), this.y+(this.height/2), this.width, this.height, {
 				friction: 0,
 				frictionAir: 0,
@@ -41,8 +41,8 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 				inertia: Infinity,
 				label: this.label,
 			});
-			console.log('%c CanvasPhysicsMixin InitPhysics() check body','color:#d2bc1c8');
-			this.checkBody();
+			//console.log('%c CanvasPhysicsMixin InitPhysics() check body','color:#d2bc1c8');
+			//this.checkBody();
 
 			(this._body as Matter.Body & { plugin: PhysicsPluginData }).plugin = { object: this };
 
@@ -69,7 +69,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 				Matter.Body.setVelocity(this._body, { x: initialXSpeed, y: initialYSpeed });
 			}
 
-			console.log('%c CanvasPhysicsMixin InitPhysics() END '+initialXSpeed+'-'+initialYSpeed+' | '+super.x+'-'+super.y+' || '+this._body?.position.x+'-'+this._body?.position.y,'color:#00FF88');
+			//console.log('%c CanvasPhysicsMixin InitPhysics() END '+initialXSpeed+'-'+initialYSpeed+' | '+super.x+'-'+super.y+' || '+this._body?.position.x+'-'+this._body?.position.y,'color:#00FF88');
 		}
 
 		public set x(value:number)
@@ -157,7 +157,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 			if((property == "*") || (property == "width" && this._transformedMixWidthlast != this.transformedWidth))
 			{
 				//this._transformedWidth = this.width * scale;
-				console.log("MIX<"+property+">-"+this.label+"APRS  6 width TransW:"+this.transformedWidth+"--"+this._transformedMixWidthlast);
+				//console.log("MIX<"+property+">-"+this.label+"APRS  6 width TransW:"+this.transformedWidth+"--"+this._transformedMixWidthlast);
 				this._transformedMixWidthlast = this.transformedWidth;
 
 				const bodyWidth = this._body.bounds.max.x-this._body.bounds.min.x;
@@ -166,12 +166,12 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 					const scaleAmount = this.transformedWidth / bodyWidth;
 					if(this.shouldScale(scaleAmount))
 					{
-						console.log("MIX-"+this.label+"APRS  SCALE THAT WIDTH SHIT!!! scaleAmount="+scaleAmount);
+						//console.log('%c MIX-'+this.label+'APRS  SCALE THAT WIDTH SHIT!!! bodyWidth='+bodyWidth+', this.transformedWidth='+this.transformedWidth+' scaleAmount='+scaleAmount,'color:#4783ff');
 						Matter.Body.scale(this._body, scaleAmount, 1);
 						Matter.Body.setVelocity(this._body, { x: this._body.velocity.x * scaleAmount, y: this._body.velocity.y });
 						Matter.Body.setPosition(this._body, { x: this._transformedX+(this.transformedWidth/2), y: this._body.position.y });
 						Matter.Body.setInertia(this._body, Infinity);
-						this.checkBody();
+						//this.checkBody();
 						//Matter.Body.update(this._body, 0, 1, 1);
 						//Matter.Body.setPosition(this._body, this._body.position);
 						//Matter.Bounds.update(this._body.bounds, this._body.vertices, this._body.velocity);
@@ -198,12 +198,13 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 					const scaleAmount = this.transformedHeight / bodyHeight;
 					if(this.shouldScale(scaleAmount))
 					{
-						console.log("MIX-"+this.label+"APRS  SCALE THAT HEIGHT SHIT!!! "+scaleAmount);
+						//console.log("MIX-"+this.label+"APRS  SCALE THAT HEIGHT SHIT!!! "+scaleAmount);
+						//console.log('%c MIX-'+this.label+'APRS  SCALE THAT HEIGHT SHIT!!! bodyHeight='+bodyHeight+', this.transformedHeight='+this.transformedHeight+' scaleAmount='+scaleAmount,'color:#4783ff');
 						Matter.Body.scale(this._body, 1, scaleAmount);
 						Matter.Body.setVelocity(this._body, { x: this._body.velocity.x, y: this._body.velocity.y * scaleAmount });
 						Matter.Body.setPosition(this._body, { x: this._body.position.x, y: this.transformedY+(this.transformedHeight/2) });
 						Matter.Body.setInertia(this._body, Infinity);
-						this.checkBody();
+						//this.checkBody();
 						//Matter.Body.update(this._body, 0, 1, 1);
 						//Matter.Bounds.update(this._body.bounds, this._body.vertices, this._body.velocity);
 					}
@@ -226,7 +227,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 
 		public Update(time: number, frameCount: number, onceSecond: boolean): void
 		{
-			if(onceSecond) console.log("MIXIN update "+this.label+"<"+frameCount+"> "+this.x+"/"+this.y+"");
+			//if(onceSecond) console.log("MIXIN update "+this.label+"<"+frameCount+"> "+this.x+"/"+this.y+"");
 			this.UpdatePhysics(time, frameCount, onceSecond);
 
 			if (this._body)
@@ -235,21 +236,21 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 				{
 					if(onceSecond)
 					{
-						console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update START');
-						console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update START');
-						console.log('MIXIN.<'+this.x+'/'+this.y+'> this._resolutionScale='+this._resolutionScale+'........... update update update update update update update START');
-						this.checkBody();
-						console.log(' LOL ok try this1 :: '+(this._body.position.x/this._resolutionScale));
-						console.log(' LOL ok try this2 :: '+(this.width / 2));
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update START');
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update START');
+						//console.log('MIXIN.<'+this.x+'/'+this.y+'> this._resolutionScale='+this._resolutionScale+'........... update update update update update update update START');
+						//this.checkBody();
+						//console.log(' LOL ok try this1 :: '+(this._body.position.x/this._resolutionScale));
+						//console.log(' LOL ok try this2 :: '+(this.width / 2));
 					}
 					this.x = (this._body.position.x/this._resolutionScale) - (this.width / 2);
 					this.y = (this._body.position.y/this._resolutionScale) - (this.height / 2);
-					if(onceSecond)
-					{
-						console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update END');
-						console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update END');
-						console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update END');
-					}
+					//if(onceSecond)
+					//{
+					//	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update END');
+					//	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update update END');
+					//	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update END');
+					//}
 				}
 				else
 				{
@@ -257,17 +258,17 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 					this.y = this._body.position.y - this.height / 2;
 				}
 
-				if(onceSecond)
-				{
-					console.log("MIXIN update art "+this.label+" "+this.x+"/"+this.y+"");
-					console.log("MIXIN update art "+this.label+" "+this._body.position.x+"/"+this._body.position.y);
-				}
+				//if(onceSecond)
+				//{
+				//	console.log("MIXIN update art "+this.label+" "+this.x+"/"+this.y+"");
+				//	console.log("MIXIN update art "+this.label+" "+this._body.position.x+"/"+this._body.position.y);
+				//}
 			}
 			else
 			{
 				if(onceSecond)
 				{
-					console.log("MIXIN update NO BODY "+this.label+" "+this.x+"/"+this.y+"");
+					//console.log("MIXIN update NO BODY "+this.label+" "+this.x+"/"+this.y+"");
 				}
 			}
 

@@ -7,11 +7,8 @@ export class RivePhysicsObject extends BaseRivePhysicsObject {
         super(riveDef, artboard);
     }
     InitRiveObject() {
-        console.log('%c RivePhsysicsObj.InitRiveObj()  CALL SUPER!!!!', 'color:#00FF88');
         super.InitRiveObject();
-        console.log('%c RivePhsysicsObj.InitRiveObj() > 1 CALL InitPHYSICS', 'color:#00FF88');
         this.InitPhysics();
-        console.log('%c RivePhsysicsObj.InitRiveObj() > 2 ALL DONE', 'color:#00FF88');
     }
     ApplyResolutionScale(scale, property = "") {
         CanvasRiveObj.prototype.ApplyResolutionScale.call(this, scale, property);
