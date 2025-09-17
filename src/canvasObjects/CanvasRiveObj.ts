@@ -497,20 +497,18 @@ export class CanvasRiveObj extends BaseCanvasObj
 			}
 
 			// Skip state change checks if we're not using them
-			/*
-			const stateChangeCount = this._stateMachine.stateChangedCount();
-			if (stateChangeCount > 0)
-			{
-				for(let x = 0; x < stateChangeCount; x++)
-				{
-					const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-					if (stateChange != undefined)
-					{
-						//console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
-					}
-				}
-			}
-			*/
+			//const stateChangeCount = this._stateMachine.stateChangedCount();
+			//if (stateChangeCount > 0)
+			//{
+			//	for(let x = 0; x < stateChangeCount; x++)
+			//	{
+			//		const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+			//		if (stateChange != undefined)
+			//		{
+			//			console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+			//		}
+			//	}
+			//}
 
 			if(this.defObj.riveInteractive)
 			{
@@ -526,13 +524,17 @@ export class CanvasRiveObj extends BaseCanvasObj
 				if (mouseDownChanged)
 				{
 					const artBoardInteractionSpace = RiveController.get().CanvasToArtboard(this._entityObj!,true);
-					if (mouseDown)
+					if(mouseDown)
 					{
-						this._stateMachine.pointerDown(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
+						//console.log('CanvasRiveObj<'+this._label+'>: '+this._stateMachine?.name+' -- mouseDown @ ');
+						//console.log('CanvasRiveObj<'+this._label+'>: DOWN ', artboardMoveSpace.x, artboardMoveSpace.y, ' -- interaction space: ', artBoardInteractionSpace.x, artBoardInteractionSpace.y);
+						//this._stateMachine.pointerDown(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
+						this._stateMachine.pointerDown(artboardMoveSpace.x, artboardMoveSpace.y);
 					}
 					else
 					{
-						this._stateMachine.pointerUp(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
+						//this._stateMachine.pointerUp(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
+						this._stateMachine.pointerUp(artboardMoveSpace.x, artboardMoveSpace.y);
 					}
 				}
 
@@ -689,13 +691,16 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
+		console.log('RIVE OBJECT CLICKED: ', this._label, event);
 		if(this._onClickCallback)
 		{
+			console.log('RIVE OBJECT CLICKED: <1>');
 			this._onClickCallback?.(event,this);
 		}
 
 		if(this._defObj!.clickFunction)
 		{
+			console.log('RIVE OBJECT CLICKED: <2>');
 			this._defObj!.clickFunction(this);
 		}
 	}
