@@ -187,6 +187,13 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     hasStyleChanged() {
         return this._styleDirty;
     }
+    set Text(value) {
+        this.SetText(value);
+    }
+    get Text() {
+        var _a;
+        return (_a = this.defObj.text) !== null && _a !== void 0 ? _a : '';
+    }
     SetText(text) {
         this.defObj.text = text;
         if (this.defObj.typewriterEffect) {

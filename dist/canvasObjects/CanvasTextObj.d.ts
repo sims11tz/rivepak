@@ -23,6 +23,8 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private getCurrentDisplayText;
     private _styleDirty;
     private hasStyleChanged;
+    set Text(value: string);
+    get Text(): string;
     SetText(text: string): void;
     SetTextStyle(style: Partial<PIXI.TextStyleOptions>): void;
     SetAlignment(horizontal?: 'left' | 'center' | 'right' | 'justify', vertical?: 'top' | 'middle' | 'bottom'): void;

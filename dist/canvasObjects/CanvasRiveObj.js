@@ -489,13 +489,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     onClick(event) {
         var _a;
-        console.log('RIVE OBJECT CLICKED: ', this._label, event);
         if (this._onClickCallback) {
-            console.log('RIVE OBJECT CLICKED: <1>');
             (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
         }
         if (this._defObj.clickFunction) {
-            console.log('RIVE OBJECT CLICKED: <2>');
             this._defObj.clickFunction(this);
         }
     }

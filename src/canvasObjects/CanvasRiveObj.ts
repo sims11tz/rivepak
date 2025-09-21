@@ -691,16 +691,13 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
-		console.log('RIVE OBJECT CLICKED: ', this._label, event);
 		if(this._onClickCallback)
 		{
-			console.log('RIVE OBJECT CLICKED: <1>');
 			this._onClickCallback?.(event,this);
 		}
 
 		if(this._defObj!.clickFunction)
 		{
-			console.log('RIVE OBJECT CLICKED: <2>');
 			this._defObj!.clickFunction(this);
 		}
 	}

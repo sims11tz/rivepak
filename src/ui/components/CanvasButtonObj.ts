@@ -15,9 +15,12 @@ export interface ButtonConfig extends UIComponentConfig
 	iconPosition?:'left' | 'right';
 	variant?:'primary' | 'secondary' | 'outline' | 'ghost';
 	size?:'small' | 'medium' | 'large';
+	fontSize?:number;
 	toggle?:boolean;
 	selected?:boolean;
 	onClick?:InteractionCallback;
+	onPress?:InteractionCallback;
+	onRelease?:InteractionCallback;
 }
 
 export class CanvasButtonObj extends BaseUIComponent
@@ -28,6 +31,7 @@ export class CanvasButtonObj extends BaseUIComponent
 	private _selected:boolean;
 	private _variant:'primary' | 'secondary' | 'outline' | 'ghost';
 	private _size:'small' | 'medium' | 'large';
+	private _fontSize:number | undefined;
 	private _buttonText:string; // Store text separately for InitComponent
 
 	// Animation properties
@@ -78,6 +82,7 @@ export class CanvasButtonObj extends BaseUIComponent
 		this._buttonConfig = config;
 		this._variant = config.variant || 'primary';
 		this._size = config.size || 'medium';
+		this._fontSize = config.fontSize;
 		this._toggle = config.toggle || false;
 		this._selected = config.selected || false;
 		this._value = config.value !== undefined ? config.value : config.text;
@@ -114,9 +119,11 @@ export class CanvasButtonObj extends BaseUIComponent
 		delete (CanvasButtonObj as any)._tempConfig;
 
 		// Create text
-		const fontSize = size === 'small' ? this._theme.fonts.sizeSmall :
-		                 size === 'large' ? this._theme.fonts.sizeLarge :
-		                 this._theme.fonts.size;
+		// Use explicit fontSize if provided, otherwise use size-based defaults
+		const fontSize = config.fontSize ||
+		                 (size === 'small' ? this._theme.fonts.sizeSmall :
+		                  size === 'large' ? this._theme.fonts.sizeLarge :
+		                  this._theme.fonts.size);
 
 		this._text = new PIXI.Text({
 			text: config.text,
@@ -288,6 +295,12 @@ export class CanvasButtonObj extends BaseUIComponent
 
 		this._parentHandlePointerDown?.(event);
 
+		// Fire onPress callback if provided
+		if(this._buttonConfig?.onPress)
+		{
+			this._buttonConfig.onPress(this);
+		}
+
 		// Start press animation
 		this._targetScale = 0.95;
 		this.StartAnimation();
@@ -306,6 +319,12 @@ export class CanvasButtonObj extends BaseUIComponent
 		}
 
 		this._parentHandlePointerUp?.(event);
+
+		// Fire onRelease callback if provided and button was pressed
+		if(wasPressed && this._buttonConfig?.onRelease)
+		{
+			this._buttonConfig.onRelease(this);
+		}
 
 		// Start release animation
 		this._targetScale = 1.0;
@@ -372,6 +391,30 @@ export class CanvasButtonObj extends BaseUIComponent
 	public getText():string
 	{
 		return this._buttonConfig?.text || this._buttonText || '';
+	}
+
+	/**
+	 * Set button font size
+	 */
+	public setFontSize(fontSize:number):void
+	{
+		this._fontSize = fontSize;
+		if(this._buttonConfig)
+		{
+			this._buttonConfig.fontSize = fontSize;
+		}
+		if(this._text)
+		{
+			this._text.style.fontSize = fontSize;
+		}
+	}
+
+	/**
+	 * Get button font size
+	 */
+	public getFontSize():number | undefined
+	{
+		return this._fontSize;
 	}
 
 	/**

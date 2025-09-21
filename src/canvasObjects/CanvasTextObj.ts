@@ -249,6 +249,16 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		return this._styleDirty;
 	}
 
+	public set Text(value:string)
+	{
+		this.SetText(value);
+	}
+
+	public get Text():string
+	{
+		return this.defObj.text ?? '';
+	}
+
 	public SetText(text:string):void
 	{
 		this.defObj.text = text;
