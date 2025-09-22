@@ -22,7 +22,14 @@ export declare class CanvasPixiShapeObj extends BaseCanvasObj {
     protected _graphics: PIXI.Graphics | null;
     protected _debugGraphics: PIXI.Graphics | null;
     constructor(canvasDef: CanvasObjectDef);
+    /**
+     * Override InitVisuals to initialize Pixi objects
+     * This is called by CanvasEngine.AddCanvasObjects() after constructor chain completes
+     */
+    InitVisuals(): void;
     InitPixiObject(): void;
+    get visible(): boolean;
+    set visible(value: boolean);
     DrawVectors(): void;
     private _ranFirstUpdate;
     Update(time: number, frameCount: number, onceSecond: boolean): void;

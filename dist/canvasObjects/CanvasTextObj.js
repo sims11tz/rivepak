@@ -132,6 +132,21 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
                 break;
         }
     }
+    get visible() {
+        return super.visible;
+    }
+    set visible(value) {
+        //console.log(' SET SET ST SET SET SET CanvasTextObj['+this._uuid+'].visible = '+value);
+        if (value) {
+            if (this._textField)
+                this._textField.visible = true;
+        }
+        else {
+            if (this._textField)
+                this._textField.visible = false;
+        }
+        super.visible = value;
+    }
     DrawVectors() {
         if (this._textField && this._textField.text === this.getCurrentDisplayText() && !this.hasStyleChanged()) {
             return;

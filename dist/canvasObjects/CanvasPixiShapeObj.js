@@ -218,6 +218,14 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
         this._graphics = null;
         this._debugGraphics = null;
         this._ranFirstUpdate = false;
+        // InitPixiObject is now called via InitVisuals() when added to CanvasEngine
+    }
+    /**
+     * Override InitVisuals to initialize Pixi objects
+     * This is called by CanvasEngine.AddCanvasObjects() after constructor chain completes
+     */
+    InitVisuals() {
+        super.InitVisuals();
         this.InitPixiObject();
     }
     InitPixiObject() {
@@ -253,8 +261,23 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
             this.x -= (this.width / 2);
             this.y -= (this.height / 2);
         }
-        this.UpdateBaseProps();
         this.DrawVectors();
+        this.UpdateBaseProps();
+    }
+    get visible() {
+        return super.visible;
+    }
+    set visible(value) {
+        //console.log(' SET SET ST SET SET SET CanvasPixiShapeObj['+this._uuid+'].visible = '+value);
+        if (value) {
+            if (this._graphics)
+                this._graphics.visible = true;
+        }
+        else {
+            if (this._graphics)
+                this._graphics.visible = false;
+        }
+        super.visible = value;
     }
     DrawVectors() {
         if (this._graphics === null)

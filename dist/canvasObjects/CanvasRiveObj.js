@@ -324,7 +324,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         });
     }
     Update(time, frameCount, onceSecond) {
-        if (this.enabled === false)
+        if (this.enabled === false || this.visible === false)
             return;
         // Process animations - skip if timeline controlled or autoPlay is false
         for (let i = 0; i < this._animations.length; i++) {

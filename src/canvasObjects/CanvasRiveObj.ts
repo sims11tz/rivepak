@@ -450,7 +450,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public Update(time:number, frameCount:number, onceSecond:boolean): void
 	{
-		if(this.enabled === false) return;
+		if(this.enabled === false || this.visible === false) return;
 
 		// Process animations - skip if timeline controlled or autoPlay is false
 		for (let i = 0; i < this._animations.length; i++)

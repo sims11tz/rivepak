@@ -35,6 +35,7 @@ declare const BaseShapePhysicsObj_base: {
             z: number;
             xScale: number;
             yScale: number;
+            visible: boolean;
         };
         centerLocally: boolean;
         centerGlobally: boolean;
@@ -77,8 +78,9 @@ declare const BaseShapePhysicsObj_base: {
         };
         _debug: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale", (oldValue: number, newValue: number) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "visible" | "z" | "xScale" | "yScale", (oldValue: number | boolean, newValue: number | boolean) => void>;
         UpdateBaseProps(): void;
+        visible: boolean;
         z: number;
         xScale: number;
         yScale: number;
@@ -88,8 +90,8 @@ declare const BaseShapePhysicsObj_base: {
         readonly renderYScale: number;
         InitVisuals(): void;
         SwapDepths(other: import("./_baseCanvasObj").BaseCanvasObj): void;
-        BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale", callback: (oldValue: number, newValue: number) => void): void;
-        UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale"): void;
+        BindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
+        UnbindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale"): void;
         OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         _OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
     };

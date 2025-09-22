@@ -18,6 +18,8 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private migrateStrokeStyle;
     private createTextStyle;
     private calculateAlignmentOffsets;
+    get visible(): boolean;
+    set visible(value: boolean);
     DrawVectors(): void;
     private updateTextTransform;
     private getCurrentDisplayText;

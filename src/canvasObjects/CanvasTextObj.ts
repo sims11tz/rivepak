@@ -168,6 +168,25 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		}
 	}
 
+	public override get visible():boolean
+	{
+		return super.visible;
+	}
+	public override set visible(value:boolean)
+	{
+		//console.log(' SET SET ST SET SET SET CanvasTextObj['+this._uuid+'].visible = '+value);
+		if(value)
+		{
+			if(this._textField) this._textField.visible = true;
+		}
+		else
+		{
+			if(this._textField) this._textField.visible = false;
+		}
+
+		super.visible = value;
+	}
+
 	public override DrawVectors(): void
 	{
 		if(this._textField && this._textField.text === this.getCurrentDisplayText() && !this.hasStyleChanged())

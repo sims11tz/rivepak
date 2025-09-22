@@ -239,7 +239,10 @@ export class CanvasEngine
 			{
 				objects.forEach((obj) =>
 				{
-					obj.Update(elapsedTimeSec, frameCount, onceSecond);
+					if(obj.visible)
+					{
+						obj.Update(elapsedTimeSec, frameCount, onceSecond);
+					}
 				});
 			});
 

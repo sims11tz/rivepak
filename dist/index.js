@@ -3,6 +3,7 @@ export * from "./canvasObjects/CanvasContainerObj";
 export * from "./canvasObjects/CanvasPixiShapeObj";
 export * from "./canvasObjects/CanvasRiveObj";
 export * from "./canvasObjects/CanvasTextObj";
+export * from "./canvasObjects/CanvasTextAreaObj";
 export * from "./canvasObjects/PixiGraphicsObj";
 export * from "./canvasObjects/PixiGraphicsPhysicsObj";
 export * from "./canvasObjects/RiveAnimationObj";
