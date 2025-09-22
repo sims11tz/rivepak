@@ -21,6 +21,7 @@ export interface TextAreaBackgroundOptions {
 	shadowDistance?:number;
 	shadowAngle?:number;
 	shadowAlpha?:number;
+	autoSize?:boolean;  // Auto-resize background to fit visible content
 }
 
 export interface CanvasTextAreaDef extends CanvasObjectDef {
@@ -36,6 +37,7 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 {
 	private _textLines:CanvasTextObject[] | null = null;
 	private _backgroundGraphics:PIXI.Graphics | null = null;
+	private _shadowGraphics:PIXI.Graphics | null = null;
 	private _lines:string[] | null = null;
 	private _lineHeight:number=0;
 	private _maxLines:number=0;
@@ -43,13 +45,10 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 	private _background:TextAreaBackgroundOptions | null = null;
 	private _textStyle:Partial<PIXI.TextStyleOptions> | null = null;
 	private _lastLinesHash:string | null = null;
+	private _scrollToBottom:boolean = false;
 
 	constructor(canvasDef:CanvasTextAreaDef)
 	{
-		console.log('%c **  ', "color:#00FF00; font-weight:bold;");
-		console.log('%c ** CanvasTextAreaObj() ', "color:#00FF00; font-weight:bold;");
-		console.log('%c ** CanvasTextAreaObj() canvasDef=', "color:#00FF00; font-weight:bold;", canvasDef);
-
 		super(canvasDef);
 	}
 
@@ -58,38 +57,26 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		return this.defObj as CanvasTextAreaDef;
 	}
 
-	/**
-	 * Override InitVisuals instead of InitPixiObject
-	 * This ensures proper initialization after constructor chain completes
-	 */
 	public override InitVisuals():void
 	{
-		console.log('%c ** CanvasTextAreaObj.InitVisuals() ** START ** ', "color:#00FF00; font-weight:bold;");
-
 		// Initialize our properties
 		this._textLines = [];
 		this._backgroundGraphics = null;
 		this._lines = this.canvasTextAreaDef.lines || [];
 		this._lineHeight = this.canvasTextAreaDef.lineHeight || 24;
 		this._maxLines = this.canvasTextAreaDef.maxLines || 10;
-		this._lineSpacing = this.canvasTextAreaDef.lineSpacing || 10;
+		this._lineSpacing = this.canvasTextAreaDef.lineSpacing || 0;
 		this._textStyle = this.canvasTextAreaDef.textStyle || {};
-
-		console.log('%c ** CanvasTextAreaObj.InitVisuals() 1 ', "color:#00FF00; font-weight:bold;");
 
 		this._background = this.canvasTextAreaDef.background || {
 			enabled:false
 		};
-
-		console.log('%c ** CanvasTextAreaObj().InitVisuals() 2  this._background=', "color:#00FF00; font-weight:bold;", this._background);
 
 		// Set up dimensions and position
 		this.width = this.canvasTextAreaDef.width ?? 400;
 		this.height = this.canvasTextAreaDef.height ?? (this._maxLines * (this._lineHeight + this._lineSpacing));
 		this.xScale = this.canvasTextAreaDef.xScale ?? 1;
 		this.yScale = this.canvasTextAreaDef.yScale ?? 1;
-
-		console.log('%c ** CanvasTextAreaObj().InitVisuals() 3 ', "color:#00FF00; font-weight:bold;" );
 
 		this.x = this.canvasTextAreaDef.x ?? 0;
 		this.y = this.canvasTextAreaDef.y ?? 0;
@@ -106,8 +93,6 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			this.y -= (this.height / 2);
 		}
 
-		console.log('%c ** CanvasTextAreaObj().InitVisuals() 4 ', "color:#00FF00; font-weight:bold;" );
-
 		const scaledWidth = this.width * this.xScale;
 		const scaledHeight = this.height * this.yScale;
 		this._objBoundsReuse.minX = this.x;
@@ -115,18 +100,12 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this._objBoundsReuse.maxX = this.x + scaledWidth;
 		this._objBoundsReuse.maxY = this.y + scaledHeight;
 
-		console.log('%c ** CanvasTextAreaObj().InitVisuals() 5 ', "color:#00FF00; font-weight:bold;");
-
 		// Call parent initialization (which will call InitPixiObject)
 		super.InitVisuals();
-
-		console.log('%c ** CanvasTextAreaObj().InitVisuals() 6 ', "color:#00FF00; font-weight:bold;");
 
 		// Create background and text lines after parent init
 		this.createBackground();
 		this.createTextLines();
-
-		console.log('%c ** CanvasTextAreaObj.InitVisuals() ** END ** ', "color:#00FF00; font-weight:bold;");
 	}
 
 	private createBackground():void
@@ -136,10 +115,20 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		if(!this._background || !this._background.enabled) return;
 
 		if(debug) console.log('%c ** CTAO :: createBackground() ** 1', "color:#00FF00; font-weight:bold;");
+
+		// Clean up existing graphics
 		if(this._backgroundGraphics)
 		{
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._backgroundGraphics);
 			this._backgroundGraphics.destroy();
+			this._backgroundGraphics = null;
+		}
+
+		if(this._shadowGraphics)
+		{
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._shadowGraphics);
+			this._shadowGraphics.destroy();
+			this._shadowGraphics = null;
 		}
 
 		this._backgroundGraphics = new PIXI.Graphics();
@@ -148,15 +137,28 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		const padding = this._background.padding || 0;
 		const x = this.x - padding;
 		const y = this.y - padding;
+
+		// Calculate height based on autoSize setting
+		let height:number;
+		if(this._background.autoSize && this._lines)
+		{
+			// Calculate height based on number of visible lines with content
+			const visibleLines = this._lines.filter(line => line && line.trim().length > 0).length;
+			height = (visibleLines * (this._lineHeight + this._lineSpacing)) + (padding * 2);
+		}
+		else
+		{
+			height = this.height + (padding * 2);
+		}
+
 		const width = this.width + (padding * 2);
-		const height = this.height + (padding * 2);
 		const radius = this._background.borderRadius || 0;
 
 		// Add shadow if enabled
 		if(this._background.shadowBlur || this._background.shadowDistance)
 		{
 			if(debug) console.log('%c ** CTAO :: createBackground() ** 3', "color:#00FF00; font-weight:bold;");
-			const shadowGraphics = new PIXI.Graphics();
+			this._shadowGraphics = new PIXI.Graphics();
 			const shadowColor = this._background.shadowColor || 0x000000;
 			const shadowAlpha = this._background.shadowAlpha || 0.5;
 			const shadowDistance = this._background.shadowDistance || 5;
@@ -165,17 +167,17 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			const shadowX = x + Math.cos(shadowAngle) * shadowDistance;
 			const shadowY = y + Math.sin(shadowAngle) * shadowDistance;
 
-			shadowGraphics.alpha = shadowAlpha;
+			this._shadowGraphics.alpha = shadowAlpha;
 
 			if(radius > 0)
 			{
-				shadowGraphics.roundRect(shadowX, shadowY, width, height, radius);
+				this._shadowGraphics.roundRect(shadowX, shadowY, width, height, radius);
 			}
 			else
 			{
-				shadowGraphics.rect(shadowX, shadowY, width, height);
+				this._shadowGraphics.rect(shadowX, shadowY, width, height);
 			}
-			shadowGraphics.fill(shadowColor);
+			this._shadowGraphics.fill(shadowColor);
 
 			// Apply blur filter if specified
 			if(this._background.shadowBlur && this._background.shadowBlur > 0)
@@ -184,10 +186,10 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 					strength: this._background.shadowBlur,
 					quality: 4
 				});
-				shadowGraphics.filters = [blurFilter];
+				this._shadowGraphics.filters = [blurFilter];
 			}
 
-			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(shadowGraphics);
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._shadowGraphics);
 		}
 
 		// Draw border if specified
@@ -259,25 +261,19 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 
 	private createTextLines():void
 	{
-		console.log('%c ** CTAO :: createTextLines() ** 1', "color:#00FF00; font-weight:bold;");
-		if(this._textLines === null)
-		{
-			console.log('%c ** CTAO :: createTextLines() ** NOOOOOOOO', "color:#00FF00; font-weight:bold;");
-			return;
-		}
+		if(this._textLines === null) return;
 
 		// Clear existing text lines
 		this.clearTextLines();
 
 		const padding = this._background?.padding || 0;
 
-		console.log('%c ** CTAO :: createTextLines() ** 2 - '+this._maxLines, "color:#00FF00; font-weight:bold;");
 		// Create new text lines
 		for(let i = 0; i < this._maxLines; i++)
 		{
 			const textLine = new CanvasTextObject({
 				label: `${this.defObj.label}_Line${i}`,
-				text: 'LINE :: ' + i,
+				text: '',
 				width: this.width,
 				height: this._lineHeight,
 				x: this.x + padding,
@@ -285,21 +281,23 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 				textStyle: this._textStyle,
 				textAlign: this.defObj.textAlign,
 				verticalAlign: 'top',
-				visible: true,
+				visible: false,  // Start hidden until we have content
 				pixiLayer: this.defObj.pixiLayer
 			} as CanvasObjectDef);
 
 			this._textLines.push(textLine);
-			console.log('%c ** CTAO :: createTextLines() ** 3 - '+i, "color:#00FF00; font-weight:bold;");
 			CanvasEngine.get().AddCanvasObjects(textLine);
 		}
 
-		console.log('%c ** CTAO :: createTextLines() ** 4 - this._textLines=', "color:#00FF00; font-weight:bold;",this._textLines);
+		// Initialize with current lines if any
+		if(this._lines && this._lines.length > 0)
+		{
+			this.updateTextLines();
+		}
 	}
 
 	private clearTextLines():void
 	{
-		console.log('%c ** CTAO :: clearTextLines() ** 1', "color:#00FF00; font-weight:bold;");
 		if(this._textLines && this._textLines.length > 0)
 		{
 			for(const line of this._textLines)
@@ -322,9 +320,6 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			return;
 		}
 
-		console.log('%c ** CTAO :: SetLines() ** 1 newLinesHash = ', "color:#00FF00; font-weight:bold;",newLinesHash);
-		console.log('%c ** CTAO :: SetLines() ** 1 this._lastLinesHash = ', "color:#00FF00; font-weight:bold;",this._lastLinesHash);
-
 		this._lastLinesHash = newLinesHash;
 		this._lines = lines;
 		this.updateTextLines();
@@ -334,21 +329,32 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 	{
 		if(this._lines === null)
 		{
-			console.log('%c ** CTAO :: AddLine() ** NOOOOOOOO', "color:#00FF00; font-weight:bold;");
-			return;
+			this._lines = [];
 		}
 
 		this._lines.push(line);
 
-		// Keep only the most recent lines if we exceed maxLines
-		if(this._lines.length > this._maxLines)
+		// Keep only the most recent lines if we exceed maxLines (scrolling behavior)
+		if(this._scrollToBottom && this._lines.length > this._maxLines)
 		{
 			this._lines = this._lines.slice(-this._maxLines);
+		}
+		else if(!this._scrollToBottom && this._lines.length > this._maxLines)
+		{
+			this._lines.length = this._maxLines;  // Truncate oldest lines
 		}
 
 		// Update hash after modifying lines
 		this._lastLinesHash = this._lines.join('|||');
 		this.updateTextLines();
+	}
+
+	/**
+	 * Set whether to scroll to bottom when adding new lines
+	 */
+	public SetScrollToBottom(scroll:boolean):void
+	{
+		this._scrollToBottom = scroll;
 	}
 
 	public ClearLines():void
@@ -360,31 +366,11 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 
 	private updateTextLines():void
 	{
-		console.log('%c ** CTAO :: updateTextLines() ** 1', "color:#00FF00; font-weight:bold;");
-		console.log('%c ** CTAO :: updateTextLines() **    >this._textLines=', "color:#00FF00; font-weight:bold;",this._textLines);
-		console.log('%c ** CTAO :: updateTextLines() **        >this._lines=', "color:#00FF00; font-weight:bold;",this._lines);
-
-		if(this._lines === null || this._textLines === null)
-		{
-			console.log('%c ** CTAO :: updateTextLines() ** NOOOOOOOO', "color:#00FF00; font-weight:bold;");
-			if(this._lines === null)
-			{
-				console.log('%c ** CTAO :: updateTextLines() ** NOOOOOOOO _lines', "color:#00FF00; font-weight:bold;");
-			}
-
-			if(this._textLines === null)
-			{
-				console.log('%c ** CTAO :: updateTextLines() ** NOOOOOOOO _textLines', "color:#00FF00; font-weight:bold;");
-			}
-
-			return;
-		}
-
-		console.log('%c ** CTAO :: updateTextLines() ** 2', "color:#00FF00; font-weight:bold;");
+		if(this._lines === null || this._textLines === null) return;
 
 		for(let i = 0; i < this._textLines.length; i++)
 		{
-			if(i < this._lines.length)
+			if(i < this._lines.length && this._lines[i])
 			{
 				this._textLines[i].SetText(this._lines[i]);
 				this._textLines[i].visible = true;
@@ -395,15 +381,17 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 				this._textLines[i].visible = false;
 			}
 		}
+
+		// Refresh background if autoSize is enabled
+		if(this._background && this._background.enabled && this._background.autoSize)
+		{
+			this.createBackground();
+		}
 	}
 
 	public SetTextStyle(style:Partial<PIXI.TextStyleOptions>):void
 	{
-		if(this._textLines === null)
-		{
-			console.log('%c ** CTAO :: SetTextStyle() ** NOOOOOOOO', "color:#00FF00; font-weight:bold;");
-			return;
-		}
+		if(this._textLines === null) return;
 
 		this._textStyle = { ...this._textStyle, ...style };
 
@@ -419,13 +407,26 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this.createBackground();
 	}
 
+	/**
+	 * Get the number of lines with actual content
+	 */
+	public GetVisibleLinesCount():number
+	{
+		if(!this._lines) return 0;
+		return this._lines.filter(line => line && line.trim().length > 0).length;
+	}
+
+	/**
+	 * Get all current lines
+	 */
+	public GetLines():string[]
+	{
+		return this._lines ? [...this._lines] : [];
+	}
+
 	public ToggleVisibility():void
 	{
-		if(this._textLines === null || this._lines === null)
-		{
-			console.log('%c ** CTAO :: ToggleVisibility() ** NOOOOOOOO', "color:#00FF00; font-weight:bold;");
-			return;
-		}
+		if(this._textLines === null || this._lines === null) return;
 
 		const newVisibility = !this.visible;
 		this.visible = newVisibility;
@@ -445,23 +446,15 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 	{
 		if(this.enabled === false) return;
 
-		if(onceSecond) console.log('%c ** CTAO :: Update() ** 1', "color:#00FF00; font-weight:bold;");
-
 		// Update background position if needed
 		if(this._backgroundGraphics && this._background && CanvasEngine.get().EngineSettings?.autoScale)
 		{
-			if(onceSecond) console.log('%c ** CTAO :: Update() ** 2', "color:#00FF00; font-weight:bold;");
 			const scale = CanvasEngine.get().CurrentCanvasScale;
 			const padding = this._background.padding || 0;
 
 			this._backgroundGraphics.x = (this.renderX - padding) * scale;
 			this._backgroundGraphics.y = (this.renderY - padding) * scale;
 			this._backgroundGraphics.scale.set(scale * this.renderXScale, scale * this.renderYScale);
-			if(onceSecond) console.log('%c ** CTAO :: Update() ** 2 - '+this._backgroundGraphics.x+','+this._backgroundGraphics.y, "color:#00FF00; font-weight:bold;");
-		}
-		else
-		{
-			if(onceSecond) console.log('%c ** CTAO :: Update() ** 3', "color:#00FF00; font-weight:bold;");
 		}
 
 		super.Update(time, frameCount, onceSecond);
@@ -476,6 +469,13 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._backgroundGraphics);
 			this._backgroundGraphics.destroy();
 			this._backgroundGraphics = null;
+		}
+
+		if(this._shadowGraphics)
+		{
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._shadowGraphics);
+			this._shadowGraphics.destroy();
+			this._shadowGraphics = null;
 		}
 
 		super.Dispose();
