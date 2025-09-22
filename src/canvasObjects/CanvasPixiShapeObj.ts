@@ -266,13 +266,8 @@ export class CanvasPixiShapeObj extends BaseCanvasObj
 	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
-		// InitPixiObject is now called via InitVisuals() when added to CanvasEngine
 	}
 
-	/**
-	 * Override InitVisuals to initialize Pixi objects
-	 * This is called by CanvasEngine.AddCanvasObjects() after constructor chain completes
-	 */
 	public override InitVisuals():void
 	{
 		super.InitVisuals();

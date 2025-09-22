@@ -218,12 +218,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
         this._graphics = null;
         this._debugGraphics = null;
         this._ranFirstUpdate = false;
-        // InitPixiObject is now called via InitVisuals() when added to CanvasEngine
     }
-    /**
-     * Override InitVisuals to initialize Pixi objects
-     * This is called by CanvasEngine.AddCanvasObjects() after constructor chain completes
-     */
     InitVisuals() {
         super.InitVisuals();
         this.InitPixiObject();
