@@ -279,10 +279,12 @@ export class CanvasPixiShapeObj extends BaseCanvasObj
 		if(this._debug)
 		{
 			this._debugGraphics = new PIXI.Graphics();
+			this._debugGraphics.zIndex = 100000; // Always on top
 			PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
 		}
 
 		this._graphics = new PIXI.Graphics();
+		this._graphics.zIndex = this.z;
 		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._graphics);
 
 		this.width = this.defObj.width ?? 100;

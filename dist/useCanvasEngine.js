@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { PhysicsController } from "./controllers/PhysicsController";
-import { PixiController } from "./controllers/PixiController";
+import { PixiController, PIXI_LAYER } from "./controllers/PixiController";
 import { useEffect, useRef } from "react";
 import { GlobalUIDGenerator } from "./canvasObjects/_baseCanvasObj";
 import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
@@ -316,11 +316,16 @@ export class CanvasEngine {
             else {
                 (_b = (_c = obj)._inited) !== null && _b !== void 0 ? _b : (_c._inited = false);
                 if (!obj._inited) {
+                    // Check if the object has a specific z value in its defObj
+                    const hasExplicitZ = obj.defObj.z !== undefined && obj.defObj.z !== null;
                     obj.InitVisuals();
                     obj._inited = true;
+                    // Only auto-assign z if no explicit z was defined in defObj
+                    if (!hasExplicitZ) {
+                        obj.z = ++maxZ;
+                    }
                 }
             }
-            obj.z = ++maxZ;
             dest.push(obj);
         }
         dest.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
@@ -369,6 +374,68 @@ export class CanvasEngine {
         }
     }
     get CurrentCanvasScale() { return this._currentCanvasScale; }
+    DebugLogLayering() {
+        console.log('%c ===== Canvas Objects Layering Debug =====', 'color:#00FF00; font-weight:bold;');
+        // Get PIXI stages
+        const pixiAbove = PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE);
+        const pixiBelow = PixiController.get().GetPixiInstance(PIXI_LAYER.BELOW);
+        // Log all canvas objects by group
+        this._canvasObjects.forEach((objects, group) => {
+            console.log(`%c Group: ${group} (${objects.length} objects)`, 'color:#FFD700; font-weight:bold;');
+            // Sort by z for display
+            const sorted = [...objects].sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
+            sorted.forEach(obj => {
+                var _a, _b, _c;
+                const info = {
+                    label: obj.label,
+                    type: obj.constructor.name,
+                    stateZ: obj.z,
+                    visible: obj.visible,
+                };
+                // Try to get PIXI zIndex for different object types
+                if (obj._textField) {
+                    // CanvasTextObject
+                    info.pixiZIndex = obj._textField.zIndex;
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                }
+                else if (obj._graphics) {
+                    // CanvasPixiShapeObj
+                    info.pixiZIndex = obj._graphics.zIndex;
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                }
+                else if (obj._backgroundGraphics) {
+                    // CanvasTextAreaObj background
+                    info.bgPixiZIndex = (_a = obj._backgroundGraphics) === null || _a === void 0 ? void 0 : _a.zIndex;
+                    info.shadowPixiZIndex = (_b = obj._shadowGraphics) === null || _b === void 0 ? void 0 : _b.zIndex;
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                }
+                else if (obj._interactiveGraphics) {
+                    // CanvasRiveObj
+                    info.interactiveZIndex = (_c = obj._interactiveGraphics) === null || _c === void 0 ? void 0 : _c.zIndex;
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                }
+                // Check if it's a container with children
+                if (obj.children && obj.children.length > 0) {
+                    info.childrenCount = obj.children.length;
+                }
+                console.log(`  ${obj.label}:`, info);
+            });
+        });
+        // Log PIXI stage children counts
+        console.log('%c ===== PIXI Stage Info =====', 'color:#00FFFF; font-weight:bold;');
+        console.log(`PIXI ABOVE Stage children: ${pixiAbove.stage.children.length}`);
+        console.log(`PIXI BELOW Stage children: ${pixiBelow.stage.children.length}`);
+        // Show first few children of each stage with their zIndex
+        console.log('PIXI ABOVE Stage children (first 10):');
+        pixiAbove.stage.children.slice(0, 50).forEach((child, i) => {
+            console.log(`  [${i}] zIndex: ${child.zIndex}, type: ${child.constructor.name} text: ${child.text} `);
+        });
+        console.log('PIXI BELOW Stage children (first 10):');
+        pixiBelow.stage.children.slice(0, 10).forEach((child, i) => {
+            console.log(`  [${i}] zIndex: ${child.zIndex}, type: ${child.constructor.name}`);
+        });
+        console.log('%c ===== End Debug =====', 'color:#00FF00; font-weight:bold;');
+    }
     Dispose() {
         this._runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
         if (this._engine) {

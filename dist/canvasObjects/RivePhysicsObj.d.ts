@@ -79,7 +79,7 @@ declare const BaseRivePhysicsObject_base: {
         };
         _debug: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"x" | "y" | "visible" | "z" | "xScale" | "yScale", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
         UpdateBaseProps(): void;
         visible: boolean;
         z: number;
@@ -91,8 +91,8 @@ declare const BaseRivePhysicsObject_base: {
         readonly renderYScale: number;
         InitVisuals(): void;
         SwapDepths(other: import("./_baseCanvasObj").BaseCanvasObj): void;
-        BindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
-        UnbindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale"): void;
+        BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
+        UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible"): void;
         OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         _OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
     };

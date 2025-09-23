@@ -1,6 +1,6 @@
 import { Renderer } from "@rive-app/webgl-advanced";
 import { PhysicsController } from "./controllers/PhysicsController";
-import { PixiController } from "./controllers/PixiController";
+import { PixiController, PIXI_LAYER } from "./controllers/PixiController";
 import { AnimationMetadata, RiveInstance } from "./canvasObjects/CanvasRiveObj";
 import React, { JSX, useEffect, useRef } from "react";
 import { BaseCanvasObj, GlobalUIDGenerator } from "./canvasObjects/_baseCanvasObj";
@@ -364,12 +364,19 @@ export class CanvasEngine
 				(obj as any)._inited ??= false;
 				if (!(obj as any)._inited)
 				{
+					// Check if the object has a specific z value in its defObj
+					const hasExplicitZ = obj.defObj.z !== undefined && obj.defObj.z !== null;
+
 					obj.InitVisuals();
 					(obj as any)._inited = true;
+
+					// Only auto-assign z if no explicit z was defined in defObj
+					if (!hasExplicitZ) {
+						obj.z = ++maxZ;
+					}
 				}
 			}
 
-			obj.z = ++maxZ;
 			dest.push(obj);
 		}
 
@@ -503,6 +510,80 @@ export class CanvasEngine
 		});
 
 		CanvasEngineResizePubSub.Publish({width:newWidth, height:newHeight, scale:this._currentCanvasScale, margin:`${vertMargin}px ${horizMargin}px`, canvasRef:this.canvasRef} as ResizeCanvasObj);
+	}
+
+	public DebugLogLayering():void
+	{
+		console.log('%c ===== Canvas Objects Layering Debug =====', 'color:#00FF00; font-weight:bold;');
+
+		// Get PIXI stages
+		const pixiAbove = PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE);
+		const pixiBelow = PixiController.get().GetPixiInstance(PIXI_LAYER.BELOW);
+
+		// Log all canvas objects by group
+		this._canvasObjects.forEach((objects, group) => {
+			console.log(`%c Group: ${group} (${objects.length} objects)`, 'color:#FFD700; font-weight:bold;');
+
+			// Sort by z for display
+			const sorted = [...objects].sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+
+			sorted.forEach(obj => {
+				const info:any = {
+					label: obj.label,
+					type: obj.constructor.name,
+					stateZ: obj.z,
+					visible: obj.visible,
+				};
+
+				// Try to get PIXI zIndex for different object types
+				if((obj as any)._textField) {
+					// CanvasTextObject
+					info.pixiZIndex = (obj as any)._textField.zIndex;
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+				}
+				else if((obj as any)._graphics) {
+					// CanvasPixiShapeObj
+					info.pixiZIndex = (obj as any)._graphics.zIndex;
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+				}
+				else if((obj as any)._backgroundGraphics) {
+					// CanvasTextAreaObj background
+					info.bgPixiZIndex = (obj as any)._backgroundGraphics?.zIndex;
+					info.shadowPixiZIndex = (obj as any)._shadowGraphics?.zIndex;
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+				}
+				else if((obj as any)._interactiveGraphics) {
+					// CanvasRiveObj
+					info.interactiveZIndex = (obj as any)._interactiveGraphics?.zIndex;
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+				}
+
+				// Check if it's a container with children
+				if((obj as any).children && (obj as any).children.length > 0) {
+					info.childrenCount = (obj as any).children.length;
+				}
+
+				console.log(`  ${obj.label}:`, info);
+			});
+		});
+
+		// Log PIXI stage children counts
+		console.log('%c ===== PIXI Stage Info =====', 'color:#00FFFF; font-weight:bold;');
+		console.log(`PIXI ABOVE Stage children: ${pixiAbove.stage.children.length}`);
+		console.log(`PIXI BELOW Stage children: ${pixiBelow.stage.children.length}`);
+
+		// Show first few children of each stage with their zIndex
+		console.log('PIXI ABOVE Stage children (first 10):');
+		pixiAbove.stage.children.slice(0, 50).forEach((child:any, i) => {
+			console.log(`  [${i}] zIndex: ${child.zIndex}, type: ${child.constructor.name} text: ${(child as any).text} `);
+		});
+
+		console.log('PIXI BELOW Stage children (first 10):');
+		pixiBelow.stage.children.slice(0, 10).forEach((child:any, i) => {
+			console.log(`  [${i}] zIndex: ${child.zIndex}, type: ${child.constructor.name}`);
+		});
+
+		console.log('%c ===== End Debug =====', 'color:#00FF00; font-weight:bold;');
 	}
 
 	public Dispose()

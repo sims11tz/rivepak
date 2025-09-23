@@ -7,7 +7,7 @@ import { PixiController } from "../controllers/PixiController";
 
 export class CanvasTextObject extends CanvasPixiShapeObj
 {
-	private _textField!: PIXI.Text | null;
+	private _textField!:PIXI.Text | null;
 
 	private _typewriterIndex!:number;
 	private _typewriterTimer!:number;
@@ -35,6 +35,22 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		}
 	}
 
+	// Override z setter to update text field zIndex
+	public override get z():number
+	{
+		return super.z;
+	}
+
+	public override set z(value:number)
+	{
+		super.z = value;
+		// Update the text field's zIndex when z changes
+		if(this._textField)
+		{
+			this._textField.zIndex = value;
+		}
+	}
+
 	public override InitPixiObject(): void
 	{
 		//this._debug = true;
@@ -44,8 +60,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.xScale = this.defObj.xScale ?? 1;
 		this.yScale = this.defObj.yScale ?? 1;
 
-		this.x = this.defObj.x ?? 0;
 		this.y = this.defObj.y ?? 0;
+		this.z = this.defObj.z ?? 0;
 
 		if(this.centerGlobally)
 		{
@@ -174,7 +190,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 	}
 	public override set visible(value:boolean)
 	{
-		//console.log(' SET SET ST SET SET SET CanvasTextObj['+this._uuid+'].visible = '+value);
 		if(value)
 		{
 			if(this._textField) this._textField.visible = true;
@@ -207,6 +222,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		{
 			const style = this.createTextStyle();
 			this._textField = new PIXI.Text({text:displayText, style:style});
+			this._textField.zIndex = this.z;
 
 			if(this.defObj.interactive)
 			{
@@ -324,7 +340,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
-	private onTextClick(event:PIXI.FederatedPointerEvent):void
+	private onTextClick(_event:PIXI.FederatedPointerEvent):void
 	{
 		console.log("Text clicked:", this.defObj.text);
 		if(this._defObj!.clickFunction)

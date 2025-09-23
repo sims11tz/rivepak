@@ -21,7 +21,7 @@ export interface TextAreaBackgroundOptions {
 	shadowDistance?:number;
 	shadowAngle?:number;
 	shadowAlpha?:number;
-	autoSize?:boolean;  // Auto-resize background to fit visible content
+	autoSize?:boolean;
 }
 
 export interface CanvasTextAreaDef extends CanvasObjectDef {
@@ -80,6 +80,7 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 
 		this.x = this.canvasTextAreaDef.x ?? 0;
 		this.y = this.canvasTextAreaDef.y ?? 0;
+		this.z = this.canvasTextAreaDef.z ?? 0;
 
 		if(this.centerGlobally)
 		{
@@ -100,10 +101,8 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this._objBoundsReuse.maxX = this.x + scaledWidth;
 		this._objBoundsReuse.maxY = this.y + scaledHeight;
 
-		// Call parent initialization (which will call InitPixiObject)
 		super.InitVisuals();
 
-		// Create background and text lines after parent init
 		this.createBackground();
 		this.createTextLines();
 	}
@@ -132,19 +131,24 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		}
 
 		this._backgroundGraphics = new PIXI.Graphics();
+		this._backgroundGraphics.zIndex = 210;
 
 		if(debug) console.log('%c ** CTAO :: createBackground() ** 2', "color:#00FF00; font-weight:bold;");
 		const padding = this._background.padding || 0;
-		const x = this.x - padding;
-		const y = this.y - padding;
+		// Draw at origin, position will be set via x,y properties
+		const x = 0;
+		const y = 0;
 
-		// Calculate height based on autoSize setting
+		// Calculate height based on autoSize setting (includes padding)
 		let height:number;
 		if(this._background.autoSize && this._lines)
 		{
-			// Calculate height based on number of visible lines with content
+			// Calculate height based on number of visible lines with content plus padding
 			const visibleLines = this._lines.filter(line => line && line.trim().length > 0).length;
-			height = (visibleLines * (this._lineHeight + this._lineSpacing)) + (padding * 2);
+			// Ensure minimum height for at least one line even if no content
+			const lineCount = Math.max(1, visibleLines);
+			// Calculate height: lines * lineHeight + spacing between lines (not after last line)
+			height = (lineCount * this._lineHeight) + ((lineCount - 1) * this._lineSpacing) + (padding * 2);
 		}
 		else
 		{
@@ -157,25 +161,26 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		// Add shadow if enabled
 		if(this._background.shadowBlur || this._background.shadowDistance)
 		{
-			if(debug) console.log('%c ** CTAO :: createBackground() ** 3', "color:#00FF00; font-weight:bold;");
 			this._shadowGraphics = new PIXI.Graphics();
+			this._shadowGraphics.zIndex = 201;
 			const shadowColor = this._background.shadowColor || 0x000000;
 			const shadowAlpha = this._background.shadowAlpha || 0.5;
 			const shadowDistance = this._background.shadowDistance || 5;
 			const shadowAngle = this._background.shadowAngle || Math.PI / 4;
 
-			const shadowX = x + Math.cos(shadowAngle) * shadowDistance;
-			const shadowY = y + Math.sin(shadowAngle) * shadowDistance;
+			// Draw shadow at origin with offset
+			const shadowOffsetX = Math.cos(shadowAngle) * shadowDistance;
+			const shadowOffsetY = Math.sin(shadowAngle) * shadowDistance;
 
 			this._shadowGraphics.alpha = shadowAlpha;
 
 			if(radius > 0)
 			{
-				this._shadowGraphics.roundRect(shadowX, shadowY, width, height, radius);
+				this._shadowGraphics.roundRect(shadowOffsetX, shadowOffsetY, width, height, radius);
 			}
 			else
 			{
-				this._shadowGraphics.rect(shadowX, shadowY, width, height);
+				this._shadowGraphics.rect(shadowOffsetX, shadowOffsetY, width, height);
 			}
 			this._shadowGraphics.fill(shadowColor);
 
@@ -188,6 +193,11 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 				});
 				this._shadowGraphics.filters = [blurFilter];
 			}
+
+			console.log('%c SET SHADOW GRAPHICS : x='+this.x+', y='+this.y+', width='+width+', height='+height+', padding='+padding, "color:#798cff; font-weight:bold;");
+			// Position the shadow graphics at base position (no padding offset)
+			this._shadowGraphics.x = this.x;
+			this._shadowGraphics.y = this.y;
 
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._shadowGraphics);
 		}
@@ -212,14 +222,8 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			if(debug) console.log('%c ** CTAO :: createBackground() ** 5', "color:#00FF00; font-weight:bold;");
 			if(Array.isArray(this._background.fill) && this._background.fill.length > 1)
 			{
-				// For gradients in PIXI v8, we'll use the first and last colors
-				// and create a simple blend. Full gradient support would require
-				// creating a canvas texture or using a shader
 				const colors = this._background.fill as (number | string)[];
 				const firstColor = typeof colors[0] === 'string' ? colors[0] : colors[0];
-
-				// For now, use the first color as a solid fill
-				// TODO: Implement proper gradient support with canvas texture
 				this._backgroundGraphics.fill(firstColor);
 			}
 			else
@@ -238,21 +242,21 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		// Draw the shape
 		if(radius > 0)
 		{
-			if(debug) console.log('%c ** CTAO :: createBackground() ** 7', "color:#00FF00; font-weight:bold;");
+			if(debug) console.log('%c ** CTAO :: createBackground() ** 7 x:'+x+', y:'+y+', width:'+width+', height:'+height+', radius:'+radius, "color:#798cff; font-weight:bold;");
 			this._backgroundGraphics.roundRect(x, y, width, height, radius);
 		}
 		else
 		{
-			if(debug) console.log('%c ** CTAO :: createBackground() ** 8', "color:#00FF00; font-weight:bold;");
+			if(debug) console.log('%c ** CTAO :: createBackground() ** 8 x:'+x+', y:'+y+', width:'+width+', height:'+height+', radius:'+radius, "color:#798cff; font-weight:bold;");
 			this._backgroundGraphics.rect(x, y, width, height);
 		}
 
 		this._backgroundGraphics.fill();
 
-		// Set alpha
 		this._backgroundGraphics.alpha = this._background.alpha || 1;
 
-		if(debug) console.log('%c ** CTAO :: createBackground() ** 9 alpha : '+this._backgroundGraphics.alpha, "color:#00FF00; font-weight:bold;");
+		this._backgroundGraphics.x = this.x;
+		this._backgroundGraphics.y = this.y;
 
 		// Add to stage
 		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._backgroundGraphics);
@@ -267,23 +271,37 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this.clearTextLines();
 
 		const padding = this._background?.padding || 0;
+		const startZ = 520;
+
+		//console.log(`%c CanvasTextAreaObj :: createTextLines() base x=${this.x}, y=${this.y}, padding=${padding}`, 'color:#FF00FF; font-weight:bold;');
 
 		// Create new text lines
 		for(let i = 0; i < this._maxLines; i++)
 		{
+			const textX = this.x + padding;
+			const textY = this.y + padding + (i * (this._lineHeight + this._lineSpacing));
+
 			const textLine = new CanvasTextObject({
 				label: `${this.defObj.label}_Line${i}`,
 				text: '',
 				width: this.width,
 				height: this._lineHeight,
-				x: this.x + padding,
-				y: this.y + padding + (i * (this._lineHeight + this._lineSpacing)),
+				x: textX,
+				y: textY,
+				z: startZ + i,
+				xScale: this.xScale,
+				yScale: this.yScale,
 				textStyle: this._textStyle,
 				textAlign: this.defObj.textAlign,
 				verticalAlign: 'top',
 				visible: false,  // Start hidden until we have content
 				pixiLayer: this.defObj.pixiLayer
 			} as CanvasObjectDef);
+
+			//console.log('%c CanvasTextAreaObj :: createTextLines() x='+this.x,'color:#00FF00; font-weight:bold;');
+			//console.log('%c CanvasTextAreaObj :: createTextLines() x='+textLine.x,'color:#00FF00; font-weight:bold;');
+			//console.log('%c CanvasTextAreaObj :: createTextLines() y='+textLine.y,'color:#00FF00; font-weight:bold;');
+			//console.log('%c CanvasTextAreaObj :: createTextLines() z='+textLine.z,'color:#00FF00; font-weight:bold;');
 
 			this._textLines.push(textLine);
 			CanvasEngine.get().AddCanvasObjects(textLine);
@@ -446,15 +464,51 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 	{
 		if(this.enabled === false) return;
 
-		// Update background position if needed
-		if(this._backgroundGraphics && this._background && CanvasEngine.get().EngineSettings?.autoScale)
-		{
-			const scale = CanvasEngine.get().CurrentCanvasScale;
-			const padding = this._background.padding || 0;
+		let transformedX = 0;
+		let xScale = 0;
+		let transformedY = 0;
+		let yScale = 0;
 
-			this._backgroundGraphics.x = (this.renderX - padding) * scale;
-			this._backgroundGraphics.y = (this.renderY - padding) * scale;
-			this._backgroundGraphics.scale.set(scale * this.renderXScale, scale * this.renderYScale);
+		//// Use render coordinates (automatically handles parent transforms)
+		if(CanvasEngine.get().EngineSettings?.autoScale && (this._graphics || (this._debug && this._debugGraphics)))
+		{
+			transformedX = this.renderX * CanvasEngine.get().CurrentCanvasScale;
+			transformedY = this.renderY * CanvasEngine.get().CurrentCanvasScale;
+			xScale = CanvasEngine.get().CurrentCanvasScale * this.renderXScale;
+			yScale = CanvasEngine.get().CurrentCanvasScale * this.renderYScale;
+		}
+		else
+		{
+			transformedX = this.renderX;
+			transformedY = this.renderY;
+			xScale = this.renderXScale;
+			yScale = this.renderYScale;
+		}
+
+		// Update background position if needed
+		if(this._backgroundGraphics)
+		{
+			//if(onceSecond) console.log('%c ** CTAO :: BG Update() ** x='+this.x+', y='+this.y+', width='+this.width+', height='+this.height, "color:#798cff; font-weight:bold;");
+			//if(onceSecond) console.log('%c ** CTAO :: BG Update() ** x='+this._backgroundGraphics.x+', y='+this._backgroundGraphics.y+', width='+this._backgroundGraphics.width+', height='+this._backgroundGraphics.height, "color:#798cff; font-weight:bold;");
+			this._backgroundGraphics.x = transformedX;
+			this._backgroundGraphics.y = transformedY;
+
+			if(this._shadowGraphics)
+			{
+				this._shadowGraphics.x = transformedX;
+				this._shadowGraphics.y = transformedY;
+			}
+
+			if(CanvasEngine.get().EngineSettings?.autoScale)
+			{
+				const scale = CanvasEngine.get().CurrentCanvasScale;
+				this._backgroundGraphics.scale.set(xScale, yScale);
+
+				if(this._shadowGraphics)
+				{
+					this._shadowGraphics.scale.set(xScale, yScale);
+				}
+			}
 		}
 
 		super.Update(time, frameCount, onceSecond);

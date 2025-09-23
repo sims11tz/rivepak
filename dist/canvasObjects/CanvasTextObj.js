@@ -15,6 +15,17 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             this._fadeStartTime = Date.now();
         }
     }
+    // Override z setter to update text field zIndex
+    get z() {
+        return super.z;
+    }
+    set z(value) {
+        super.z = value;
+        // Update the text field's zIndex when z changes
+        if (this._textField) {
+            this._textField.zIndex = value;
+        }
+    }
     InitPixiObject() {
         //this._debug = true;
         var _a, _b, _c, _d, _e, _f;
@@ -22,8 +33,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
         this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
         this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
-        this.x = (_e = this.defObj.x) !== null && _e !== void 0 ? _e : 0;
-        this.y = (_f = this.defObj.y) !== null && _f !== void 0 ? _f : 0;
+        this.y = (_e = this.defObj.y) !== null && _e !== void 0 ? _e : 0;
+        this.z = (_f = this.defObj.z) !== null && _f !== void 0 ? _f : 0;
         if (this.centerGlobally) {
             this.x = CanvasEngine.get().width / 2;
             this.y = CanvasEngine.get().height / 2;
@@ -136,7 +147,6 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         return super.visible;
     }
     set visible(value) {
-        //console.log(' SET SET ST SET SET SET CanvasTextObj['+this._uuid+'].visible = '+value);
         if (value) {
             if (this._textField)
                 this._textField.visible = true;
@@ -161,6 +171,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         if (displayText && displayText.length > 0) {
             const style = this.createTextStyle();
             this._textField = new PIXI.Text({ text: displayText, style: style });
+            this._textField.zIndex = this.z;
             if (this.defObj.interactive) {
                 this._textField.interactive = true;
                 this._textField.eventMode = 'static';
@@ -244,7 +255,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this._typewriterIndex = this._fullText.length;
         this.DrawVectors();
     }
-    onTextClick(event) {
+    onTextClick(_event) {
         console.log("Text clicked:", this.defObj.text);
         if (this._defObj.clickFunction) {
             console.log("Text clicked: yes call function");

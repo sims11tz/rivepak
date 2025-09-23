@@ -11,6 +11,8 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private _alignmentOffsetX;
     private _alignmentOffsetY;
     constructor(canvasDef: CanvasObjectDef);
+    get z(): number;
+    set z(value: number);
     InitPixiObject(): void;
     /**
      * Migrates old PIXI v7 stroke format to v8 format

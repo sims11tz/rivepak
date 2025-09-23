@@ -74,6 +74,8 @@ export class PixiController {
             this._pixiInstanceAbove.ticker.stop();
             this._pixiInstanceAbove.stage.eventMode = 'static';
             this._pixiInstanceAbove.stage.hitArea = this._pixiInstanceAbove.renderer.screen;
+            // Enable sortableChildren so zIndex works
+            this._pixiInstanceAbove.stage.sortableChildren = true;
             this._pixiInstanceAbove.stage.on('pointermove', (e) => {
                 const canvasBounds = this._CanvasAbove.getBoundingClientRect();
                 const x = e.clientX - canvasBounds.left;
@@ -106,6 +108,8 @@ export class PixiController {
             this._pixiInstanceBelow.ticker.autoStart = false;
             this._pixiInstanceBelow.ticker.stop();
             this._pixiInstanceBelow.stage.eventMode = 'static';
+            // Enable sortableChildren so zIndex works
+            this._pixiInstanceBelow.stage.sortableChildren = true;
             this._initialized = true;
         });
     }

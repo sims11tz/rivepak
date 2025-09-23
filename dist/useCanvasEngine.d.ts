@@ -88,6 +88,7 @@ export declare class CanvasEngine {
     private _currentCanvasScale;
     get CurrentCanvasScale(): number;
     ResizeCanvasToWindow: () => void;
+    DebugLogLayering(): void;
     Dispose(): void;
     SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefAbove, pixiCanvasRefBelow, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasContainerRef: HTMLDivElement;

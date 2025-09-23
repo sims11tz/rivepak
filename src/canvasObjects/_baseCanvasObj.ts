@@ -310,6 +310,7 @@ export abstract class BaseCanvasObj
 			const oldZ = this._state.z;
 			this._state.z = value;
 			this._OnZIndexChanged?.(this, oldZ, this._state.z);
+
 		}
 	}
 
@@ -327,10 +328,7 @@ export abstract class BaseCanvasObj
 		if(this._resolutionScale !== -1) this.ApplyResolutionScale(this._resolutionScale,"yScale");
 	}
 
-	// Get coordinates for rendering (automatically uses world coords when parented)
 	public get renderX(): number {
-		// If parented, return the world position calculated by parent
-		// Otherwise, return our own position
 		return this._parent ? this._worldX : this._state.x;
 	}
 	public get renderY(): number {
@@ -407,7 +405,7 @@ export abstract class BaseCanvasObj
 
 	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
 
-	public SwapDepths(other: BaseCanvasObj)
+	public SwapDepths(other:BaseCanvasObj)
 	{
 		const temp = this.z;
 		this.z = other.z;
@@ -424,11 +422,11 @@ export abstract class BaseCanvasObj
 		this._propertyChangeListeners.delete(property);
 	}
 
-	public set OnZIndexChanged(func: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
+	public set OnZIndexChanged(func:((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null)
 	{
 		this._OnZIndexChanged = func;
 	}
-	public _OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
+	public _OnZIndexChanged:((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
 
 	public Dispose():void
 	{
