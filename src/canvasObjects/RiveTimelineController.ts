@@ -21,10 +21,28 @@ export class RiveTimelineController {
 	) {
 		this._animationMeataDataId = animationMeataDataId;
 		this._anim = anim;
+
+		// Debug: Check what duration value we're receiving
+		//console.log(`RiveTimelineController constructor called:`);
+		//console.log(`  - duration parameter: ${duration}`);
+		//console.log(`  - anim.duration: ${this._anim.duration}`);
+		//console.log(`  - anim properties:`, Object.keys(this._anim));
+
 		// Store the duration and name passed from AnimationMetadata
-		this._duration = duration ?? this._anim.duration ?? 0;
+		// Check if duration is valid, otherwise use anim.duration
+		if (duration !== undefined && duration > 0 && duration < 100000) {
+			this._duration = duration;
+		} else {
+			// Try to get duration from the animation instance
+			this._duration = this._anim.duration ?? 10; // Default to 10 seconds if not found
+			console.warn(`Duration was invalid (${duration}), using anim.duration: ${this._duration}`);
+		}
+
 		this._name = name ?? this._anim.name ?? "";
 		this.Pause();
+
+		// Debug log to check values
+		//console.log(`RiveTimelineController created: name=${this._name}, duration=${this._duration}s, fps=${this._fps}, frameCount=${this.FrameCount}`);
 	}
 
 	private get _fps():number
@@ -40,12 +58,26 @@ export class RiveTimelineController {
 	get Percent():number
 	{
 		const d = this._duration || 1;
-		return this._anim?.time ?? 0 / d;
+		const time = this._anim?.time ?? 0;
+		// Handle looping animations - use modulo to wrap the percentage between 0-1
+		const normalizedTime = time % d;
+		return normalizedTime / d;  // Returns 0-1
 	}
-	get Percent100():number { return this.Percent * 100; }
+	get Percent100():number { return this.Percent * 100; }  // Returns 0-100
 	get Fps():number { return this._fps; }
-	get Frame(): number { return Math.round((this._anim?.time ?? 0) * this._fps); }
-	get FrameCount():number { return Math.round(this._duration * this._fps); }
+	get Frame(): number {
+		const time = this._anim?.time ?? 0;
+		return Math.min(Math.round(time * this._fps), 999999);
+	}
+	get FrameCount():number {
+		// Ensure we don't return an invalid frame count
+		const count = Math.round(this._duration * this._fps);
+		if (count < 0 || count > 999999 || !isFinite(count)) {
+			console.warn(`Invalid frame count calculated: ${count}, duration: ${this._duration}, fps: ${this._fps}`);
+			return 600; // Default to 600 frames (10 seconds at 60fps)
+		}
+		return count;
+	}
 
 	get RemainingSeconds():number
 	{
@@ -85,7 +117,7 @@ export class RiveTimelineController {
 		this._playing = false;
 	}
 
-	Update(time:number,frameCount:number,onceSecond:boolean)
+	Update(time:number,_frameCount:number,_onceSecond:boolean)
 	{
 		if(this._anim == null) return;
 

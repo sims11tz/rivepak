@@ -33,6 +33,6 @@ export declare class RiveTimelineController {
     SeekFrame(f: number): void;
     AdvanceFrame(n?: number): void;
     EaseToPercent(p: number, duration?: number): void;
-    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Update(time: number, _frameCount: number, _onceSecond: boolean): void;
     Dispose(): void;
 }
