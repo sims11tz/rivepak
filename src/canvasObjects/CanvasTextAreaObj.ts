@@ -184,7 +184,6 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 			}
 			this._shadowGraphics.fill(shadowColor);
 
-			// Apply blur filter if specified
 			if(this._background.shadowBlur && this._background.shadowBlur > 0)
 			{
 				const blurFilter = new PIXI.BlurFilter({
@@ -194,8 +193,6 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 				this._shadowGraphics.filters = [blurFilter];
 			}
 
-			console.log('%c SET SHADOW GRAPHICS : x='+this.x+', y='+this.y+', width='+width+', height='+height+', padding='+padding, "color:#798cff; font-weight:bold;");
-			// Position the shadow graphics at base position (no padding offset)
 			this._shadowGraphics.x = this.x;
 			this._shadowGraphics.y = this.y;
 
