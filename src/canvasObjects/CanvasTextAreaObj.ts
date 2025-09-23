@@ -469,8 +469,7 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		let transformedY = 0;
 		let yScale = 0;
 
-		//// Use render coordinates (automatically handles parent transforms)
-		if(CanvasEngine.get().EngineSettings?.autoScale && (this._graphics || (this._debug && this._debugGraphics)))
+		if(CanvasEngine.get().EngineSettings?.autoScale)
 		{
 			transformedX = this.renderX * CanvasEngine.get().CurrentCanvasScale;
 			transformedY = this.renderY * CanvasEngine.get().CurrentCanvasScale;
