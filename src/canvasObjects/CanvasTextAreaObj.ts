@@ -64,7 +64,7 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this._backgroundGraphics = null;
 		this._lines = this.canvasTextAreaDef.lines || [];
 		this._lineHeight = this.canvasTextAreaDef.lineHeight || 24;
-		this._maxLines = this.canvasTextAreaDef.maxLines || 10;
+		this._maxLines = this.canvasTextAreaDef.maxLines || 20;
 		this._lineSpacing = this.canvasTextAreaDef.lineSpacing || 0;
 		this._textStyle = this.canvasTextAreaDef.textStyle || {};
 
@@ -107,6 +107,21 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 		this.createTextLines();
 	}
 
+	public getMaxTextWidth():number
+	{
+		let maxWidth = 0;
+		for(const line of this._textLines || [])
+		{
+			const lineBounds = line.GetTextBounds();
+			if(lineBounds)
+			{
+				maxWidth = Math.max(maxWidth, lineBounds.width);
+			}
+		}
+		return maxWidth;
+	}
+
+
 	private createBackground():void
 	{
 		const debug = false;
@@ -141,21 +156,22 @@ export class CanvasTextAreaObj extends CanvasPixiShapeObj
 
 		// Calculate height based on autoSize setting (includes padding)
 		let height:number;
+		let width:number;
 		if(this._background.autoSize && this._lines)
 		{
-			// Calculate height based on number of visible lines with content plus padding
-			const visibleLines = this._lines.filter(line => line && line.trim().length > 0).length;
-			// Ensure minimum height for at least one line even if no content
+			const visibleLines = this._lines.length;
 			const lineCount = Math.max(1, visibleLines);
-			// Calculate height: lines * lineHeight + spacing between lines (not after last line)
 			height = (lineCount * this._lineHeight) + ((lineCount - 1) * this._lineSpacing) + (padding * 2);
+
+			width = this.getMaxTextWidth() + (padding * 2);
 		}
 		else
 		{
+			width = this.width + (padding * 2);
 			height = this.height + (padding * 2);
 		}
 
-		const width = this.width + (padding * 2);
+		//const width = this.width + (padding * 2);
 		const radius = this._background.borderRadius || 0;
 
 		// Add shadow if enabled

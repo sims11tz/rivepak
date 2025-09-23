@@ -340,6 +340,63 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this.DrawVectors();
 	}
 
+	/**
+	 * Gets the measured width of the text field after content and style are applied
+	 * @returns The actual rendered width of the text, or 0 if no text field exists
+	 */
+	public GetMeasuredTextWidth():number
+	{
+		if(!this._textField) return 0;
+
+		// Get the local bounds of the text object
+		const bounds = this._textField.getLocalBounds();
+		return bounds.width;
+	}
+
+	/**
+	 * Gets the measured height of the text field after content and style are applied
+	 * @returns The actual rendered height of the text, or 0 if no text field exists
+	 */
+	public GetMeasuredTextHeight():number
+	{
+		if(!this._textField) return 0;
+
+		// Get the local bounds of the text object
+		const bounds = this._textField.getLocalBounds();
+		return bounds.height;
+	}
+
+	/**
+	 * Gets both measured dimensions of the text field
+	 * @returns Object with width and height, or {width: 0, height: 0} if no text field
+	 */
+	public GetMeasuredTextDimensions():{width:number, height:number}
+	{
+		if(!this._textField) return {width: 0, height: 0};
+
+		const bounds = this._textField.getLocalBounds();
+		return {
+			width: bounds.width,
+			height: bounds.height
+		};
+	}
+
+	/**
+	 * Gets the full bounds of the text field including any padding/stroke
+	 * @returns Bounds object with x, y, width, height or null if no text field
+	 */
+	public GetTextBounds():{x:number, y:number, width:number, height:number} | null
+	{
+		if(!this._textField) return null;
+		const bounds = this._textField.getLocalBounds();
+		return {
+			x: bounds.x,
+			y: bounds.y,
+			width: bounds.width,
+			height: bounds.height
+		};
+	}
+
 	private onTextClick(_event:PIXI.FederatedPointerEvent):void
 	{
 		console.log("Text clicked:", this.defObj.text);

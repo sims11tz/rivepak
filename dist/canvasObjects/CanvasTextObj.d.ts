@@ -34,6 +34,34 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     SetAlignment(horizontal?: 'left' | 'center' | 'right' | 'justify', vertical?: 'top' | 'middle' | 'bottom'): void;
     StartTypewriter(speed?: number): void;
     StopTypewriter(): void;
+    /**
+     * Gets the measured width of the text field after content and style are applied
+     * @returns The actual rendered width of the text, or 0 if no text field exists
+     */
+    GetMeasuredTextWidth(): number;
+    /**
+     * Gets the measured height of the text field after content and style are applied
+     * @returns The actual rendered height of the text, or 0 if no text field exists
+     */
+    GetMeasuredTextHeight(): number;
+    /**
+     * Gets both measured dimensions of the text field
+     * @returns Object with width and height, or {width: 0, height: 0} if no text field
+     */
+    GetMeasuredTextDimensions(): {
+        width: number;
+        height: number;
+    };
+    /**
+     * Gets the full bounds of the text field including any padding/stroke
+     * @returns Bounds object with x, y, width, height or null if no text field
+     */
+    GetTextBounds(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    } | null;
     private onTextClick;
     private onTextHover;
     private onTextHoverOut;
