@@ -11,6 +11,8 @@ export declare class RiveTimelineController {
     private _name;
     private _animationMeataDataId;
     private _anim;
+    private _loopCount;
+    private _lastTimeForLoopCheck;
     constructor(animationMeataDataId: string, anim: LinearAnimationInstance, duration?: number, name?: string);
     private get _fps();
     get AnimationMetaDataId(): string;
@@ -26,8 +28,10 @@ export declare class RiveTimelineController {
     get RemainingFrames(): number;
     get IsPlaying(): boolean;
     get IsEasing(): boolean;
+    get LoopCount(): number;
     Play(speed?: number): void;
     Pause(): void;
+    ResetLoopCount(): void;
     SeekSeconds(t: number): void;
     SeekPercent(p: number): void;
     SeekFrame(f: number): void;

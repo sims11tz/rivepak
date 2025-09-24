@@ -12,6 +12,8 @@ export class RiveTimelineController {
 	private _name: string;
 	private _animationMeataDataId:string;
 	private _anim:LinearAnimationInstance | null = null;
+	private _loopCount: number = 0;
+	private _lastTimeForLoopCheck: number = 0;
 
 	constructor(
 		animationMeataDataId:string,
@@ -90,9 +92,11 @@ export class RiveTimelineController {
 	}
 	get IsPlaying():boolean { return this._playing; }
 	get IsEasing():boolean { return this._easeActive; }
+	get LoopCount():number { return this._loopCount; }
 
 	Play(speed = 1) { this._playing = true; this._speed = speed; }
 	Pause() { this._playing = false; }
+	ResetLoopCount() { this._loopCount = 0; }
 
 	SeekSeconds(t: number)
 	{
@@ -124,8 +128,18 @@ export class RiveTimelineController {
 		//if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController - ' + this._name);
 		if(this._playing)
 		{
+			const previousTime = this._anim.time;
 			//if(onceSecond) console.log('<'+frameCount+'>RiveTimelineController.playing --- '+(time * this._speed));
 			this._anim.advance(time * this._speed);
+
+			// Check if we've looped (current time is less than previous time)
+			// This happens when the animation wraps from end to beginning
+			if(this._anim.time < previousTime && this._duration > 0)
+			{
+				// We've completed a loop!
+				this._loopCount++;
+				//console.log(`Animation "${this._name}" completed loop #${this._loopCount}`);
+			}
 		}
 		else
 		{
