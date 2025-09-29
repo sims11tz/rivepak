@@ -184,12 +184,12 @@ export abstract class BaseCanvasObj
 
 	public constrainProportions:boolean = false;
 
-	public baseX:number;
-	public baseY:number;
-	public baseWidth:number;
-	public baseHeight:number;
-	public baseXScale:number;
-	public baseYScale:number;
+	//public baseX:number;
+	//public baseY:number;
+	//public baseWidth:number;
+	//public baseHeight:number;
+	//public baseXScale:number;
+	//public baseYScale:number;
 
 	public get resolutionScale():number { return this._resolutionScale; }
 	public _resolutionScale:number = -1;
@@ -237,12 +237,12 @@ export abstract class BaseCanvasObj
 
 		this.constrainProportions = this.defObj.constrainProportions ?? false;
 
-		this.baseX = defObj.x ?? 0;
-		this.baseY = defObj.y ?? 0;
-		this.baseWidth = defObj.width ?? 1;
-		this.baseHeight = defObj.height ?? 1;
-		this.baseXScale = defObj.xScale ?? 1;
-		this.baseYScale = defObj.yScale ?? 1;
+		//this.baseX = defObj.x ?? 0;
+		//this.baseY = defObj.y ?? 0;
+		//this.baseWidth = defObj.width ?? 1;
+		//this.baseHeight = defObj.height ?? 1;
+		//this.baseXScale = defObj.xScale ?? 1;
+		//this.baseYScale = defObj.yScale ?? 1;
 		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
 
 		this._state = new Proxy(this._state,
@@ -264,17 +264,17 @@ export abstract class BaseCanvasObj
 		});
 	}
 
-	public UpdateBaseProps()
-	{
-		this.baseX = this._state.x;
-		this.baseY = this._state.y;
-		this.baseWidth = this.width;
-		this.baseHeight = this.height;
-		this.baseXScale = this._state.xScale;
-		this.baseYScale = this._state.yScale;
-		this.visible = this._state.visible;
-		//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
-	}
+	//public UpdateBaseProps()
+	//{
+	//	this.baseX = this._state.x;
+	//	this.baseY = this._state.y;
+	//	this.baseWidth = this.width;
+	//	this.baseHeight = this.height;
+	//	this.baseXScale = this._state.xScale;
+	//	this.baseYScale = this._state.yScale;
+	//	this.visible = this._state.visible;
+	//	//console.log("CanvasObj["+this._uuid+"]   pos=<"+this.baseX+","+this.baseY+">  size=<"+this.width+","+this.height+">  scale=<"+this.baseXScale+","+this.baseYScale+"> ");
+	//}
 
 	public get visible():boolean
 	{

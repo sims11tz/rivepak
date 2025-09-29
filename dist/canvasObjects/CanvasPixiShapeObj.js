@@ -259,7 +259,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
             this.y -= (this.height / 2);
         }
         this.DrawVectors();
-        this.UpdateBaseProps();
+        //this.UpdateBaseProps();
     }
     get visible() {
         return super.visible;

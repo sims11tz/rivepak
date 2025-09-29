@@ -46,7 +46,7 @@ export class CanvasContainerObj extends BaseCanvasObj {
             this._debugGraphics.eventMode = "static";
             console.log('CANVAS CONTAINER... ' + this._debugGraphics.x + ',' + this._debugGraphics.y + ',' + this._debugGraphics.scale.x + ',' + this._debugGraphics.scale.y);
         }
-        this.UpdateBaseProps();
+        //this.UpdateBaseProps();
         if (this._debug)
             this.DrawDebug();
     }

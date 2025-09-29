@@ -326,7 +326,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj
 
 		this.DrawVectors();
 
-		this.UpdateBaseProps();
+		//this.UpdateBaseProps();
 	}
 
 	public override get visible():boolean

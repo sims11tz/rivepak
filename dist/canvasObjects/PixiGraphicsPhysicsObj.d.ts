@@ -50,12 +50,6 @@ declare const BaseShapePhysicsObj_base: {
         _worldXScale: number;
         _worldYScale: number;
         constrainProportions: boolean;
-        baseX: number;
-        baseY: number;
-        baseWidth: number;
-        baseHeight: number;
-        baseXScale: number;
-        baseYScale: number;
         readonly resolutionScale: number;
         _resolutionScale: number;
         readonly transformedWidth: number;
@@ -79,7 +73,6 @@ declare const BaseShapePhysicsObj_base: {
         _debug: boolean;
         _debugLogs: boolean;
         _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
-        UpdateBaseProps(): void;
         visible: boolean;
         z: number;
         xScale: number;

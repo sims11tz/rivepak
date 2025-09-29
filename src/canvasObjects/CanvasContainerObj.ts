@@ -70,7 +70,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 
 		}
 
-		this.UpdateBaseProps();
+		//this.UpdateBaseProps();
 
 		if(this._debug) this.DrawDebug();
 	}

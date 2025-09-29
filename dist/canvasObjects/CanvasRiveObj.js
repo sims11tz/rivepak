@@ -93,7 +93,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     InitRiveObject() {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g;
         if (this._debugLogs) {
             console.log("");
             console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
@@ -166,7 +166,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //console.log("");
             console.log(" UPDATE BASE PROPS >>> " + this._label + " --- " + this.width + "x" + this.height + " --- " + this.xScale + "x" + this.yScale);
         }
-        this.UpdateBaseProps();
+        //this.UpdateBaseProps();
         if (this.defObj.interactive)
             this.initInteractive();
         if (this.defObj.text && this.defObj.text.length > 0)
@@ -182,30 +182,34 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //if(this._debugLogs) console.log("Animation["+j+"]: ________ "+animationDefinition.name+" loopValue:"+animationDefinition.loopValue);
             const animation = new this.Rive.LinearAnimationInstance(animationDefinition, this.artboard);
             const animDef = animationDefinition;
-            // Debug: Log all duration-related properties
-            console.log(`Animation[${j}] "${animationDefinition.name}" duration investigation:`);
-            console.log(`  - animDef.duration: ${animDef.duration}`);
-            console.log(`  - animDef.durationSeconds: ${animDef.durationSeconds}`);
-            console.log(`  - animDef.durationFrames: ${animDef.durationFrames}`);
-            console.log(`  - animDef.workEnd: ${animDef.workEnd}`);
-            console.log(`  - animDef.workStart: ${animDef.workStart}`);
-            console.log(`  - animDef.fps: ${(_e = animDef.fps) !== null && _e !== void 0 ? _e : 60}`);
+            if (this._debugLogs) {
+                // Debug: Log all duration-related properties
+                //console.log(`Animation[${j}] "${animationDefinition.name}" duration investigation:`);
+                //console.log(`  - animDef.duration: ${animDef.duration}`);
+                //console.log(`  - animDef.durationSeconds: ${animDef.durationSeconds}`);
+                //console.log(`  - animDef.durationFrames: ${animDef.durationFrames}`);
+                //console.log(`  - animDef.workEnd: ${animDef.workEnd}`);
+                //console.log(`  - animDef.workStart: ${animDef.workStart}`);
+                //console.log(`  - animDef.fps: ${animDef.fps ?? 60}`);
+            }
             // Check if we're getting frames instead of seconds
-            let duration = (_g = (_f = animDef.durationSeconds) !== null && _f !== void 0 ? _f : animDef.duration) !== null && _g !== void 0 ? _g : 0;
-            const fps = (_h = animDef.fps) !== null && _h !== void 0 ? _h : 60;
+            let duration = (_f = (_e = animDef.durationSeconds) !== null && _e !== void 0 ? _e : animDef.duration) !== null && _f !== void 0 ? _f : 0;
+            const fps = (_g = animDef.fps) !== null && _g !== void 0 ? _g : 60;
             // If duration seems to be in frames (e.g., 600 frames for 10 seconds at 60fps)
             // Check if the duration value is suspiciously large (likely frames)
             if (animDef.workEnd && animDef.workEnd > 100) {
                 // workEnd appears to be in frames, convert to seconds
                 duration = animDef.workEnd / fps;
-                console.log(`  - Converting workEnd from frames (${animDef.workEnd}) to seconds: ${duration}s`);
+                if (this._debugLogs)
+                    console.log(`  - Converting workEnd from frames (${animDef.workEnd}) to seconds: ${duration}s`);
             }
             else if (duration > 100) {
                 // If duration is suspiciously large, it might be in frames
-                console.log(`  - Duration seems to be in frames (${duration}), converting to seconds...`);
+                if (this._debugLogs)
+                    console.log(`  - Duration seems to be in frames (${duration}), converting to seconds...`);
                 duration = duration / fps;
             }
-            console.log(`  - FINAL duration: ${duration} seconds (${duration * fps} frames)`);
+            //console.log(`  - FINAL duration: ${duration} seconds (${duration * fps} frames)`);
             //if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
             const metadata = new AnimationMetadata(this.artboard, animation, j, animationDefinition.name, duration);
             this._animations.push(metadata);

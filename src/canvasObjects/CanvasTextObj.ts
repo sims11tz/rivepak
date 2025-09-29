@@ -429,7 +429,7 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		this._textField.scale.set(combinedScaleX, combinedScaleY);
 	}
 
-	public Update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time:number, frameCount:number, onceSecond:boolean): void
 	{
 		if(this.enabled === false) return;
 		const debug = false;
@@ -477,35 +477,40 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 
 		if(this._textField)
 		{
-			if(debug) console.log('CanvasTextObj.Update() >4> has textfield do stuff ');
+			//if(debug || true) console.log('CanvasTextObj.Update('+frameCount+') >4> has textfield do stuff ');
 			// Use render coordinates (automatically handles parent transforms)
 			if(CanvasEngine.get().EngineSettings?.autoScale)
 			{
-				if(debug) if(onceSecond) console.log('CanvasTextObj.Update() >5> autoscale ');
+				//if(debug) if(onceSecond)
+				//console.log('CanvasTextObj.Update('+frameCount+') >5> autoscale - '+this._textField.text);
 				let transformedX = this.renderX * CanvasEngine.get().CurrentCanvasScale;
 				let transformedY = this.renderY * CanvasEngine.get().CurrentCanvasScale;
 
-				this._textField.x = transformedX + this._alignmentOffsetX * CanvasEngine.get().CurrentCanvasScale;
-				this._textField.y = transformedY + this._alignmentOffsetY * CanvasEngine.get().CurrentCanvasScale;
+				this._textField.x = Math.round(transformedX + this._alignmentOffsetX * CanvasEngine.get().CurrentCanvasScale);
+				this._textField.y = Math.round(transformedY + this._alignmentOffsetY * CanvasEngine.get().CurrentCanvasScale);
+
+				//console.log('CanvasTextObj.Update('+frameCount+') >5> autoscale transformedX='+transformedX+' transformedY='+transformedY+'  renderX='+this.renderX+' renderY='+this.renderY);
+				//console.log('CanvasTextObj.Update('+frameCount+') >5> autoscale this._textField.x='+this._textField.x+' this._textField.y='+this._textField.y);
 
 				if(!this.defObj.pulseText)
 				{
-					if(debug) console.log('CanvasTextObj.Update() >6>  ');
+					if(debug) console.log('CanvasTextObj.Update('+frameCount+') >6>  ');
 					this._textField.scale.set(
 						CanvasEngine.get().CurrentCanvasScale * this.renderXScale,
 						CanvasEngine.get().CurrentCanvasScale * this.renderYScale
 					);
+					//console.log('CanvasTextObj.Update('+frameCount+') >5> autoscale SCaLE : '+this._textField.scale.x+' '+this._textField.scale.y+' renderXScale='+this.renderXScale+' renderYScale='+this.renderYScale);
 				}
 			}
 			else
 			{
-				if(debug) console.log('CanvasTextObj.Update() >7>  ');
+				if(debug) console.log('CanvasTextObj.Update('+frameCount+') >7>  ');
 				this._textField.x = this.renderX + this._alignmentOffsetX;
 				this._textField.y = this.renderY + this._alignmentOffsetY;
 
 				if(!this.defObj.pulseText)
 				{
-					if(debug) console.log('CanvasTextObj.Update() >8>  ');
+					//if(debug) console.log('CanvasTextObj.Update('+frameCount+') >8>  ');
 					this._textField.scale.set(this.renderXScale, this.renderYScale);
 				}
 			}

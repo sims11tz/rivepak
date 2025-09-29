@@ -240,7 +240,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//console.log("");
 			console.log(" UPDATE BASE PROPS >>> "+this._label+" --- "+this.width+"x"+this.height+" --- "+this.xScale+"x"+this.yScale);
 		}
-		this.UpdateBaseProps();
+		//this.UpdateBaseProps();
 
 		if(this.defObj.interactive) this.initInteractive();
 
@@ -262,14 +262,17 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 			const animDef = animationDefinition as any;
 
-			// Debug: Log all duration-related properties
-			console.log(`Animation[${j}] "${animationDefinition.name}" duration investigation:`);
-			console.log(`  - animDef.duration: ${animDef.duration}`);
-			console.log(`  - animDef.durationSeconds: ${animDef.durationSeconds}`);
-			console.log(`  - animDef.durationFrames: ${animDef.durationFrames}`);
-			console.log(`  - animDef.workEnd: ${animDef.workEnd}`);
-			console.log(`  - animDef.workStart: ${animDef.workStart}`);
-			console.log(`  - animDef.fps: ${animDef.fps ?? 60}`);
+			if(this._debugLogs)
+			{
+				// Debug: Log all duration-related properties
+				//console.log(`Animation[${j}] "${animationDefinition.name}" duration investigation:`);
+				//console.log(`  - animDef.duration: ${animDef.duration}`);
+				//console.log(`  - animDef.durationSeconds: ${animDef.durationSeconds}`);
+				//console.log(`  - animDef.durationFrames: ${animDef.durationFrames}`);
+				//console.log(`  - animDef.workEnd: ${animDef.workEnd}`);
+				//console.log(`  - animDef.workStart: ${animDef.workStart}`);
+				//console.log(`  - animDef.fps: ${animDef.fps ?? 60}`);
+			}
 
 			// Check if we're getting frames instead of seconds
 			let duration = animDef.durationSeconds ?? animDef.duration ?? 0;
@@ -280,14 +283,14 @@ export class CanvasRiveObj extends BaseCanvasObj
 			if(animDef.workEnd && animDef.workEnd > 100) {
 				// workEnd appears to be in frames, convert to seconds
 				duration = animDef.workEnd / fps;
-				console.log(`  - Converting workEnd from frames (${animDef.workEnd}) to seconds: ${duration}s`);
+				if(this._debugLogs) console.log(`  - Converting workEnd from frames (${animDef.workEnd}) to seconds: ${duration}s`);
 			} else if(duration > 100) {
 				// If duration is suspiciously large, it might be in frames
-				console.log(`  - Duration seems to be in frames (${duration}), converting to seconds...`);
+				if(this._debugLogs) console.log(`  - Duration seems to be in frames (${duration}), converting to seconds...`);
 				duration = duration / fps;
 			}
 
-			console.log(`  - FINAL duration: ${duration} seconds (${duration * fps} frames)`);
+			//console.log(`  - FINAL duration: ${duration} seconds (${duration * fps} frames)`);
 
 			//if(this._debugLogs) console.log("Animation["+j+"]: "+animationDefinition.name+" -- duration:"+duration+" -- fps:"+(animDef.fps ?? 60));
 
