@@ -1,4 +1,4 @@
-import { Artboard, Renderer } from "@rive-app/webgl-advanced";
+import { Artboard, Renderer } from "@rive-app/webgl2-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import * as PIXI from "pixi.js";
@@ -30,7 +30,7 @@ export declare class RiveController {
     static myInstance: RiveController;
     static get(): RiveController;
     private _riveInstance;
-    get Rive(): import("@rive-app/webgl-advanced").RiveCanvas;
+    get Rive(): import("@rive-app/webgl2-advanced").RiveCanvas;
     private _riveRenderer;
     get Renderer(): Renderer;
     private _canvas;
@@ -44,8 +44,10 @@ export declare class RiveController {
     private _initCalled;
     private _cache;
     private _disposed;
+    private fetchAndHash;
+    private _unsubscribeResize;
     Init(canvas: HTMLCanvasElement): Promise<void>;
-    SetSize(width: number, height: number): void;
+    SetSize(width: number, height: number, dprIn?: number): void;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<RiveObjectsSet>;
     private getVMForArtboard;
     private makeVMI;

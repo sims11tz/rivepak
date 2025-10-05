@@ -1,4 +1,4 @@
-import { Artboard } from "@rive-app/webgl-advanced";
+import { Artboard } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasRiveObj } from "./CanvasRiveObj";
 export declare class RiveAnimationObject extends CanvasRiveObj {

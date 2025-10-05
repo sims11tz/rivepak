@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import { Artboard } from "@rive-app/webgl-advanced";
+import { Artboard } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { CanvasRiveObj } from "./CanvasRiveObj";
 declare const BaseRivePhysicsObject_base: {

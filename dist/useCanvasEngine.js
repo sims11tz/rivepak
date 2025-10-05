@@ -105,10 +105,11 @@ export class CanvasEngine {
             this.canvasContainerRef.style.width = `${newWidth}px`;
             this.canvasContainerRef.style.height = `${newHeight}px`;
             this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
+            console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
             // Notify Rive of resize
-            RiveController.get().SetSize(newWidth, newHeight);
-            PixiController.get().SetSize(newWidth, newHeight);
-            PhysicsController.get().SetSize(newWidth, newHeight);
+            RiveController.get().SetSize(newWidth, newHeight, dpr);
+            PixiController.get().SetSize(newWidth, newHeight, dpr);
+            PhysicsController.get().SetSize(newWidth, newHeight, dpr);
             // Apply canvas scale to all objects
             this._canvasObjects.forEach((group) => {
                 group.forEach((obj) => {
@@ -134,7 +135,7 @@ export class CanvasEngine {
         this.updateListeners.delete(listener);
     }
     Init(canvasSettings, onInitComplete) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
@@ -150,12 +151,13 @@ export class CanvasEngine {
             }
             const canvas = this.canvasRef;
             this._currentCanvasScale = -1;
-            this._canvasWidth = canvas.width = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
-            this._canvasHeight = canvas.height = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
+            //this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
+            //this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
+            this._canvasWidth = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
+            this._canvasHeight = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
             PixiController.get().Init(this._canvasWidth, this._canvasHeight);
             yield RiveController.get().Init(canvas);
             const riveInstance = RiveController.get().Rive;
-            //riveInstance.resizeDrawingSurfaceToCanvas?.();
             this._riveInstance = riveInstance;
             const riveRenderer = RiveController.get().Renderer;
             let riveFps = 0;
@@ -249,6 +251,8 @@ export class CanvasEngine {
                 this.ResizeCanvasToWindow();
             }
             setTimeout(() => this.ResizeCanvasToWindow(), 1000);
+            const mq = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+            (_c = mq.addEventListener) === null || _c === void 0 ? void 0 : _c.call(mq, 'change', this.ResizeWindowEvent);
         });
     }
     get RunState() { return this._runState; }

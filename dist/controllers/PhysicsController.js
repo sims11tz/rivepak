@@ -63,7 +63,7 @@ export class PhysicsController {
             Matter.World.add(this._engine.world, walls);
         }
     }
-    SetSize(width, height) {
+    SetSize(width, height, dprIn = -1) {
         if (this._debugRender) {
             this._debugRender.canvas.width = width;
             this._debugRender.canvas.height = height;

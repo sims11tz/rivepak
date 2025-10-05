@@ -1,4 +1,4 @@
-import { Renderer } from "@rive-app/webgl-advanced";
+import { Renderer } from "@rive-app/webgl2-advanced";
 import { PhysicsController } from "./controllers/PhysicsController";
 import { PixiController, PIXI_LAYER } from "./controllers/PixiController";
 import { AnimationMetadata, RiveInstance } from "./canvasObjects/CanvasRiveObj";
@@ -133,14 +133,15 @@ export class CanvasEngine
 
 		const canvas = this.canvasRef;
 		this._currentCanvasScale = -1;
-		this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
-		this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
+		//this._canvasWidth = canvas.width = canvasSettings.width ?? 800;
+		//this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
+		this._canvasWidth = canvasSettings.width ?? 800;
+		this._canvasHeight = canvasSettings.height ?? 500;
 
 		PixiController.get().Init(this._canvasWidth, this._canvasHeight);
 
 		await RiveController.get().Init(canvas);
 		const riveInstance = RiveController.get().Rive;
-		//riveInstance.resizeDrawingSurfaceToCanvas?.();
 
 		this._riveInstance = riveInstance;
 		const riveRenderer: Renderer = RiveController.get().Renderer;
@@ -265,8 +266,10 @@ export class CanvasEngine
 			window.addEventListener("resize", this.ResizeWindowEvent);
 			this.ResizeCanvasToWindow();
 		}
-
 		setTimeout(() => this.ResizeCanvasToWindow(), 1000);
+
+		const mq = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+		mq.addEventListener?.('change', this.ResizeWindowEvent);
 	}
 
 	public get RunState():CANVAS_ENGINE_RUN_STATE { return this._runState; }
@@ -495,10 +498,12 @@ export class CanvasEngine
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
 
+		console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+
 		// Notify Rive of resize
-		RiveController.get().SetSize(newWidth, newHeight);
-		PixiController.get().SetSize(newWidth, newHeight);
-		PhysicsController.get().SetSize(newWidth, newHeight);
+		RiveController.get().SetSize(newWidth, newHeight, dpr);
+		PixiController.get().SetSize(newWidth, newHeight, dpr);
+		PhysicsController.get().SetSize(newWidth, newHeight, dpr);
 
 		// Apply canvas scale to all objects
 		this._canvasObjects.forEach((group) =>

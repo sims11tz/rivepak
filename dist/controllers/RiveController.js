@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import RiveCanvas from "@rive-app/webgl-advanced";
+import RiveCanvas from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasEngine } from "../useCanvasEngine";
@@ -59,6 +59,7 @@ export class RiveController {
         this._initCalled = false;
         this._cache = new Map();
         this._disposed = false;
+        this._unsubscribeResize = null;
         this._mousePos = { x: 0, y: 0 };
         this._mouseGlobalPos = { x: 0, y: 0 };
         this._mouseDown = false;
@@ -78,29 +79,91 @@ export class RiveController {
     get CanvasBounds() { return this._canvasBounds; }
     get CanvasGlobalBounds() { return this._canvasBounds; }
     get RiveObjectsSet() { return this._riveObjectsSet; }
+    fetchAndHash(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(url, { cache: "no-store" });
+            const bytes = new Uint8Array(yield res.arrayBuffer());
+            // SHA-256
+            const digest = yield crypto.subtle.digest("SHA-256", bytes);
+            const hashHex = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0"))
+                .join("");
+            console.log("🔎 RIVE.WASM URL:", res.url);
+            console.log("🔎 RIVE.WASM SHA-256:", hashHex);
+            return bytes;
+        });
+    }
     Init(canvas) {
-        var _a;
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             if (this._initCalled) {
                 return;
             }
             this._initCalled = true;
             try {
+                const debugLoadingWASM = false;
+                if (debugLoadingWASM) {
+                    console.log('');
+                    console.log('..<RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE>..');
+                }
                 this._riveInstance = yield RiveCanvas({ locateFile: (file) => `/rive/${file}` });
-                this._riveRenderer = this._riveInstance.makeRenderer(canvas);
+                this._riveRenderer = this._riveInstance.makeRenderer(canvas, true);
+                const isProbablyWebGL = typeof this._riveRenderer.clear === 'function' && typeof this._riveRenderer.flush === 'function' && true;
+                if (debugLoadingWASM) {
+                    console.log('isProbablyWebGL :', isProbablyWebGL); // true/false is fine
+                    console.log('Rive name (minified):', (_b = (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.name); // "a" is fine
+                }
                 this._canvas = canvas;
                 this._canvasBounds = this._canvas.getBoundingClientRect();
-                console.log("🚀 Rive Renderer Type:", (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor.name);
-                //const dpr = window.devicePixelRatio || 1;
-                //canvas.width = canvas.clientWidth * dpr;
-                //canvas.height = canvas.clientHeight * dpr;
-                //// If your renderer supports setBounds or setDevicePixelRatio, do it:
-                //this._riveRenderer!.align(
-                //	0, 0, canvas.clientWidth, canvas.clientHeight,
-                //	this._riveInstance.Fit.contain,
-                //	this._riveInstance.Alignment.center
-                //);
-                //this._riveRenderer!.setDevicePixelRatio(dpr);
+                if (debugLoadingWASM) {
+                    console.log("🚀 Rive Renderer Type:", (_c = this._riveRenderer) === null || _c === void 0 ? void 0 : _c.constructor.name);
+                    const gl = (_d = this._riveRenderer) === null || _d === void 0 ? void 0 : _d.gl;
+                    if (gl) {
+                        console.log("✅ WebGL active");
+                        console.log("GL VERSION:", gl.getParameter(gl.VERSION));
+                        console.log("GLSL:", gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+                        console.log("GPU VENDOR:", gl.getParameter(gl.VENDOR));
+                        console.log("GPU RENDERER:", gl.getParameter(gl.RENDERER));
+                        console.log("MAX_TEXTURE_SIZE:", gl.getParameter(gl.MAX_TEXTURE_SIZE));
+                        console.log("ANTIALIAS:", (_e = gl.getContextAttributes()) === null || _e === void 0 ? void 0 : _e.antialias);
+                    }
+                    else
+                        console.warn("⚠️ No GL on renderer; if feathers look boxy you’re on a fallback/canvas path.");
+                }
+                //resizeDrawingSurfaceToCanvas
+                canvas.addEventListener("webglcontextlost", (e) => {
+                    console.warn("🧯 WebGL context lost", e);
+                    e.preventDefault();
+                });
+                canvas.addEventListener("webglcontextrestored", () => {
+                    console.log("🔁 WebGL context restored");
+                });
+                if (debugLoadingWASM) {
+                    const wasmBytes = yield this.fetchAndHash('/rive/rive.wasm');
+                    console.log('########## wasmBytes.length :', wasmBytes.length);
+                }
+                //const resyncDpr = () =>
+                //{
+                //	const dpr = Math.max(1, window.devicePixelRatio || 1);
+                //	const cssW = this._canvas!.clientWidth;
+                //	const cssH = this._canvas!.clientHeight;
+                //	// Only update if changed to avoid extra reallocs
+                //	const w = Math.max(1, Math.floor(cssW * dpr));
+                //	const h = Math.max(1, Math.floor(cssH * dpr));
+                //	if(this._canvas!.width !== w || this._canvas!.height !== h)
+                //	{
+                //		this._canvas!.width  = w;
+                //		this._canvas!.height = h;
+                //		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
+                //		console.log(' **** resyncDpr() Appply dpr : '+dpr+'   canvas size: '+w+'x'+h);
+                //	}
+                //};
+                //resyncDpr();
+                //this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
+                // react to zoom/DPR changes
+                //const mq = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+                //mq.addEventListener?.('change', resyncDpr);
+                //this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
                 window.addEventListener("mousemove", this.SetMouseGlobalPos);
             }
             catch (error) {
@@ -108,13 +171,37 @@ export class RiveController {
             }
         });
     }
-    SetSize(width, height) {
+    //public SetSize(width:number, height:number, dprIn:number=-1)
+    //{
+    //	if(this._canvas != null && !this._disposed)
+    //	{
+    //		this._canvas?.setAttribute("width", `${width}`);
+    //		this._canvas?.setAttribute("height", `${height}`);
+    //		const dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
+    //		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
+    //		this._canvasBounds = this._canvas!.getBoundingClientRect();
+    //	}
+    //}
+    SetSize(width, height, dprIn = -1) {
         var _a, _b;
-        if (this._canvas != null && !this._disposed) {
-            (_a = this._canvas) === null || _a === void 0 ? void 0 : _a.setAttribute("width", `${width}`);
-            (_b = this._canvas) === null || _b === void 0 ? void 0 : _b.setAttribute("height", `${height}`);
-            this._canvasBounds = this._canvas.getBoundingClientRect();
+        if (!this._canvas || this._disposed)
+            return;
+        // CSS size
+        this._canvas.style.width = `${width}px`;
+        this._canvas.style.height = `${height}px`;
+        let dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
+        // Backing size
+        let w = Math.max(1, Math.floor(this._canvas.clientWidth * dpr));
+        //w = w/2;
+        let h = Math.max(1, Math.floor(this._canvas.clientHeight * dpr));
+        //h = h/2;
+        if (this._canvas.width !== w || this._canvas.height !== h) {
+            this._canvas.width = w;
+            this._canvas.height = h;
+            (_b = (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.setDevicePixelRatio) === null || _b === void 0 ? void 0 : _b.call(_a, dpr);
+            console.log('%cRC.resize() ', 'color:#dc9d67; font-weight:bold;', w, h, 'dpr:', dpr);
         }
+        this._canvasBounds = this._canvas.getBoundingClientRect();
     }
     CreateRiveObj(riveObjDefs) {
         var _a;
@@ -402,6 +489,10 @@ export class RiveController {
         }
         catch (error) {
             //console.log("RiveController - Error cleaning up Rive Renderer:", error);
+        }
+        if (this._unsubscribeResize !== null) {
+            this._unsubscribeResize();
+            this._unsubscribeResize = null;
         }
         this._riveObjectsSet = null;
         this._riveRenderer = null;

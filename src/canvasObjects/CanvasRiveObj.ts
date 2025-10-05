@@ -1,4 +1,4 @@
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl-advanced";
+import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveController, RiveObjectDef } from "../controllers/RiveController";
 import { BaseCanvasObj, CanvasObjectEntity, GlobalUIDGenerator } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
@@ -575,17 +575,17 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 		if(this._resolutionScale !== -1)
 		{
-			this._objBoundsReuse.minX = this._transformedX;
-			this._objBoundsReuse.minY = this._transformedY;
-			this._objBoundsReuse.maxX = this._transformedX + (scaledWidth * this._resolutionScale);
-			this._objBoundsReuse.maxY = this._transformedY + (scaledHeight * this._resolutionScale);
+			this._objBoundsReuse.minX = Math.round(this._transformedX);
+			this._objBoundsReuse.minY = Math.round(this._transformedY);
+			this._objBoundsReuse.maxX = Math.round(this._transformedX + (scaledWidth * this._resolutionScale));
+			this._objBoundsReuse.maxY = Math.round(this._transformedY + (scaledHeight * this._resolutionScale));
 		}
 		else
 		{
-			this._objBoundsReuse.minX = this.x;
-			this._objBoundsReuse.minY = this.y;
-			this._objBoundsReuse.maxX = this.x + scaledWidth;
-			this._objBoundsReuse.maxY = this.y + scaledHeight;
+			this._objBoundsReuse.minX = Math.round(this.x);
+			this._objBoundsReuse.minY = Math.round(this.y);
+			this._objBoundsReuse.maxX = Math.round(this.x + scaledWidth);
+			this._objBoundsReuse.maxY = Math.round(this.y + scaledHeight);
 		}
 
 		this.Renderer.save();

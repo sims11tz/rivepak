@@ -1,4 +1,4 @@
-import { LinearAnimationInstance } from "@rive-app/webgl-advanced";
+import { LinearAnimationInstance } from "@rive-app/webgl2-advanced";
 
 export class RiveTimelineController {
 	private _playing = false;

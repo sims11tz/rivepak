@@ -62,17 +62,21 @@ export class PixiController
 		this._CanvasAbove.style.top = '0';
 		this._CanvasAbove.style.left = '0';
 		this._CanvasAbove.style.zIndex = '3';
-		this._CanvasAbove.width = width || 800;
-		this._CanvasAbove.height = height || 500;
+		//this._CanvasAbove.width = width || 800;
+		//this._CanvasAbove.height = height || 500;
 		this._canvasContainer.appendChild(this._CanvasAbove);
 
+		const dpr = Math.max(1, window.devicePixelRatio || 1);
 		this._pixiInstanceAbove = new PIXI.Application();
 		await this._pixiInstanceAbove.init({
 			width: width || 800,
 			height: height || 500,
 			backgroundAlpha: 0,
 			canvas: this._CanvasAbove,
-			//resolution: window.devicePixelRatio || 1,
+			antialias: true,
+			resolution: dpr,
+			autoDensity: true,
+			powerPreference: 'high-performance',
 		});
 		this._pixiInstanceAbove.ticker.autoStart = false;
 		this._pixiInstanceAbove.ticker.stop();
@@ -102,8 +106,8 @@ export class PixiController
 		this._CanvasBelow.style.top = '0';
 		this._CanvasBelow.style.left = '0';
 		this._CanvasBelow.style.zIndex = '1';
-		this._CanvasBelow.width = width || 800;
-		this._CanvasBelow.height = height || 500;
+		//this._CanvasBelow.width = width || 800;
+		//this._CanvasBelow.height = height || 500;
 		this._canvasContainer.appendChild(this._CanvasBelow);
 
 		this._pixiInstanceBelow = new PIXI.Application();
@@ -112,7 +116,10 @@ export class PixiController
 			height: height || 500,
 			backgroundAlpha: 0,
 			canvas: this._CanvasBelow,
-			//resolution: window.devicePixelRatio || 1,
+			antialias: true,
+			resolution: dpr,
+			autoDensity: true,
+			powerPreference: 'high-performance',
 		});
 		this._pixiInstanceBelow.ticker.autoStart = false;
 		this._pixiInstanceBelow.ticker.stop();
@@ -123,7 +130,7 @@ export class PixiController
 		this._initialized = true;
 	}
 
-	public Update(time: number, frameCount: number, onceSecond: boolean)
+	public Update(time:number, frameCount:number, onceSecond:boolean)
 	{
 		if(!this._initialized) return;
 
@@ -138,29 +145,28 @@ export class PixiController
 		}
 	}
 
-	public SetSize(width: number, height: number)
+	public SetSize(width: number, height: number, dprIn = -1)
 	{
 		if (!this._initialized) return;
+		const dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
 
-		this._canvasContainer?.setAttribute("width", `${width}`);
-		this._canvasContainer?.setAttribute("height", `${height}`);
+		this._canvasContainer && (this._canvasContainer.style.width = `${width}px`);
+		this._canvasContainer && (this._canvasContainer.style.height = `${height}px`);
 
 		if(this._pixiInstanceAbove)
 		{
+			(this._pixiInstanceAbove.renderer as any).resolution = dpr;
 			this._pixiInstanceAbove.renderer.resize(width, height);
 			this._pixiInstanceAbove.stage.hitArea = this._pixiInstanceAbove.renderer.screen;
 		}
-		this._CanvasAbove?.setAttribute("width", `${width}`);
-		this._CanvasAbove?.setAttribute("height", `${height}`);
 
-		if (this._pixiInstanceBelow)
+		if(this._pixiInstanceBelow)
 		{
+			(this._pixiInstanceBelow.renderer as any).resolution = dpr;
 			this._pixiInstanceBelow.renderer.resize(width, height);
 		}
-
-		this._CanvasBelow?.setAttribute("width", `${width}`);
-		this._CanvasBelow?.setAttribute("height", `${height}`);
 	}
+
 
 	public Dispose()
 	{

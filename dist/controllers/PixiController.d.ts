@@ -25,6 +25,6 @@ export declare class PixiController {
     private _initialized;
     Init(width?: number, height?: number): Promise<void>;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
-    SetSize(width: number, height: number): void;
+    SetSize(width: number, height: number, dprIn?: number): void;
     Dispose(): void;
 }

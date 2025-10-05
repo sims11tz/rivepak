@@ -63,7 +63,7 @@ export class PhysicsController
 		}
 	}
 
-	public SetSize(width: number, height: number)
+	public SetSize(width:number, height:number, dprIn:number=-1)
 	{
 		if (this._debugRender)
 		{

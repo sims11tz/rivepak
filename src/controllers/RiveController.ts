@@ -1,10 +1,11 @@
-import RiveCanvas, { File as RiveFile, Artboard, Renderer, ViewModel, ViewModelInstance } from "@rive-app/webgl-advanced";
+import RiveCanvas, { File as RiveFile, Artboard, Renderer, ViewModel, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
-import { CanvasEngine } from "../useCanvasEngine";
+import { CanvasEngine, ResizeCanvasObj } from "../useCanvasEngine";
 import * as PIXI from "pixi.js";
+import { CanvasEngineResizePubSub } from "../CanvasEngineEventBus";
 
 export enum RIVE_OBJECT_TYPE
 {
@@ -89,46 +90,150 @@ export class RiveController
 
 	private _disposed:boolean = false;
 
-	public async Init(canvas: HTMLCanvasElement)
+	private async fetchAndHash(url: string): Promise<Uint8Array> {
+		const res = await fetch(url, { cache: "no-store" });
+		const bytes = new Uint8Array(await res.arrayBuffer());
+		// SHA-256
+		const digest = await crypto.subtle.digest("SHA-256", bytes);
+		const hashHex = [...new Uint8Array(digest)]
+			.map(b => b.toString(16).padStart(2, "0"))
+			.join("");
+		console.log("🔎 RIVE.WASM URL:", res.url);
+		console.log("🔎 RIVE.WASM SHA-256:", hashHex);
+		return bytes;
+	}
+
+	private _unsubscribeResize: (() => void) | null = null;
+
+	public async Init(canvas:HTMLCanvasElement)
 	{
 		if (this._initCalled) { return; }
 		this._initCalled = true;
 
 		try
 		{
+			const debugLoadingWASM = false;
+
+			if(debugLoadingWASM)
+			{
+				console.log('');
+				console.log('..<RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE>..');
+			}
+
 			this._riveInstance = await RiveCanvas({ locateFile: (file) => `/rive/${file}` });
-			this._riveRenderer = this._riveInstance.makeRenderer(canvas);
+			this._riveRenderer = this._riveInstance.makeRenderer(canvas, true);
+
+			const isProbablyWebGL = typeof (this._riveRenderer as any).clear === 'function' && typeof (this._riveRenderer as any).flush === 'function' && true;
+			if(debugLoadingWASM)
+			{
+				console.log('isProbablyWebGL :', isProbablyWebGL); // true/false is fine
+				console.log('Rive name (minified):', this._riveRenderer?.constructor?.name); // "a" is fine
+			}
+
 			this._canvas = canvas;
 			this._canvasBounds = this._canvas.getBoundingClientRect();
-			console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
+			if(debugLoadingWASM)
+			{
+				console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
 
+				const gl = (this._riveRenderer as any)?.gl as WebGL2RenderingContext | WebGLRenderingContext | undefined;
+				if (gl)
+				{
+					console.log("✅ WebGL active");
+					console.log("GL VERSION:", gl.getParameter(gl.VERSION));
+					console.log("GLSL:", gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+					console.log("GPU VENDOR:", gl.getParameter(gl.VENDOR));
+					console.log("GPU RENDERER:", gl.getParameter(gl.RENDERER));
+					console.log("MAX_TEXTURE_SIZE:", gl.getParameter(gl.MAX_TEXTURE_SIZE));
+					console.log("ANTIALIAS:", gl.getContextAttributes()?.antialias);
+				} else console.warn("⚠️ No GL on renderer; if feathers look boxy you’re on a fallback/canvas path.");
+			}
 
+//resizeDrawingSurfaceToCanvas
+			canvas.addEventListener("webglcontextlost", (e) => {
+				console.warn("🧯 WebGL context lost", e);
+				e.preventDefault();
+			});
+			canvas.addEventListener("webglcontextrestored", () => {
+				console.log("🔁 WebGL context restored");
+			});
 
-			//const dpr = window.devicePixelRatio || 1;
-			//canvas.width = canvas.clientWidth * dpr;
-			//canvas.height = canvas.clientHeight * dpr;
+			if(debugLoadingWASM)
+			{
+				const wasmBytes = await this.fetchAndHash('/rive/rive.wasm');
+				console.log('########## wasmBytes.length :', wasmBytes.length);
+			}
 
-			//// If your renderer supports setBounds or setDevicePixelRatio, do it:
-			//this._riveRenderer!.align(
-			//	0, 0, canvas.clientWidth, canvas.clientHeight,
-			//	this._riveInstance.Fit.contain,
-			//	this._riveInstance.Alignment.center
-			//);
-			//this._riveRenderer!.setDevicePixelRatio(dpr);
+			//const resyncDpr = () =>
+			//{
+			//	const dpr = Math.max(1, window.devicePixelRatio || 1);
+			//	const cssW = this._canvas!.clientWidth;
+			//	const cssH = this._canvas!.clientHeight;
+
+			//	// Only update if changed to avoid extra reallocs
+			//	const w = Math.max(1, Math.floor(cssW * dpr));
+			//	const h = Math.max(1, Math.floor(cssH * dpr));
+			//	if(this._canvas!.width !== w || this._canvas!.height !== h)
+			//	{
+			//		this._canvas!.width  = w;
+			//		this._canvas!.height = h;
+			//		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
+			//		console.log(' **** resyncDpr() Appply dpr : '+dpr+'   canvas size: '+w+'x'+h);
+			//	}
+			//};
+
+			//resyncDpr();
+			//this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
+
+			// react to zoom/DPR changes
+			//const mq = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+			//mq.addEventListener?.('change', resyncDpr);
+			//this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
+
 
 			window.addEventListener("mousemove", this.SetMouseGlobalPos);
 		} catch (error) { console.error("Failed to initialize Rive:", error); }
 	}
 
-	public SetSize(width: number, height: number)
-	{
-		if(this._canvas != null && !this._disposed)
-		{
-			this._canvas?.setAttribute("width", `${width}`);
-			this._canvas?.setAttribute("height", `${height}`);
+	//public SetSize(width:number, height:number, dprIn:number=-1)
+	//{
+	//	if(this._canvas != null && !this._disposed)
+	//	{
+	//		this._canvas?.setAttribute("width", `${width}`);
+	//		this._canvas?.setAttribute("height", `${height}`);
 
-			this._canvasBounds = this._canvas!.getBoundingClientRect();
+	//		const dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
+	//		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
+	//		this._canvasBounds = this._canvas!.getBoundingClientRect();
+	//	}
+	//}
+
+	public SetSize(width:number, height:number, dprIn:number=-1)
+	{
+		if (!this._canvas || this._disposed) return;
+
+
+		// CSS size
+		this._canvas.style.width  = `${width}px`;
+		this._canvas.style.height = `${height}px`;
+
+		let dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
+
+		// Backing size
+		let w = Math.max(1, Math.floor(this._canvas.clientWidth  * dpr));
+		//w = w/2;
+		let h = Math.max(1, Math.floor(this._canvas.clientHeight * dpr));
+		//h = h/2;
+
+		if (this._canvas.width !== w || this._canvas.height !== h)
+		{
+			this._canvas.width= w;
+			this._canvas.height = h;
+			(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
+
+			console.log('%cRC.resize() ', 'color:#dc9d67; font-weight:bold;', w, h, 'dpr:', dpr);
 		}
+		this._canvasBounds = this._canvas.getBoundingClientRect();
 	}
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
@@ -483,6 +588,12 @@ export class RiveController
 		catch (error)
 		{
 			//console.log("RiveController - Error cleaning up Rive Renderer:", error);
+		}
+
+		if (this._unsubscribeResize !== null)
+		{
+			this._unsubscribeResize();
+			this._unsubscribeResize = null;
 		}
 
 		this._riveObjectsSet = null

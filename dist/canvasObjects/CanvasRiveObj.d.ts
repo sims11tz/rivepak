@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl-advanced";
+import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";

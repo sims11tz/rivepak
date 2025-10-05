@@ -420,16 +420,16 @@ export class CanvasRiveObj extends BaseCanvasObj {
         const scaledWidth = this.artboard.width * this.xScale;
         const scaledHeight = this.artboard.height * this.yScale;
         if (this._resolutionScale !== -1) {
-            this._objBoundsReuse.minX = this._transformedX;
-            this._objBoundsReuse.minY = this._transformedY;
-            this._objBoundsReuse.maxX = this._transformedX + (scaledWidth * this._resolutionScale);
-            this._objBoundsReuse.maxY = this._transformedY + (scaledHeight * this._resolutionScale);
+            this._objBoundsReuse.minX = Math.round(this._transformedX);
+            this._objBoundsReuse.minY = Math.round(this._transformedY);
+            this._objBoundsReuse.maxX = Math.round(this._transformedX + (scaledWidth * this._resolutionScale));
+            this._objBoundsReuse.maxY = Math.round(this._transformedY + (scaledHeight * this._resolutionScale));
         }
         else {
-            this._objBoundsReuse.minX = this.x;
-            this._objBoundsReuse.minY = this.y;
-            this._objBoundsReuse.maxX = this.x + scaledWidth;
-            this._objBoundsReuse.maxY = this.y + scaledHeight;
+            this._objBoundsReuse.minX = Math.round(this.x);
+            this._objBoundsReuse.minY = Math.round(this.y);
+            this._objBoundsReuse.maxX = Math.round(this.x + scaledWidth);
+            this._objBoundsReuse.maxY = Math.round(this.y + scaledHeight);
         }
         this.Renderer.save();
         this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, this._objBoundsReuse, this.artboard.bounds);

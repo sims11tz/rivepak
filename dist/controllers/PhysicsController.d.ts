@@ -9,7 +9,7 @@ export declare class PhysicsController {
     private _wallOptions;
     private wallThickness;
     Init(canvas: HTMLCanvasElement, physicsWalls: boolean | undefined, debugRenderDiv: HTMLDivElement, debug?: boolean): void;
-    SetSize(width: number, height: number): void;
+    SetSize(width: number, height: number, dprIn?: number): void;
     AddBody(body: Matter.Body): void;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
     private handleCollision;
