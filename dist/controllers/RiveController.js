@@ -100,6 +100,7 @@ export class RiveController {
                 return;
             }
             this._initCalled = true;
+            this._disposed = false; // Reset disposed flag on re-init
             try {
                 const debugLoadingWASM = false;
                 if (debugLoadingWASM) {
@@ -183,23 +184,22 @@ export class RiveController {
     //	}
     //}
     SetSize(width, height, dprIn = -1) {
-        var _a, _b;
         if (!this._canvas || this._disposed)
             return;
-        // CSS size
+        // CSS size (layout)
         this._canvas.style.width = `${width}px`;
         this._canvas.style.height = `${height}px`;
         let dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
-        // Backing size
-        let w = Math.max(1, Math.floor(this._canvas.clientWidth * dpr));
-        //w = w/2;
-        let h = Math.max(1, Math.floor(this._canvas.clientHeight * dpr));
-        //h = h/2;
-        if (this._canvas.width !== w || this._canvas.height !== h) {
+        // Backing store = CSS × DPR for crisp rendering
+        let w = Math.max(1, Math.floor(width * dpr));
+        let h = Math.max(1, Math.floor(height * dpr));
+        // Always set size if canvas is uninitialized (width/height = 0) or if dimensions changed
+        if (this._canvas.width !== w || this._canvas.height !== h || this._canvas.width === 0 || this._canvas.height === 0) {
             this._canvas.width = w;
             this._canvas.height = h;
-            (_b = (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.setDevicePixelRatio) === null || _b === void 0 ? void 0 : _b.call(_a, dpr);
-            console.log('%cRC.resize() ', 'color:#dc9d67; font-weight:bold;', w, h, 'dpr:', dpr);
+            // Don't call setDevicePixelRatio - backing store already has DPR baked in
+            // Rive will auto-detect from canvas.width vs canvas.style.width ratio
+            //console.log('%cRC.resize(*) ', 'color:#dc9d67; font-weight:bold;', 'CSS:', width, height, 'ATTR:', w, h, 'DPR:', dpr, '(no setDevicePixelRatio call)');
         }
         this._canvasBounds = this._canvas.getBoundingClientRect();
     }
@@ -247,6 +247,7 @@ export class RiveController {
                     console.error(`Artboard not found in ${def.filePath}`);
                     return null;
                 }
+                // Artboard needs to know actual DPR when renderer auto-detects
                 artboard.devicePixelRatioUsed = window.devicePixelRatio;
                 let canvasRiveObj = null;
                 if (def.classType) {

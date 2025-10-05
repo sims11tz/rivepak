@@ -498,7 +498,7 @@ export class CanvasEngine
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
 
-		console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+		//console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
 
 		// Notify Rive of resize
 		RiveController.get().SetSize(newWidth, newHeight, dpr);
