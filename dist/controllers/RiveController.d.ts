@@ -36,8 +36,8 @@ export declare class RiveController {
     private _canvas;
     get Canvas(): HTMLCanvasElement;
     private _canvasBounds;
-    private _canvasGlobalBounds;
     get CanvasBounds(): DOMRect;
+    private _canvasGlobalBounds;
     get CanvasGlobalBounds(): DOMRect;
     private _riveObjectsSet;
     get RiveObjectsSet(): RiveObjectsSet;
@@ -45,6 +45,7 @@ export declare class RiveController {
     private _cache;
     private _disposed;
     private fetchAndHash;
+    private _debug;
     private _unsubscribeResize;
     Init(canvas: HTMLCanvasElement): Promise<void>;
     SetSize(width: number, height: number, dprIn?: number): void;

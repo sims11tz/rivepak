@@ -7,14 +7,7 @@ export class RiveAnimationObject extends CanvasRiveObj
 	constructor(riveDef:RiveObjectDef,artboard:Artboard)
 	{
 		super(riveDef,artboard);
-
-		//this.initRiveObject();
 	}
-
-	//protected initRiveObject()
-	//{
-	//	super.initRiveObject();
-	//}
 
 	public Update(time:number,frameCount:number,onceSecond:boolean)
 	{

@@ -6,6 +6,7 @@ import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanva
 import { CanvasEngine, ResizeCanvasObj } from "../useCanvasEngine";
 import * as PIXI from "pixi.js";
 import { CanvasEngineResizePubSub } from "../CanvasEngineEventBus";
+import RivePakUtils from "../RivePakUtils";
 
 export enum RIVE_OBJECT_TYPE
 {
@@ -78,9 +79,9 @@ export class RiveController
 	private _canvas:HTMLCanvasElement | null = null;
 	public get Canvas() { return this._canvas!; }
 	private _canvasBounds:DOMRect | null = null;
-	private _canvasGlobalBounds:DOMRect | null = null;
 	public get CanvasBounds() { return this._canvasBounds!; }
-	public get CanvasGlobalBounds() { return this._canvasBounds!; }
+	private _canvasGlobalBounds:DOMRect | null = null;
+	public get CanvasGlobalBounds() { return this._canvasGlobalBounds!; }
 
 	private _riveObjectsSet:RiveObjectsSet | null = null;
 	public get RiveObjectsSet() { return this._riveObjectsSet!; }
@@ -90,7 +91,8 @@ export class RiveController
 
 	private _disposed:boolean = false;
 
-	private async fetchAndHash(url: string): Promise<Uint8Array> {
+	private async fetchAndHash(url: string): Promise<Uint8Array>
+	{
 		const res = await fetch(url, { cache: "no-store" });
 		const bytes = new Uint8Array(await res.arrayBuffer());
 		// SHA-256
@@ -103,8 +105,9 @@ export class RiveController
 		return bytes;
 	}
 
-	private _unsubscribeResize: (() => void) | null = null;
+	private _debug:boolean = false;
 
+	private _unsubscribeResize: (() => void) | null = null;
 	public async Init(canvas:HTMLCanvasElement)
 	{
 		if (this._initCalled) { return; }
@@ -113,8 +116,7 @@ export class RiveController
 
 		try
 		{
-			const debugLoadingWASM = false;
-
+			const debugLoadingWASM = this._debug || false;
 			if(debugLoadingWASM)
 			{
 				console.log('');
@@ -138,7 +140,7 @@ export class RiveController
 				console.log("🚀 Rive Renderer Type:", this._riveRenderer?.constructor.name);
 
 				const gl = (this._riveRenderer as any)?.gl as WebGL2RenderingContext | WebGLRenderingContext | undefined;
-				if (gl)
+				if(gl)
 				{
 					console.log("✅ WebGL active");
 					console.log("GL VERSION:", gl.getParameter(gl.VERSION));
@@ -239,7 +241,7 @@ export class RiveController
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
-		const debug = false;
+		const debug = this._debug || false;
 		if(debug) console.log('%c RiveController: CreateRiveObj() ','color:#00FF88');
 
 		const defs:RiveObjectDef[] = [];
@@ -263,7 +265,7 @@ export class RiveController
 		const riveObjects = defs.map((def) =>
 		{
 			const riveFile = riveFileMap.get(def.filePath);
-			if (!riveFile)
+			if(!riveFile)
 			{
 				console.error(`Failed to create Rive object for ${def.filePath}`);
 				return null;
@@ -284,7 +286,7 @@ export class RiveController
 			}
 
 			let artboard = riveFile.artboardByName(def.artboardName) || riveFile.artboardByIndex(0);
-			if (!artboard)
+			if(!artboard)
 			{
 				console.error(`Artboard not found in ${def.filePath}`);
 				return null;
@@ -292,8 +294,9 @@ export class RiveController
 			// Artboard needs to know actual DPR when renderer auto-detects
 			artboard.devicePixelRatioUsed = window.devicePixelRatio;
 
-			let canvasRiveObj: CanvasRiveObj | null = null;
-			if (def.classType)
+
+			let canvasRiveObj:CanvasRiveObj | null = null;
+			if(def.classType)
 			{
 				canvasRiveObj = new def.classType(def, artboard);
 			}
@@ -316,41 +319,68 @@ export class RiveController
 				console.log('%c riveFile.viewModelCount :','color:#00FF88', riveFile.viewModelCount());
 			}
 
-			if(riveFile.viewModelCount() > 0)
+			if (riveFile.viewModelCount && riveFile.viewModelCount() > 0)
 			{
-				const vmName = undefined;
-				const vm = this.getVMForArtboard(riveFile, artboard, vmName);
-				if(debug) console.log('%c vm :','color:#00FF88', vm);
+				const vmName = undefined; // keep your override if you want
+				const vm = RivePakUtils.PickBestViewModel(riveFile, artboard, vmName);
 				let vmi:ViewModelInstance | null = null;
 
 				if(vm)
 				{
 					if(debug)
 					{
-						console.log('%c ','color:#C586C0');
-						console.log('%c lets get vmi :','color:#C586C0');
-						console.log('%c vmName:','color:#C586C0', vm.name);
-						console.log('%c getInstanceNames('+vm.instanceCount+') :','color:#C586C0',vm.getInstanceNames());
-						console.log('%c getProperties('+vm.propertyCount+') :','color:#C586C0',vm.getProperties());
+						console.log("VM chosen:", vm?.name);
+						try
+						{
+							console.log("VM instance names:", (RivePakUtils._isFn(vm, "getInstanceNames") ? (vm as any).getInstanceNames() : "(n/a)"));
+						} catch {}
 					}
-					vmi = this.makeVMI(vm, artboard);
-					if(debug) console.log('%c vmi :','color:#C586C0'+vmi?.artboard.name);
-					if(vmi && typeof artboard.bindViewModelInstance === "function")
+
+					// Try to get the first instance name if available
+					let instanceName:string | undefined = undefined;
+					try
 					{
-						artboard.bindViewModelInstance(vmi);
-						if(debug) console.log("Bound ViewModelInstance. Properties:", vmi.getProperties?.().map((p:any)=>p.name));
+						const instanceNames = RivePakUtils._isFn(vm, "getInstanceNames") ? (vm as any).getInstanceNames() : null;
+						if(instanceNames && Array.isArray(instanceNames) && instanceNames.length > 0)
+						{
+							instanceName = instanceNames[0];
+							if(debug) console.log("Using VM instance name:", instanceName);
+						}
+					} catch {}
+
+					vmi = RivePakUtils.MakeBestVMI(vm, artboard, instanceName);
+					if(vmi && typeof (artboard as any).bindViewModelInstance === "function")
+					{
+						(artboard as any).bindViewModelInstance(vmi);
 					}
 				}
+				//RivePakUtils.DumpRiveDiagnostics(riveFile, artboard, vm, vmi);
 
 				if(vmi)
 				{
-					if(debug) console.log('%c HAS VMI:'+vmi.artboard.name,'color:#C586C0');
 					canvasRiveObj?.SetViewModelInstance(vmi);
-					if(debug) console.log('%c OMG OM G OMG OMG OGM GHTI SHOULD WORK!!!!:','color:#C586C0');
-				}
-				else
-				{
-					if(debug) console.log('%c no VMI !','color:#C586C0');
+
+					// CRITICAL FIX: Also bind VMI to State Machine if it exists
+					// The state machine needs the VMI bound to react to ViewModel enum changes
+					const sm = (canvasRiveObj as any)?._stateMachine;
+					if(debug)
+					{
+						console.log("🎯 Checking State Machine binding...");
+						console.log("  State Machine exists?", !!sm);
+						console.log("  State Machine name:", sm?.name);
+						console.log("  bindViewModelInstance exists?", typeof sm?.bindViewModelInstance === "function");
+					}
+
+					if(sm && typeof sm.bindViewModelInstance === "function")
+					{
+						if(debug) console.log("  ✅ Binding VMI to State Machine:", sm.name);
+						sm.bindViewModelInstance(vmi);
+						if(debug) console.log("  ✅ VMI bound successfully!");
+					}
+					else
+					{
+						if(debug) console.log("  ❌ Cannot bind VMI to State Machine");
+					}
 				}
 			}
 			else
@@ -371,7 +401,7 @@ export class RiveController
 
 	private getVMForArtboard(file:RiveFile, artboard:Artboard, name?:string): ViewModel | null
 	{
-		const debug = false;
+		const debug = this._debug || false;
 		if(debug) console.log('----%---getVMForArtboard -- file:'+file.defaultArtboard.name+',  artboard:'+artboard.name+'   name:'+name);
 		if(name && typeof file.viewModelByName === "function")
 		{
@@ -599,11 +629,9 @@ export class RiveController
 		}
 
 		this._riveObjectsSet = null
-
 		this._riveRenderer = null;
 		this._canvas = null;
 		this._canvasBounds = null;
-
 		this._cache.clear();
 		this._riveInstance = null;
 		this._initCalled = false;

@@ -210,13 +210,13 @@ export abstract class BaseCanvasObj
 
 	public _body:Matter.Body | null = null;
 
-	public _debug!:boolean;
+	public _debugRive!:boolean;
 	public _debugLogs!:boolean;
 
 	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue:number | boolean, newValue:number | boolean) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
-		this._debug = defObj.debugMode ?? false;
+		this._debugRive = defObj.debugMode ?? false;
 		this._debugLogs = defObj.debugLogs ?? false;
 		this._defObj = defObj;
 

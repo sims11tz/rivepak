@@ -225,7 +225,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
     }
     InitPixiObject() {
         var _a, _b, _c, _d, _e, _f;
-        if (this._debug) {
+        if (this._debugRive) {
             this._debugGraphics = new PIXI.Graphics();
             this._debugGraphics.zIndex = 100000; // Always on top
             PixiController.get().GetPixiInstance(PIXI_LAYER.ABOVE).stage.addChild(this._debugGraphics);
@@ -279,7 +279,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
     DrawVectors() {
         if (this._graphics === null)
             return;
-        if (this._debug && this._debugGraphics) {
+        if (this._debugRive && this._debugGraphics) {
             console.log('%c CanvasPixiShapeOBJ.DrawVectors3', 'color:#ee661c; font-weight:bold;');
             this._debugGraphics.clear();
             this._debugGraphics.rect(0, 0, this.width, this.height);
@@ -300,7 +300,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
         let transformedY = 0;
         let yScale = 0;
         // Use render coordinates (automatically handles parent transforms)
-        if (((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) && (this._graphics || (this._debug && this._debugGraphics))) {
+        if (((_a = CanvasEngine.get().EngineSettings) === null || _a === void 0 ? void 0 : _a.autoScale) && (this._graphics || (this._debugRive && this._debugGraphics))) {
             transformedX = this.renderX * CanvasEngine.get().CurrentCanvasScale;
             transformedY = this.renderY * CanvasEngine.get().CurrentCanvasScale;
             xScale = CanvasEngine.get().CurrentCanvasScale * this.renderXScale;
@@ -317,7 +317,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
             this._graphics.y = transformedY;
             this._graphics.scale.set(xScale, yScale);
         }
-        if (this._debug && this._debugGraphics) {
+        if (this._debugRive && this._debugGraphics) {
             this._debugGraphics.x = transformedX;
             this._debugGraphics.y = transformedY;
             this._debugGraphics.scale.set(xScale, yScale);

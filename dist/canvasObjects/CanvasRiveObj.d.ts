@@ -40,14 +40,29 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _inputs: Map<string, SMIInput>;
     protected _viewModels: Map<string, any>;
     protected _viewModelInstance: ViewModelInstance | null;
+    private _vmEnumQueue;
+    private _vmEnumQueueProcessedThisFrame;
     SetViewModelInstance(vmi: ViewModelInstance | null): void;
     get ViewModelInstance(): ViewModelInstance | null;
+    /**
+     * Queue a ViewModel enum change to be applied in the next frame.
+     * This ensures State Machines process changes one per frame in sequence.
+     * @param path - The path to the enum property (e.g., "POD_TYPE")
+     * @param value - The string value to set (e.g., "SPACE")
+     */
+    QueueViewModelEnumChange(path: string, value: string): void;
+    /**
+     * Process the next queued ViewModel enum change (called once per frame in Update)
+     */
+    private _processVMEnumQueue;
     private _riveObjDef;
     get riveObjDef(): RiveObjectDef;
     private _artboardName;
     get artboardName(): string;
     private _filePath;
     get filePath(): string;
+    protected _baseRiveVMPath: string;
+    get baseRiveVMPath(): string;
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     private _lastMousePos;
     private _lastMouseDown;

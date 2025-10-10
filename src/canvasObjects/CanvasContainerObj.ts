@@ -56,7 +56,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 			this.y -= (this.height / 2);
 		}
 
-		if (this._debug)
+		if (this._debugRive)
 		{
 			this._debugGraphics = new PIXI.Graphics();
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
@@ -72,12 +72,12 @@ export class CanvasContainerObj extends BaseCanvasObj
 
 		//this.UpdateBaseProps();
 
-		if(this._debug) this.DrawDebug();
+		if(this._debugRive) this.DrawDebug();
 	}
 
 	protected DrawDebug()
 	{
-		if(this._debug && this._debugGraphics)
+		if(this._debugRive && this._debugGraphics)
 		{
 			this._debugGraphics.clear();
 			this._debugGraphics.rect(0, 0, this.width, this.height);
@@ -384,7 +384,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 		let transformedY = 0;
 		let yScale = 0;
 
-		if(CanvasEngine.get().EngineSettings?.autoScale && (this._debug && this._debugGraphics))
+		if(CanvasEngine.get().EngineSettings?.autoScale && (this._debugRive && this._debugGraphics))
 		{
 			transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
 			transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
@@ -406,7 +406,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 		//	this._graphics.scale.set(xScale, yScale);
 		//}
 
-		if(this._debug && this._debugGraphics)
+		if(this._debugRive && this._debugGraphics)
 		{
 			this._debugGraphics.x = transformedX;
 			this._debugGraphics.y = transformedY;

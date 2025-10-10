@@ -67,14 +67,87 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected _viewModels = new Map<string, any>();
 	protected _viewModelInstance:ViewModelInstance | null = null;
+
+	private _vmEnumQueue:Array<{path: string, value: string}> = [];
+	private _vmEnumQueueProcessedThisFrame = false;
+
 	public SetViewModelInstance(vmi:ViewModelInstance | null)
 	{
+		const debug = false;
+		if(debug)
+		{
+			console.log(`📝 SetViewModelInstance called for "${this._label}"`);
+			console.log(`   VMI is null?`, vmi === null);
+			console.log(`   State Machine exists?`, !!this._stateMachine);
+			console.log(`   State Machine name:`, this._stateMachine?.name);
+		}
+
 		this._viewModelInstance = vmi;
+
+		// CRITICAL: Bind VMI to State Machine if it exists
+		// The State Machine needs the VMI bound to react to ViewModel changes
+		if(vmi && this._stateMachine && typeof this._stateMachine.bindViewModelInstance === "function")
+		{
+			if(debug) console.log(`🔗 Binding VMI to State Machine "${this._stateMachine.name}" for object "${this._label}"`);
+			this._stateMachine.bindViewModelInstance(vmi);
+			if(debug) console.log(`✅ VMI successfully bound to State Machine!`);
+		}
+		else
+		{
+			if(debug) console.log(`❌ Cannot bind VMI to State Machine:`);
+			if(!vmi) console.log(`   - VMI is null`);
+			if(debug && !this._stateMachine) console.log(`   - State Machine is null`);
+			if(this._stateMachine && typeof this._stateMachine.bindViewModelInstance !== "function")
+			if(debug) console.log(`   - bindViewModelInstance is not a function`);
+		}
 	}
 
 	public get ViewModelInstance(): ViewModelInstance | null
 	{
 		return this._viewModelInstance;
+	}
+
+	/**
+	 * Queue a ViewModel enum change to be applied in the next frame.
+	 * This ensures State Machines process changes one per frame in sequence.
+	 * @param path - The path to the enum property (e.g., "POD_TYPE")
+	 * @param value - The string value to set (e.g., "SPACE")
+	 */
+	public QueueViewModelEnumChange(path: string, value: string): void
+	{
+		if(!this._viewModelInstance)
+		{
+			console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
+			return;
+		}
+		this._vmEnumQueue.push({path, value});
+		//console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._vmEnumQueue.length})`);
+	}
+
+	/**
+	 * Process the next queued ViewModel enum change (called once per frame in Update)
+	 */
+	private _processVMEnumQueue(): void
+	{
+		if(this._vmEnumQueue.length === 0 || !this._viewModelInstance) return;
+
+		// Only process one change per frame
+		if(this._vmEnumQueueProcessedThisFrame) return;
+
+		const change = this._vmEnumQueue.shift();
+		if(change)
+		{
+			try
+			{
+				this._viewModelInstance.enum(change.path).value = change.value;
+				//console.log(`✅ Applied queued enum change: ${change.path} = ${change.value} (${this._vmEnumQueue.length} remaining)`);
+			}
+			catch(error)
+			{
+				console.error(`❌ Failed to apply queued enum change: ${change.path} = ${change.value}`, error);
+			}
+			this._vmEnumQueueProcessedThisFrame = true;
+		}
 	}
 
 	private _riveObjDef:RiveObjectDef;
@@ -85,6 +158,9 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	private _filePath: string = "";
 	public get filePath(): string { return this._filePath; }
+
+	protected _baseRiveVMPath: string = "";
+	public get baseRiveVMPath(): string { return this._baseRiveVMPath; }
 
 	constructor(riveDef:RiveObjectDef, artboard: Artboard)
 	{
@@ -299,23 +375,40 @@ export class CanvasRiveObj extends BaseCanvasObj
 		}
 		if(this._debugLogs) console.log("Animations Loaded : "+this._animations.length);
 
-		this._stateMachine = this.artboard.stateMachineCount() > 0 ? new this.Rive.StateMachineInstance(this.artboard.stateMachineByIndex(0),this.artboard): null;
+		const smCount = this.artboard.stateMachineCount();
+		if(this._debugLogs) console.log(`🎰 Artboard "${this.artboard.name}" has ${smCount} State Machine(s)`);
+
+		this._stateMachine = smCount > 0 ? new this.Rive.StateMachineInstance(this.artboard.stateMachineByIndex(0),this.artboard): null;
 
 		this._inputs = new Map<string, SMIInput>();
 		if (this._stateMachine)
 		{
-			if(this._debugLogs) console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.name);
-			if(this._debugLogs) console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.stateChangedCount());
+			if(this._debugLogs)
+			{
+				console.log(`✅ State Machine "${this._stateMachine.name}" created successfully`);
+				console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.name);
+				console.log("Has State Machine<"+this._stateMachine.inputCount()+">: "+this._stateMachine.stateChangedCount());
+			}
+
 			for (let j = 0; j < this._stateMachine.inputCount(); j++)
 			{
 				const input = this._stateMachine.input(j);
 				this._inputs.set(input.name, input);
 				//if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
 			}
+
+			// CRITICAL: Bind VMI to State Machine if VMI was set before the State Machine was created
+			// This handles the timing issue where SetViewModelInstance() is called during super() before the SM exists
+			if(this._viewModelInstance && typeof this._stateMachine.bindViewModelInstance === "function")
+			{
+				if(this._debugLogs) console.log(`🔗 [Constructor] Binding VMI to State Machine "${this._stateMachine.name}" for "${this._label}"`);
+				this._stateMachine.bindViewModelInstance(this._viewModelInstance);
+				if(this._debugLogs) console.log(`✅ [Constructor] VMI successfully bound to State Machine!`);
+			}
 		}
 		else
 		{
-			if(this._debugLogs) console.log("No State Machine found");
+			if(this._debugLogs) console.log(`❌ No State Machine found in artboard "${this.artboard.name}"`);
 		}
 
 		//if(this._viewModelInstance)
@@ -470,6 +563,12 @@ export class CanvasRiveObj extends BaseCanvasObj
 	{
 		if(this.enabled === false || this.visible === false) return;
 
+		// Reset the queue processing flag at the start of each frame
+		this._vmEnumQueueProcessedThisFrame = false;
+
+		// Process one queued ViewModel enum change per frame (if any)
+		this._processVMEnumQueue();
+
 		// Process animations - skip if timeline controlled or autoPlay is false
 		for (let i = 0; i < this._animations.length; i++)
 		{
@@ -602,11 +701,15 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 		if(this._interactiveGraphics)
 		{
-			this._interactiveGraphics.x = this._objBoundsReuse.minX;
-			this._interactiveGraphics.y = this._objBoundsReuse.minY;
+			// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
+			// So divide by DPR to convert back to CSS coordinates for Pixi
+			const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-			this._interactiveGraphics.width = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
-			this._interactiveGraphics.height = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
+			this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
+			this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
+
+			this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+			this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
 		}
 
 		if(this._textLabel)
@@ -711,7 +814,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 		this._onHoverOutCallback = onHoverOut;
 	}
 
-	protected onClick(event: MouseEvent | PointerEvent | PIXI.PixiTouch)
+	protected onClick(event:MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
 		if(this._onClickCallback)
 		{
@@ -776,6 +879,11 @@ export class CanvasRiveObj extends BaseCanvasObj
 		else
 		{
 			if(debug) console.log('dispose NO animation... THERE IS NO ANIMATION ');
+		}
+
+		if(this._vmEnumQueue)
+		{
+			this._vmEnumQueue = [];
 		}
 
 		if(this._stateMachine)
