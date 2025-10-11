@@ -36,6 +36,18 @@ export class AnimationMetadata
 	}
 }
 
+export enum RIVE_CURSOR_TYPES
+{
+	DEFAULT = 'default',
+	POINTER = 'pointer',
+	GRAB = 'grab',
+	CROSSHAIR = 'crosshair',
+	NOT_ALLOWED = 'not-allowed',
+	N_RESIZE = 'n-resize',
+	EW_RESIZE = 'ew-resize',
+	NESW_RESIZE = 'nesw-resize'
+}
+
 export type RiveInstance = Awaited<ReturnType<typeof RiveCanvas>>;
 
 export interface RiveArtboardBundle
@@ -789,11 +801,28 @@ export class CanvasRiveObj extends BaseCanvasObj
 		this._interactiveGraphics.y = this.y;
 
 		this._interactiveGraphics.eventMode = "static";
-		this._interactiveGraphics.cursor = "pointer";
+		this.CurrentCursor = RIVE_CURSOR_TYPES.POINTER;
 
 		this._interactiveGraphics.on("pointerdown", this.onClick, this);
 		this._interactiveGraphics.on("pointerover", this.onHover, this);
 		this._interactiveGraphics.on("pointerout", this.onHoverOut, this);
+	}
+
+	private _currentRiveCursor:RIVE_CURSOR_TYPES = RIVE_CURSOR_TYPES.DEFAULT;
+	public get CurrentCursor():RIVE_CURSOR_TYPES
+	{
+		return this._currentRiveCursor;
+	}
+
+	public set CurrentCursor(cursor: RIVE_CURSOR_TYPES)
+	{
+		if(this._interactiveGraphics)
+		{
+			if(this._currentRiveCursor === cursor) return;
+			this._currentRiveCursor = cursor;
+
+			this._interactiveGraphics.cursor = cursor.toString();
+		}
 	}
 
 	protected _onClickCallback?:(event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj:CanvasRiveObj) => void;

@@ -3,6 +3,7 @@ import { RiveObjectDef } from "../controllers/RiveController";
 import { RiveAnimationObject } from "./RiveAnimationObj";
 import * as PIXI from "pixi.js";
 import RivePakUtils from "../RivePakUtils";
+import { RIVE_CURSOR_TYPES } from "./CanvasRiveObj";
 
 export enum RIVE_BUTTON_STATES
 {
@@ -18,6 +19,7 @@ export enum RIVE_BUTTON_STATES
 
 export enum RIVE_BUTTON_MODES
 {
+	DISABLED = "DISABLED",
 	BUTTON = "BUTTON",
 	TOGGLE = "TOGGLE",
 }
@@ -44,7 +46,7 @@ export class RiveButtonObject extends RiveAnimationObject
 {
 	private _debugButton = false;
 
-	private _buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.BUTTON;
+	private _buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.DISABLED;
 	public get RiveButtonMode():RIVE_BUTTON_MODES { return this._buttonMode; }
 
 	constructor(riveDef:RiveObjectDef,artboard:Artboard)
@@ -59,23 +61,38 @@ export class RiveButtonObject extends RiveAnimationObject
 		super.Update(time,frameCount,onceSecond);
 	}
 
-	public InitRiveButton(buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.BUTTON, colorsObj?:RiveButtonColors)
+	public InitRiveObject()
+	{
+		super.InitRiveObject();
+
+		if(!this._buttonInitialized)
+		{
+			this.CurrentCursor = RIVE_CURSOR_TYPES.DEFAULT;
+		}
+	}
+
+	private _buttonInitialized = false;
+	public InitRiveButton(buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.DISABLED, colorsObj?:RiveButtonColors)
 	{
 		if(this._debugButton) console.log(' InitRiveButton('+buttonMode+') ',colorsObj);
 
+		this._buttonInitialized = true;
+
 		if(colorsObj === undefined)
 		{
+			//DEFAULT QA COLORS
 			colorsObj = {
-		 		BACKDROP_COLOR: RivePakUtils.HexToArgb('#f42020ff'),
-				BACKDROP_BORDER_COLOR: RivePakUtils.HexToArgb('#000000ff'),
-				BACKDROP_BORDER_HOVER_COLOR: RivePakUtils.HexToArgb('#4d0083ff'),
-				BACKDROP_HOVER_COLOR: RivePakUtils.HexToArgb('#1fd11cff'),
-				BACKDROP_SELECTED_COLOR: RivePakUtils.HexToArgb('#ffffffff'),
-				BACKDROP_DISABLED_COLOR: RivePakUtils.HexToArgb('#000000ff'),
-				BUTTON_CLICK_FX_COLOR: RivePakUtils.HexToArgb('#f6ff00ff')
+		 		BACKDROP_COLOR: RivePakUtils.HexToArgb('#f42020'),
+				BACKDROP_BORDER_COLOR: RivePakUtils.HexToArgb('#000000'),
+				BACKDROP_BORDER_HOVER_COLOR: RivePakUtils.HexToArgb('#4d0083'),
+				BACKDROP_HOVER_COLOR: RivePakUtils.HexToArgb('#1fd11c'),
+				BACKDROP_SELECTED_COLOR: RivePakUtils.HexToArgb('#ffffff'),
+				BACKDROP_DISABLED_COLOR: RivePakUtils.HexToArgb('#000000'),
+				BUTTON_CLICK_FX_COLOR: RivePakUtils.HexToArgb('#f6ff00')
 			} as RiveButtonColors;
 		}
 
+		this.CurrentCursor = (buttonMode === RIVE_BUTTON_MODES.DISABLED) ? RIVE_CURSOR_TYPES.NOT_ALLOWED : RIVE_CURSOR_TYPES.POINTER;
 		this._buttonMode = buttonMode;
 
 		if(colorsObj && this.ViewModelInstance)
@@ -98,8 +115,12 @@ export class RiveButtonObject extends RiveAnimationObject
 	protected _riveButtonEnabled:boolean = true;
 	public DisableButton()
 	{
+		if(!this._buttonInitialized) return;
+
 		if(this._riveButtonEnabled)
 		{
+			this.CurrentCursor = RIVE_CURSOR_TYPES.NOT_ALLOWED;
+
 			this._riveButtonEnabled = false;
 			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.UP);
 			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.DISABLED);
@@ -108,6 +129,10 @@ export class RiveButtonObject extends RiveAnimationObject
 
 	public EnableButton()
 	{
+		if(!this._buttonInitialized) return;
+
+		this.CurrentCursor = RIVE_CURSOR_TYPES.POINTER;
+
 		if(!this._riveButtonEnabled)
 		{
 			this._riveButtonEnabled = true;
@@ -121,13 +146,12 @@ export class RiveButtonObject extends RiveAnimationObject
 		if(this._debugButton) console.log(' setButtonState('+this._buttonMode+'):', state);
 		this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value = state;
 	}
-	//BUTTON_CLICK_FX_COLOR
 
 	protected onClick(event:MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
-		if(this._debugButton) console.log('%c onClick('+this._buttonMode+') - this._buttonMode:'+this._buttonMode+',  this.baseRiveVMPath:'+this.baseRiveVMPath, 'color: blue;');
+		if(!this._buttonInitialized) return;
 
-		//this.InputByName("BUTTON_CLICK_EVENT")!.asTrigger().fire();
+		if(this._debugButton) console.log('%c onClick('+this._buttonMode+') - this._buttonMode:'+this._buttonMode+',  this.baseRiveVMPath:'+this.baseRiveVMPath, 'color: blue;');
 
 		if(this.ViewModelInstance && this._riveButtonEnabled)
 		{
@@ -156,6 +180,8 @@ export class RiveButtonObject extends RiveAnimationObject
 
 	protected onHover()
 	{
+		if(!this._buttonInitialized) return;
+
 		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value !== RIVE_BUTTON_STATES.SELECTED)
 		{
 			if(this._riveButtonEnabled)
@@ -175,6 +201,8 @@ export class RiveButtonObject extends RiveAnimationObject
 
 	protected onHoverOut()
 	{
+		if(!this._buttonInitialized) return;
+
 		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value === RIVE_BUTTON_STATES.SELECTED)
 		{
 			this.setButtonState(RIVE_BUTTON_STATES.SELECTED);
@@ -196,7 +224,7 @@ export class RiveButtonObject extends RiveAnimationObject
 		super.onHoverOut();
 	}
 
-	public Dispose(): void
+	public Dispose():void
 	{
 		super.Dispose();
 	}

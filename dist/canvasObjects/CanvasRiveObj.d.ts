@@ -17,6 +17,16 @@ export declare class AnimationMetadata {
     get uuid(): string;
     constructor(artboard: Artboard, animation: LinearAnimationInstance, index: number, name: string, duration: number, autoPlay?: boolean);
 }
+export declare enum RIVE_CURSOR_TYPES {
+    DEFAULT = "default",
+    POINTER = "pointer",
+    GRAB = "grab",
+    CROSSHAIR = "crosshair",
+    NOT_ALLOWED = "not-allowed",
+    N_RESIZE = "n-resize",
+    EW_RESIZE = "ew-resize",
+    NESW_RESIZE = "nesw-resize"
+}
 export type RiveInstance = Awaited<ReturnType<typeof RiveCanvas>>;
 export interface RiveArtboardBundle {
     id: number;
@@ -87,6 +97,9 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private drawTextLabel;
     private _interactiveGraphics;
     private initInteractive;
+    private _currentRiveCursor;
+    get CurrentCursor(): RIVE_CURSOR_TYPES;
+    set CurrentCursor(cursor: RIVE_CURSOR_TYPES);
     protected _onClickCallback?: (event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj: CanvasRiveObj) => void;
     protected _onHoverCallback?: (sourceObj: CanvasRiveObj) => void;
     protected _onHoverOutCallback?: (sourceObj: CanvasRiveObj) => void;

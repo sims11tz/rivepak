@@ -21,6 +21,17 @@ export class AnimationMetadata {
         this.isTimelineControlled = false;
     }
 }
+export var RIVE_CURSOR_TYPES;
+(function (RIVE_CURSOR_TYPES) {
+    RIVE_CURSOR_TYPES["DEFAULT"] = "default";
+    RIVE_CURSOR_TYPES["POINTER"] = "pointer";
+    RIVE_CURSOR_TYPES["GRAB"] = "grab";
+    RIVE_CURSOR_TYPES["CROSSHAIR"] = "crosshair";
+    RIVE_CURSOR_TYPES["NOT_ALLOWED"] = "not-allowed";
+    RIVE_CURSOR_TYPES["N_RESIZE"] = "n-resize";
+    RIVE_CURSOR_TYPES["EW_RESIZE"] = "ew-resize";
+    RIVE_CURSOR_TYPES["NESW_RESIZE"] = "nesw-resize";
+})(RIVE_CURSOR_TYPES || (RIVE_CURSOR_TYPES = {}));
 export class CanvasRiveObj extends BaseCanvasObj {
     SetViewModelInstance(vmi) {
         var _a;
@@ -112,6 +123,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._entityObj = null;
         this._textLabel = null;
         this._interactiveGraphics = null;
+        this._currentRiveCursor = RIVE_CURSOR_TYPES.DEFAULT;
         this._riveObjDef = riveDef;
         if (this._riveObjDef.id != undefined && this._riveObjDef.id != "") {
             this._id = this._riveObjDef.id;
@@ -584,10 +596,21 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";
-        this._interactiveGraphics.cursor = "pointer";
+        this.CurrentCursor = RIVE_CURSOR_TYPES.POINTER;
         this._interactiveGraphics.on("pointerdown", this.onClick, this);
         this._interactiveGraphics.on("pointerover", this.onHover, this);
         this._interactiveGraphics.on("pointerout", this.onHoverOut, this);
+    }
+    get CurrentCursor() {
+        return this._currentRiveCursor;
+    }
+    set CurrentCursor(cursor) {
+        if (this._interactiveGraphics) {
+            if (this._currentRiveCursor === cursor)
+                return;
+            this._currentRiveCursor = cursor;
+            this._interactiveGraphics.cursor = cursor.toString();
+        }
     }
     SetEventHandlers({ onClick, onHover, onHoverOut, }) {
         this._onClickCallback = onClick;
