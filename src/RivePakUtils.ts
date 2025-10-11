@@ -460,5 +460,111 @@ public static ResolveEnumIndex(
 	return map[option] ?? (/^\d+$/.test(option) ? parseInt(option, 10) : undefined);
 }
 
+	public static HexToRgb(hex:string, alpha:number = 255): { r: number; g: number; b: number; a: number } | null
+	{
+		if (!hex) return null;
+
+		hex = hex.trim().replace(/^#/, '');
+		if (/^0x/i.test(hex)) hex = hex.slice(2); // allow 0xRRGGBB[AA]
+
+		// Expand shorthand #RGB -> #RRGGBB and #RGBA -> #RRGGBBAA
+		if (hex.length === 3) {
+			hex = hex.split('').map(c => c + c).join(''); // RGB -> RRGGBB
+		} else if (hex.length === 4) {
+			hex = hex.split('').map(c => c + c).join(''); // RGBA -> RRGGBBAA
+		}
+
+		let r = 0, g = 0, b = 0, a = alpha;
+
+		if (hex.length === 6) {
+			r = parseInt(hex.slice(0, 2), 16);
+			g = parseInt(hex.slice(2, 4), 16);
+			b = parseInt(hex.slice(4, 6), 16);
+			// no alpha in hex -> use param 'alpha' (already set)
+		} else if (hex.length === 8) {
+			r = parseInt(hex.slice(0, 2), 16);
+			g = parseInt(hex.slice(2, 4), 16);
+			b = parseInt(hex.slice(4, 6), 16);
+			a = parseInt(hex.slice(6, 8), 16); // 00..FF -> 0..255
+		} else {
+			return null; // invalid hex length
+		}
+
+		// Clamp just in case
+		r = Math.max(0, Math.min(255, r));
+		g = Math.max(0, Math.min(255, g));
+		b = Math.max(0, Math.min(255, b));
+		a = Math.max(0, Math.min(255, a));
+
+		return { r, g, b, a };
+	}
+
+	public static HexToArgb(hex: string, alpha: number = 255): [number, number, number, number]
+	{
+		const c = this.HexToRgb(hex, alpha);
+		// Fallback to opaque white if invalid input
+		const r = c?.r ?? 255;
+		const g = c?.g ?? 255;
+		const b = c?.b ?? 255;
+		const a = c?.a ?? 255;
+		return [a, r, g, b];
+	}
+
+	public static GetUniqueColor(index: number): string
+	{
+		if (this.ColorPalette[index]) return this.ColorPalette[index];
+
+		const hue = Math.floor((360 / 50) * (index - 28)); // rotate hue for fallback
+		return `hsl(${hue}, 70%, 50%)`;
+	}
+
+	public static IsObjectIdLike(obj: any):boolean
+	{
+		return obj && typeof obj === "object" && obj.buffer;
+	}
+
+	public static ToObjectIdString(maybeId:any):string
+	{
+		if (typeof maybeId === "string") return maybeId;
+		if (this.IsObjectIdLike(maybeId))
+		{
+			const buffer = Object.values(maybeId.buffer) as number[];
+			return buffer.map(b => b.toString(16).padStart(2, "0")).join("");
+		}
+		return "";
+	}
+
+	public static ColorPalette: { [key: number]: string } =
+	{
+		0: '#ff7300',
+		1: '#8884d8',
+		2: '#82ca9d',
+		3: '#0088FE',
+		4: '#ffe119',
+		5: '#FF8042',
+		6: '#e6194b',
+		7: '#ffbb28',
+		8: '#3cb44b',
+		9: '#00C49F',
+		10: '#4363d8',
+		11: '#f58231',
+		12: '#911eb4',
+		13: '#46f0f0',
+		14: '#f032e6',
+		15: '#bcf60c',
+		16: '#fabebe',
+		17: '#008080',
+		18: '#e6beff',
+		19: '#9a6324',
+		20: '#fffac8',
+		21: '#800000',
+		22: '#aaffc3',
+		23: '#808000',
+		24: '#ffd8b1',
+		25: '#000075',
+		26: '#808080',
+		27: '#000000'
+	};
+
 
 }

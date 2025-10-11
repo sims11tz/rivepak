@@ -2,6 +2,7 @@ import { Artboard } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { RiveAnimationObject } from "./RiveAnimationObj";
 import * as PIXI from "pixi.js";
+import RivePakUtils from "../RivePakUtils";
 
 export enum RIVE_BUTTON_STATES
 {
@@ -21,9 +22,27 @@ export enum RIVE_BUTTON_MODES
 	TOGGLE = "TOGGLE",
 }
 
+export type RiveColorARGB = [number, number, number, number];
+
+export interface RiveButtonColors
+{
+	BUTTON_COLOR?:RiveColorARGB;
+	BUTTON_HOVER_COLOR?:RiveColorARGB;
+	BUTTON_SELECTED_COLOR?:RiveColorARGB;
+	BUTTON_DISABLED_COLOR?:RiveColorARGB;
+	BUTTON_BORDER_COLOR?:RiveColorARGB;
+	BUTTON_BORDER_HOVER_COLOR?:RiveColorARGB;
+	BUTTON_CLICK_FX_COLOR?:RiveColorARGB;
+	BACKDROP_COLOR?:RiveColorARGB;
+	BACKDROP_BORDER_COLOR?:RiveColorARGB;
+	BACKDROP_BORDER_HOVER_COLOR?:RiveColorARGB;
+	BACKDROP_HOVER_COLOR?:RiveColorARGB;
+	BACKDROP_SELECTED_COLOR?:RiveColorARGB;
+	BACKDROP_DISABLED_COLOR?:RiveColorARGB;
+}
 export class RiveButtonObject extends RiveAnimationObject
 {
-	private _debugButton = true;
+	private _debugButton = false;
 
 	private _buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.BUTTON;
 	public get RiveButtonMode():RIVE_BUTTON_MODES { return this._buttonMode; }
@@ -38,6 +57,42 @@ export class RiveButtonObject extends RiveAnimationObject
 		if(this.enabled === false) return;
 
 		super.Update(time,frameCount,onceSecond);
+	}
+
+	public InitRiveButton(buttonMode:RIVE_BUTTON_MODES = RIVE_BUTTON_MODES.BUTTON, colorsObj?:RiveButtonColors)
+	{
+		if(this._debugButton) console.log(' InitRiveButton('+buttonMode+') ',colorsObj);
+
+		if(colorsObj === undefined)
+		{
+			colorsObj = {
+		 		BACKDROP_COLOR: RivePakUtils.HexToArgb('#f42020ff'),
+				BACKDROP_BORDER_COLOR: RivePakUtils.HexToArgb('#000000ff'),
+				BACKDROP_BORDER_HOVER_COLOR: RivePakUtils.HexToArgb('#4d0083ff'),
+				BACKDROP_HOVER_COLOR: RivePakUtils.HexToArgb('#1fd11cff'),
+				BACKDROP_SELECTED_COLOR: RivePakUtils.HexToArgb('#ffffffff'),
+				BACKDROP_DISABLED_COLOR: RivePakUtils.HexToArgb('#000000ff'),
+				BUTTON_CLICK_FX_COLOR: RivePakUtils.HexToArgb('#f6ff00ff')
+			} as RiveButtonColors;
+		}
+
+		this._buttonMode = buttonMode;
+
+		if(colorsObj && this.ViewModelInstance)
+		{
+			for(const [key, value] of Object.entries(colorsObj) as [string, RiveColorARGB | undefined][])
+			{
+				if(value !== undefined)
+				{
+					const [a, r, g, b] = value;
+					const colorInput = this.ViewModelInstance.color(`${this.baseRiveVMPath}${key}`);
+					if(colorInput)
+					{
+						colorInput.argb(a, r, g, b);
+					}
+				}
+			}
+		}
 	}
 
 	protected _riveButtonEnabled:boolean = true;
