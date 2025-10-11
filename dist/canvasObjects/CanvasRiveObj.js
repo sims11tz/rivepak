@@ -74,6 +74,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @param value - The string value to set (e.g., "SPACE")
      */
     QueueViewModelEnumChange(path, value) {
+        //console.log('%c QueueViewModelEnumChange path='+path+', value='+value, 'color: #ffc400; font-weight: bold;');
         if (!this._viewModelInstance) {
             console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
             return;

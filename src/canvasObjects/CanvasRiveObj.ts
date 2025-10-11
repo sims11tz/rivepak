@@ -127,6 +127,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 	 */
 	public QueueViewModelEnumChange(path: string, value: string): void
 	{
+		//console.log('%c QueueViewModelEnumChange path='+path+', value='+value, 'color: #ffc400; font-weight: bold;');
+
 		if(!this._viewModelInstance)
 		{
 			console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
