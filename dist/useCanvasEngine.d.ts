@@ -83,12 +83,18 @@ export declare class CanvasEngine {
     AddCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet, group?: string): BaseCanvasObj | BaseCanvasObj[] | RiveObjectsSet;
     RemoveCanvasObjects(objs: BaseCanvasObj | BaseCanvasObj[], group?: string): void;
     private updateZIndex;
+    /**
+     * Removes an object from the engine's tracking without calling Dispose again
+     * This is called by BaseCanvasObj.Dispose() via the OnDispose callback
+     */
+    private removeObjectFromTracking;
     private _resizeDebounceTimeout;
     ResizeWindowEvent: () => void;
     private _currentCanvasScale;
     get CurrentCanvasScale(): number;
     ResizeCanvasToWindow: () => void;
     DebugLogLayering(): void;
+    DebugLog(summaryOnly?: boolean): void;
     Dispose(): void;
     SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefAbove, pixiCanvasRefBelow, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasContainerRef: HTMLDivElement;

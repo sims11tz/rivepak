@@ -189,6 +189,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             }
             this.calculateAlignmentOffsets();
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textField);
+            // Update width/height based on actual rendered text bounds
+            this.updateDimensionsFromText();
             this.updateTextTransform();
         }
         super.DrawVectors();
@@ -201,6 +203,31 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         this._textField.scale.set(combinedScaleX, combinedScaleY);
         this._textField.x = this._objBoundsReuse.minX + this._alignmentOffsetX * combinedScaleX;
         this._textField.y = this._objBoundsReuse.minY + this._alignmentOffsetY * combinedScaleY;
+    }
+    /**
+     * Updates the width and height of this object based on the actual rendered text bounds
+     * Only updates if no explicit width/height was provided in defObj
+     */
+    updateDimensionsFromText() {
+        if (!this._textField)
+            return;
+        // Only auto-update dimensions if they weren't explicitly set
+        const hasExplicitWidth = this.defObj.width !== undefined;
+        const hasExplicitHeight = this.defObj.height !== undefined;
+        if (!hasExplicitWidth || !hasExplicitHeight) {
+            const bounds = this._textField.getLocalBounds();
+            if (!hasExplicitWidth) {
+                this.width = bounds.width;
+            }
+            if (!hasExplicitHeight) {
+                this.height = bounds.height;
+            }
+            // Update bounds cache
+            const scaledWidth = this.width * this.xScale;
+            const scaledHeight = this.height * this.yScale;
+            this._objBoundsReuse.maxX = this._objBoundsReuse.minX + scaledWidth;
+            this._objBoundsReuse.maxY = this._objBoundsReuse.minY + scaledHeight;
+        }
     }
     getCurrentDisplayText() {
         if (!this.defObj.text)

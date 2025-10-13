@@ -24,6 +24,11 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     set visible(value: boolean);
     DrawVectors(): void;
     private updateTextTransform;
+    /**
+     * Updates the width and height of this object based on the actual rendered text bounds
+     * Only updates if no explicit width/height was provided in defObj
+     */
+    private updateDimensionsFromText;
     private getCurrentDisplayText;
     private _styleDirty;
     private hasStyleChanged;

@@ -347,6 +347,7 @@ export class CanvasEngine
 		for (const obj of add)
 		{
 			obj.OnZIndexChanged = this.updateZIndex.bind(this);
+			obj.OnDispose = this.removeObjectFromTracking.bind(this);
 
 			for (const [g, arr] of this._canvasObjects) {
 				const i = arr.indexOf(obj);
@@ -441,6 +442,30 @@ export class CanvasEngine
 			groupArray.splice(index, 1);
 			groupArray.push(canvasObj);
 			groupArray.sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+		}
+	}
+
+	/**
+	 * Removes an object from the engine's tracking without calling Dispose again
+	 * This is called by BaseCanvasObj.Dispose() via the OnDispose callback
+	 */
+	private removeObjectFromTracking(canvasObj:BaseCanvasObj):void
+	{
+		const group = canvasObj.group ?? "main";
+		const groupArray = this._canvasObjects.get(group);
+
+		if (!groupArray) return;
+
+		const index = groupArray.indexOf(canvasObj);
+		if (index !== -1)
+		{
+			groupArray.splice(index, 1);
+
+			// Clean up empty group
+			if (groupArray.length === 0)
+			{
+				this._canvasObjects.delete(group);
+			}
 		}
 	}
 
@@ -589,6 +614,215 @@ export class CanvasEngine
 		});
 
 		console.log('%c ===== End Debug =====', 'color:#00FF00; font-weight:bold;');
+	}
+
+	public DebugLog(summaryOnly:boolean = false):void
+	{
+		console.log('%c ============== CanvasEngine.Debug ============', 'color:#7050a8; font-weight:bold;');
+
+		// Summary counts
+		let totalObjects = 0;
+		let totalGroups = 0;
+		let totalChildren = 0;
+		let totalAnimations = 0;
+		let totalStateMachines = 0;
+		let totalTextObjects = 0;
+		let totalRiveObjects = 0;
+		let totalPixiObjects = 0;
+		let totalPhysicsBodies = 0;
+
+		this._canvasObjects.forEach((objects) => {
+			totalGroups++;
+			totalObjects += objects.length;
+			objects.forEach((obj) => {
+				// Count children
+				if((obj as any).children) {
+					totalChildren += (obj as any).children.length;
+				}
+
+				// Count animations
+				if((obj as any)._animations) {
+					totalAnimations += (obj as any)._animations.length;
+				}
+
+				// Count state machines
+				if((obj as any)._stateMachine) {
+					totalStateMachines++;
+				}
+
+				// Count object types
+				if((obj as any)._textField) {
+					totalTextObjects++;
+				}
+				else if((obj as any)._artboard) {
+					totalRiveObjects++;
+				}
+				else if((obj as any)._graphics) {
+					totalPixiObjects++;
+				}
+
+				// Count physics bodies
+				if(obj._body) {
+					totalPhysicsBodies++;
+				}
+			});
+		});
+
+		console.log(`%c ┌─ Summary`, 'color:#b19cd9; font-weight:bold;');
+		console.log(`%c │ ├─ Groups: ${totalGroups}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Total Objects: ${totalObjects}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Children: ${totalChildren}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Text Objects: ${totalTextObjects}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Rive Objects: ${totalRiveObjects}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Pixi Objects: ${totalPixiObjects}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Animations: ${totalAnimations}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ State Machines: ${totalStateMachines}`, 'color:#b19cd9;');
+		console.log(`%c │ └─ Physics Bodies: ${totalPhysicsBodies}`, 'color:#b19cd9;');
+		console.log('%c', 'color:#7050a8;');
+
+		// If summary only, skip detailed output
+		if(summaryOnly)
+		{
+			// Engine state info
+			console.log('%c ┌─ Engine State', 'color:#9370db; font-weight:bold;');
+			console.log(`%c │ ├─ Run State: ${this._runState}`, 'color:#b19cd9;');
+			console.log(`%c │ ├─ Canvas Size: ${this._canvasWidth}x${this._canvasHeight}`, 'color:#b19cd9;');
+			console.log(`%c │ ├─ Current Scale: ${this._currentCanvasScale.toFixed(3)}`, 'color:#b19cd9;');
+			console.log(`%c │ ├─ Physics Enabled: ${this._canvasSettings?.physicsEnabled || false}`, 'color:#b19cd9;');
+			console.log(`%c │ └─ Update Listeners: ${this.updateListeners.size}`, 'color:#b19cd9;');
+
+			console.log('%c', 'color:#7050a8;');
+			console.log('%c ============== End Debug ============', 'color:#7050a8; font-weight:bold;');
+			console.log('%c', 'color:#7050a8; font-weight:bold;');
+			return;
+		}
+
+		// Iterate through each group
+		this._canvasObjects.forEach((objects, group) => {
+			console.log(`%c ┌─ Group: "${group}" (${objects.length} objects)`, 'color:#9370db; font-weight:bold;');
+
+			// Sort by z-index for display
+			const sorted = [...objects].sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+
+			sorted.forEach((obj, objIndex) => {
+				const isLast = objIndex === sorted.length - 1;
+				const prefix = isLast ? '└─' : '├─';
+
+				// Gather basic info
+				const info:any = {
+					uuid: obj.uuid,
+					label: obj.label,
+					type: obj.constructor.name,
+					z: obj.z,
+					x: Math.round(obj.x),
+					y: Math.round(obj.y),
+					width: Math.round(obj.width),
+					height: Math.round(obj.height),
+					visible: obj.visible,
+					enabled: obj.enabled,
+				};
+
+				// Check for parent
+				if(obj.parent) {
+					info.parent = obj.parent.label;
+				}
+
+				// Check for specific object types and their states
+				if((obj as any)._textField) {
+					// CanvasTextObject
+					info.text = (obj as any)._textField.text?.substring(0, 30) + ((obj as any)._textField.text?.length > 30 ? '...' : '');
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+				}
+				else if((obj as any)._graphics) {
+					// CanvasPixiShapeObj
+					info.pixiLayer = (obj.defObj as any).pixiLayer || 'ABOVE';
+					info.bgColor = (obj.defObj as any).bgColor;
+				}
+				else if((obj as any)._artboard) {
+					// CanvasRiveObj
+					info.filePath = (obj.defObj as any).filePath;
+					info.artboardName = (obj as any)._artboard.name;
+					info.stateMachine = (obj as any)._stateMachine?.name;
+				}
+
+				// Check for physics body
+				if(obj._body) {
+					info.hasPhysics = true;
+					info.bodyPosition = `(${Math.round(obj._body.position.x)}, ${Math.round(obj._body.position.y)})`;
+				}
+
+				// Log the object
+				console.log(`%c │ ${prefix} [${objIndex}] ${info.type}`, 'color:#b19cd9; font-weight:bold;', info);
+
+				// Check for children
+				if((obj as any).children && (obj as any).children.length > 0) {
+					const children = (obj as any).children;
+					console.log(`%c │   │ ▸ Children: ${children.length}`, 'color:#d8bfd8;');
+
+					children.forEach((child:any, childIndex:number) => {
+						const childIsLast = childIndex === children.length - 1;
+						const childPrefix = childIsLast ? '└─' : '├─';
+
+						const childInfo:any = {
+							label: child.label || child.uuid,
+							type: child.constructor.name,
+							z: child.z,
+							x: Math.round(child.x || 0),
+							y: Math.round(child.y || 0),
+							visible: child.visible,
+						};
+
+						// Check if child is a text object
+						if((child as any)._textField) {
+							childInfo.text = (child as any)._textField.text?.substring(0, 20) + ((child as any)._textField.text?.length > 20 ? '...' : '');
+						}
+
+						console.log(`%c │   │   ${childPrefix} [${childIndex}]`, 'color:#dda0dd;', childInfo);
+					});
+				}
+
+				// Check for Rive animations
+				if((obj as any)._animations && (obj as any)._animations.length > 0) {
+					console.log(`%c │   │ ▸ Animations: ${(obj as any)._animations.length}`, 'color:#d8bfd8;');
+					(obj as any)._animations.forEach((anim:any, animIndex:number) => {
+						console.log(`%c │   │   ├─ [${animIndex}] ${anim.name || 'unnamed'}`, 'color:#dda0dd;', {
+							playing: anim.instance?.isPlaying,
+							looping: anim.instance?.loopValue,
+						});
+					});
+				}
+
+				// Check for Rive state machine
+				if((obj as any)._stateMachine) {
+					const sm = (obj as any)._stateMachine;
+					console.log(`%c │   │ ▸ State Machine: ${sm.name}`, 'color:#d8bfd8;');
+
+					// Show inputs
+					if(sm.inputCount > 0) {
+						console.log(`%c │   │   ▸ Inputs: ${sm.inputCount}`, 'color:#e6c9e6;');
+						for(let i = 0; i < sm.inputCount; i++) {
+							const input = sm.input(i);
+							console.log(`%c │   │     ├─ ${input.name}: ${input.value}`, 'color:#f0e6f0;');
+						}
+					}
+				}
+			});
+
+			console.log('%c │', 'color:#9370db;');
+		});
+
+		// Engine state info
+		console.log('%c ┌─ Engine State', 'color:#9370db; font-weight:bold;');
+		console.log(`%c │ ├─ Run State: ${this._runState}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Canvas Size: ${this._canvasWidth}x${this._canvasHeight}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Current Scale: ${this._currentCanvasScale.toFixed(3)}`, 'color:#b19cd9;');
+		console.log(`%c │ ├─ Physics Enabled: ${this._canvasSettings?.physicsEnabled || false}`, 'color:#b19cd9;');
+		console.log(`%c │ └─ Update Listeners: ${this.updateListeners.size}`, 'color:#b19cd9;');
+
+		console.log('%c', 'color:#7050a8;');
+		console.log('%c ===== End Debug =====', 'color:#7050a8; font-weight:bold;');
+		console.log('%c <=--- ', 'color:#7050a8; font-weight:bold;');
+		console.log('%c', 'color:#7050a8; font-weight:bold;');
 	}
 
 	public Dispose()

@@ -428,13 +428,27 @@ export abstract class BaseCanvasObj
 	}
 	public _OnZIndexChanged:((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null = null;
 
+	public set OnDispose(func:((canvasObj: BaseCanvasObj) => void) | null)
+	{
+		this._OnDispose = func;
+	}
+	public _OnDispose:((canvasObj: BaseCanvasObj) => void) | null = null;
+
 	public Dispose():void
 	{
 		//console.log("Disposing CanvasObj: "+this._uuid+" / "+this._label);
+
+		// Notify CanvasEngine to remove this object from tracking
+		if(this._OnDispose)
+		{
+			this._OnDispose(this);
+		}
+
 		this._propertyChangeListeners.clear();
 		this._parent = null;
 		this._defObj = null;
 		this._OnZIndexChanged = null;
+		this._OnDispose = null;
 
 		if(this._body)
 		{

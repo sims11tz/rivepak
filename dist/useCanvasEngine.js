@@ -304,6 +304,7 @@ export class CanvasEngine {
         let maxZ = dest.reduce((m, o) => { var _a; return Math.max(m, (_a = o.z) !== null && _a !== void 0 ? _a : 0); }, 0);
         for (const obj of add) {
             obj.OnZIndexChanged = this.updateZIndex.bind(this);
+            obj.OnDispose = this.removeObjectFromTracking.bind(this);
             for (const [g, arr] of this._canvasObjects) {
                 const i = arr.indexOf(obj);
                 if (i !== -1) {
@@ -377,6 +378,25 @@ export class CanvasEngine {
             groupArray.sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
         }
     }
+    /**
+     * Removes an object from the engine's tracking without calling Dispose again
+     * This is called by BaseCanvasObj.Dispose() via the OnDispose callback
+     */
+    removeObjectFromTracking(canvasObj) {
+        var _a;
+        const group = (_a = canvasObj.group) !== null && _a !== void 0 ? _a : "main";
+        const groupArray = this._canvasObjects.get(group);
+        if (!groupArray)
+            return;
+        const index = groupArray.indexOf(canvasObj);
+        if (index !== -1) {
+            groupArray.splice(index, 1);
+            // Clean up empty group
+            if (groupArray.length === 0) {
+                this._canvasObjects.delete(group);
+            }
+        }
+    }
     get CurrentCanvasScale() { return this._currentCanvasScale; }
     DebugLogLayering() {
         console.log('%c ===== Canvas Objects Layering Debug =====', 'color:#00FF00; font-weight:bold;');
@@ -439,6 +459,188 @@ export class CanvasEngine {
             console.log(`  [${i}] zIndex: ${child.zIndex}, type: ${child.constructor.name}`);
         });
         console.log('%c ===== End Debug =====', 'color:#00FF00; font-weight:bold;');
+    }
+    DebugLog(summaryOnly = false) {
+        var _a, _b;
+        console.log('%c ============== CanvasEngine.Debug ============', 'color:#7050a8; font-weight:bold;');
+        // Summary counts
+        let totalObjects = 0;
+        let totalGroups = 0;
+        let totalChildren = 0;
+        let totalAnimations = 0;
+        let totalStateMachines = 0;
+        let totalTextObjects = 0;
+        let totalRiveObjects = 0;
+        let totalPixiObjects = 0;
+        let totalPhysicsBodies = 0;
+        this._canvasObjects.forEach((objects) => {
+            totalGroups++;
+            totalObjects += objects.length;
+            objects.forEach((obj) => {
+                // Count children
+                if (obj.children) {
+                    totalChildren += obj.children.length;
+                }
+                // Count animations
+                if (obj._animations) {
+                    totalAnimations += obj._animations.length;
+                }
+                // Count state machines
+                if (obj._stateMachine) {
+                    totalStateMachines++;
+                }
+                // Count object types
+                if (obj._textField) {
+                    totalTextObjects++;
+                }
+                else if (obj._artboard) {
+                    totalRiveObjects++;
+                }
+                else if (obj._graphics) {
+                    totalPixiObjects++;
+                }
+                // Count physics bodies
+                if (obj._body) {
+                    totalPhysicsBodies++;
+                }
+            });
+        });
+        console.log(`%c ┌─ Summary`, 'color:#b19cd9; font-weight:bold;');
+        console.log(`%c │ ├─ Groups: ${totalGroups}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Total Objects: ${totalObjects}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Children: ${totalChildren}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Text Objects: ${totalTextObjects}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Rive Objects: ${totalRiveObjects}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Pixi Objects: ${totalPixiObjects}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Animations: ${totalAnimations}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ State Machines: ${totalStateMachines}`, 'color:#b19cd9;');
+        console.log(`%c │ └─ Physics Bodies: ${totalPhysicsBodies}`, 'color:#b19cd9;');
+        console.log('%c', 'color:#7050a8;');
+        // If summary only, skip detailed output
+        if (summaryOnly) {
+            // Engine state info
+            console.log('%c ┌─ Engine State', 'color:#9370db; font-weight:bold;');
+            console.log(`%c │ ├─ Run State: ${this._runState}`, 'color:#b19cd9;');
+            console.log(`%c │ ├─ Canvas Size: ${this._canvasWidth}x${this._canvasHeight}`, 'color:#b19cd9;');
+            console.log(`%c │ ├─ Current Scale: ${this._currentCanvasScale.toFixed(3)}`, 'color:#b19cd9;');
+            console.log(`%c │ ├─ Physics Enabled: ${((_a = this._canvasSettings) === null || _a === void 0 ? void 0 : _a.physicsEnabled) || false}`, 'color:#b19cd9;');
+            console.log(`%c │ └─ Update Listeners: ${this.updateListeners.size}`, 'color:#b19cd9;');
+            console.log('%c', 'color:#7050a8;');
+            console.log('%c ============== End Debug ============', 'color:#7050a8; font-weight:bold;');
+            console.log('%c', 'color:#7050a8; font-weight:bold;');
+            return;
+        }
+        // Iterate through each group
+        this._canvasObjects.forEach((objects, group) => {
+            console.log(`%c ┌─ Group: "${group}" (${objects.length} objects)`, 'color:#9370db; font-weight:bold;');
+            // Sort by z-index for display
+            const sorted = [...objects].sort((a, b) => { var _a, _b; return ((_a = a.z) !== null && _a !== void 0 ? _a : 0) - ((_b = b.z) !== null && _b !== void 0 ? _b : 0); });
+            sorted.forEach((obj, objIndex) => {
+                var _a, _b, _c;
+                const isLast = objIndex === sorted.length - 1;
+                const prefix = isLast ? '└─' : '├─';
+                // Gather basic info
+                const info = {
+                    uuid: obj.uuid,
+                    label: obj.label,
+                    type: obj.constructor.name,
+                    z: obj.z,
+                    x: Math.round(obj.x),
+                    y: Math.round(obj.y),
+                    width: Math.round(obj.width),
+                    height: Math.round(obj.height),
+                    visible: obj.visible,
+                    enabled: obj.enabled,
+                };
+                // Check for parent
+                if (obj.parent) {
+                    info.parent = obj.parent.label;
+                }
+                // Check for specific object types and their states
+                if (obj._textField) {
+                    // CanvasTextObject
+                    info.text = ((_a = obj._textField.text) === null || _a === void 0 ? void 0 : _a.substring(0, 30)) + (((_b = obj._textField.text) === null || _b === void 0 ? void 0 : _b.length) > 30 ? '...' : '');
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                }
+                else if (obj._graphics) {
+                    // CanvasPixiShapeObj
+                    info.pixiLayer = obj.defObj.pixiLayer || 'ABOVE';
+                    info.bgColor = obj.defObj.bgColor;
+                }
+                else if (obj._artboard) {
+                    // CanvasRiveObj
+                    info.filePath = obj.defObj.filePath;
+                    info.artboardName = obj._artboard.name;
+                    info.stateMachine = (_c = obj._stateMachine) === null || _c === void 0 ? void 0 : _c.name;
+                }
+                // Check for physics body
+                if (obj._body) {
+                    info.hasPhysics = true;
+                    info.bodyPosition = `(${Math.round(obj._body.position.x)}, ${Math.round(obj._body.position.y)})`;
+                }
+                // Log the object
+                console.log(`%c │ ${prefix} [${objIndex}] ${info.type}`, 'color:#b19cd9; font-weight:bold;', info);
+                // Check for children
+                if (obj.children && obj.children.length > 0) {
+                    const children = obj.children;
+                    console.log(`%c │   │ ▸ Children: ${children.length}`, 'color:#d8bfd8;');
+                    children.forEach((child, childIndex) => {
+                        var _a, _b;
+                        const childIsLast = childIndex === children.length - 1;
+                        const childPrefix = childIsLast ? '└─' : '├─';
+                        const childInfo = {
+                            label: child.label || child.uuid,
+                            type: child.constructor.name,
+                            z: child.z,
+                            x: Math.round(child.x || 0),
+                            y: Math.round(child.y || 0),
+                            visible: child.visible,
+                        };
+                        // Check if child is a text object
+                        if (child._textField) {
+                            childInfo.text = ((_a = child._textField.text) === null || _a === void 0 ? void 0 : _a.substring(0, 20)) + (((_b = child._textField.text) === null || _b === void 0 ? void 0 : _b.length) > 20 ? '...' : '');
+                        }
+                        console.log(`%c │   │   ${childPrefix} [${childIndex}]`, 'color:#dda0dd;', childInfo);
+                    });
+                }
+                // Check for Rive animations
+                if (obj._animations && obj._animations.length > 0) {
+                    console.log(`%c │   │ ▸ Animations: ${obj._animations.length}`, 'color:#d8bfd8;');
+                    obj._animations.forEach((anim, animIndex) => {
+                        var _a, _b;
+                        console.log(`%c │   │   ├─ [${animIndex}] ${anim.name || 'unnamed'}`, 'color:#dda0dd;', {
+                            playing: (_a = anim.instance) === null || _a === void 0 ? void 0 : _a.isPlaying,
+                            looping: (_b = anim.instance) === null || _b === void 0 ? void 0 : _b.loopValue,
+                        });
+                    });
+                }
+                // Check for Rive state machine
+                if (obj._stateMachine) {
+                    const sm = obj._stateMachine;
+                    console.log(`%c │   │ ▸ State Machine: ${sm.name}`, 'color:#d8bfd8;');
+                    // Show inputs
+                    if (sm.inputCount > 0) {
+                        console.log(`%c │   │   ▸ Inputs: ${sm.inputCount}`, 'color:#e6c9e6;');
+                        for (let i = 0; i < sm.inputCount; i++) {
+                            const input = sm.input(i);
+                            console.log(`%c │   │     ├─ ${input.name}: ${input.value}`, 'color:#f0e6f0;');
+                        }
+                    }
+                }
+            });
+            console.log('%c │', 'color:#9370db;');
+        });
+        // Engine state info
+        console.log('%c ┌─ Engine State', 'color:#9370db; font-weight:bold;');
+        console.log(`%c │ ├─ Run State: ${this._runState}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Canvas Size: ${this._canvasWidth}x${this._canvasHeight}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Current Scale: ${this._currentCanvasScale.toFixed(3)}`, 'color:#b19cd9;');
+        console.log(`%c │ ├─ Physics Enabled: ${((_b = this._canvasSettings) === null || _b === void 0 ? void 0 : _b.physicsEnabled) || false}`, 'color:#b19cd9;');
+        console.log(`%c │ └─ Update Listeners: ${this.updateListeners.size}`, 'color:#b19cd9;');
+        console.log('%c', 'color:#7050a8;');
+        console.log('%c ===== End Debug =====', 'color:#7050a8; font-weight:bold;');
+        console.log('%c <=--- ', 'color:#7050a8; font-weight:bold;');
+        console.log('%c', 'color:#7050a8; font-weight:bold;');
     }
     Dispose() {
         this._runState = CANVAS_ENGINE_RUN_STATE.STOPPED;

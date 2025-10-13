@@ -72,7 +72,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
         };
         _debugRive: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"x" | "y" | "visible" | "z" | "xScale" | "yScale", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
         visible: boolean;
         z: number;
         xScale: number;
@@ -83,10 +83,12 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
         readonly renderYScale: number;
         InitVisuals(): void;
         SwapDepths(other: BaseCanvasObj): void;
-        BindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
-        UnbindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale"): void;
+        BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
+        UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible"): void;
         OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         _OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
+        OnDispose: ((canvasObj: BaseCanvasObj) => void) | null;
+        _OnDispose: ((canvasObj: BaseCanvasObj) => void) | null;
     };
 } & T;
 export {};
