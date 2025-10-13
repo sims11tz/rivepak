@@ -464,10 +464,12 @@ export class CanvasRiveObj extends BaseCanvasObj {
             // Only check for events if we're logging them
             const eventCount = this._stateMachine.reportedEventCount();
             if (eventCount > 0) {
+                //console.log(`State Machine "${this._stateMachine.name}" reported ${eventCount} event(s):`);
                 for (let i = 0; i < eventCount; i++) {
                     const event = this._stateMachine.reportedEventAt(i);
                     if (event != undefined) {
                         console.log('RIVE EVENT<' + i + '>: ', event);
+                        //TODO what to do, what to do...
                     }
                 }
             }
