@@ -436,10 +436,10 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 
 	private onTextClick(_event:PIXI.FederatedPointerEvent):void
 	{
-		console.log("Text clicked:", this.defObj.text);
+		//console.log("Text clicked:", this.defObj.text);
 		if(this._defObj!.clickFunction)
 		{
-			console.log("Text clicked: yes call function");
+			//console.log("Text clicked: yes call function");
 			this._defObj!.clickFunction(this);
 		}
 	}

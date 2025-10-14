@@ -210,6 +210,8 @@ export abstract class BaseCanvasObj
 
 	public _body:Matter.Body | null = null;
 
+	public _disposed = false;
+
 	public _debugRive!:boolean;
 	public _debugLogs!:boolean;
 
@@ -437,8 +439,8 @@ export abstract class BaseCanvasObj
 	public Dispose():void
 	{
 		//console.log("Disposing CanvasObj: "+this._uuid+" / "+this._label);
+		this._disposed = true;
 
-		// Notify CanvasEngine to remove this object from tracking
 		if(this._OnDispose)
 		{
 			this._OnDispose(this);

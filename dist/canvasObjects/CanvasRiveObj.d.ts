@@ -52,6 +52,22 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _viewModelInstance: ViewModelInstance | null;
     private _vmEnumQueue;
     private _vmEnumQueueProcessedThisFrame;
+    private _eventCallbacks;
+    /**
+     * Subscribe to a Rive event by name
+     * @param eventName The name of the Rive event to listen for
+     * @param callback Function to call when the event fires
+     * @returns Unsubscribe function
+     */
+    OnRiveEvent(eventName: string, callback: (event: any) => void): () => void;
+    /**
+     * Remove all event listeners for a specific event name
+     */
+    ClearRiveEventListeners(eventName: string): void;
+    /**
+     * Remove all event listeners
+     */
+    ClearAllRiveEventListeners(): void;
     SetViewModelInstance(vmi: ViewModelInstance | null): void;
     get ViewModelInstance(): ViewModelInstance | null;
     /**

@@ -209,7 +209,7 @@ export class RiveController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             //const debug = this._debug || false;
-            const debug = this._debug || false;
+            const debug = true;
             if (debug)
                 console.log('%c RiveController: CreateRiveObj() ', 'color:#00FF88');
             const defs = [];

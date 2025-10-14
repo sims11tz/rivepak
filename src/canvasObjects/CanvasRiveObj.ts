@@ -83,6 +83,54 @@ export class CanvasRiveObj extends BaseCanvasObj
 	private _vmEnumQueue:Array<{path: string, value: string}> = [];
 	private _vmEnumQueueProcessedThisFrame = false;
 
+	// Event subscription system
+	private _eventCallbacks = new Map<string, ((event:any) => void)[]>();
+
+	/**
+	 * Subscribe to a Rive event by name
+	 * @param eventName The name of the Rive event to listen for
+	 * @param callback Function to call when the event fires
+	 * @returns Unsubscribe function
+	 */
+	public OnRiveEvent(eventName:string, callback:(event:any) => void):() => void
+	{
+		if(!this._eventCallbacks.has(eventName))
+		{
+			this._eventCallbacks.set(eventName, []);
+		}
+		this._eventCallbacks.get(eventName)!.push(callback);
+
+		// Return unsubscribe function
+		return () =>
+		{
+			const callbacks = this._eventCallbacks.get(eventName);
+			if(callbacks)
+			{
+				const index = callbacks.indexOf(callback);
+				if(index !== -1)
+				{
+					callbacks.splice(index, 1);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Remove all event listeners for a specific event name
+	 */
+	public ClearRiveEventListeners(eventName:string):void
+	{
+		this._eventCallbacks.delete(eventName);
+	}
+
+	/**
+	 * Remove all event listeners
+	 */
+	public ClearAllRiveEventListeners():void
+	{
+		this._eventCallbacks.clear();
+	}
+
 	public SetViewModelInstance(vmi:ViewModelInstance | null)
 	{
 		const debug = false;
@@ -575,7 +623,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public Update(time:number, frameCount:number, onceSecond:boolean): void
 	{
-		if(this.enabled === false || this.visible === false) return;
+		if(this.enabled === false || this.visible === false || this._disposed) return;
 
 		// Reset the queue processing flag at the start of each frame
 		this._vmEnumQueueProcessedThisFrame = false;
@@ -613,25 +661,28 @@ export class CanvasRiveObj extends BaseCanvasObj
 		{
 			this._stateMachine.advance(time);
 
-			// Only check for events if we're logging them
+			// Check for events and trigger callbacks
 			const eventCount = this._stateMachine.reportedEventCount();
-			if (eventCount > 0)
+			if(!this._disposed && eventCount > 0)
 			{
-				//console.log(`State Machine "${this._stateMachine.name}" reported ${eventCount} event(s):`);
 				for(let i = 0; i < eventCount; i++)
 				{
 					const event = this._stateMachine.reportedEventAt(i);
 					if (event != undefined)
 					{
-						console.log('RIVE EVENT<'+i+'>: ', event);
-						//TODO what to do, what to do...
+						// Trigger any subscribed callbacks for this event
+						const callbacks = this._eventCallbacks.get(event.name);
+						if(callbacks && callbacks.length > 0)
+						{
+							callbacks.forEach(callback => callback(event));
+						}
 					}
 				}
 			}
 
 			// Skip state change checks if we're not using them
 			//const stateChangeCount = this._stateMachine.stateChangedCount();
-			//if (stateChangeCount > 0)
+			//if(!this._disposed && stateChangeCount > 0)
 			//{
 			//	for(let x = 0; x < stateChangeCount; x++)
 			//	{
@@ -643,7 +694,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//	}
 			//}
 
-			if(this.defObj.riveInteractive)
+			if(!this._disposed && this.defObj.riveInteractive)
 			{
 				this.updateEntityObj();
 
@@ -683,70 +734,74 @@ export class CanvasRiveObj extends BaseCanvasObj
 			}
 		}
 
-		this.artboard.advance(time);
 
-		const scaledWidth = this.artboard.width * this.xScale;
-		const scaledHeight = this.artboard.height * this.yScale;
-
-		// Get DPR to account for high-res backing store
-		const dpr = Math.max(1, window.devicePixelRatio || 1);
-
-		if(this._resolutionScale !== -1)
+		if(!this._disposed)
 		{
-			// Bounds for Rive renderer need to be in canvas pixels (with DPR)
-			this._objBoundsReuse.minX = Math.round(this._transformedX * dpr);
-			this._objBoundsReuse.minY = Math.round(this._transformedY * dpr);
-			this._objBoundsReuse.maxX = Math.round((this._transformedX + (scaledWidth * this._resolutionScale)) * dpr);
-			this._objBoundsReuse.maxY = Math.round((this._transformedY + (scaledHeight * this._resolutionScale)) * dpr);
-		}
-		else
-		{
-			this._objBoundsReuse.minX = Math.round(this.x * dpr);
-			this._objBoundsReuse.minY = Math.round(this.y * dpr);
-			this._objBoundsReuse.maxX = Math.round((this.x + scaledWidth) * dpr);
-			this._objBoundsReuse.maxY = Math.round((this.y + scaledHeight) * dpr);
-		}
+			this.artboard.advance(time);
 
-		this.Renderer.save();
-		this.Renderer.align(
-			this.Rive.Fit.contain,
-			this.Rive.Alignment.topLeft,
-			this._objBoundsReuse,
-			this.artboard.bounds
-		);
+			const scaledWidth = this.artboard.width * this.xScale;
+			const scaledHeight = this.artboard.height * this.yScale;
 
-		if(this._interactiveGraphics)
-		{
-			// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
-			// So divide by DPR to convert back to CSS coordinates for Pixi
+			// Get DPR to account for high-res backing store
 			const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-			this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
-			this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
-
-			this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
-			this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
-		}
-
-		if(this._textLabel)
-		{
-			// Cache resolution scale check
-			const resScale = this._resolutionScale !== -1 ? this._resolutionScale : 1;
-			const combinedScaleX = resScale * this.xScale;
-			const combinedScaleY = resScale * this.yScale;
-
-			this._textLabel.x = this._objBoundsReuse.minX;
-			this._textLabel.y = this._objBoundsReuse.maxY - (this._textLabel.height * combinedScaleY) - 5;
-
-			// Only update scale if it changed
-			if(this._textLabel.scale.x !== combinedScaleX || this._textLabel.scale.y !== combinedScaleY)
+			if(this._resolutionScale !== -1)
 			{
-				this._textLabel.scale.set(combinedScaleX, combinedScaleY);
+				// Bounds for Rive renderer need to be in canvas pixels (with DPR)
+				this._objBoundsReuse.minX = Math.round(this._transformedX * dpr);
+				this._objBoundsReuse.minY = Math.round(this._transformedY * dpr);
+				this._objBoundsReuse.maxX = Math.round((this._transformedX + (scaledWidth * this._resolutionScale)) * dpr);
+				this._objBoundsReuse.maxY = Math.round((this._transformedY + (scaledHeight * this._resolutionScale)) * dpr);
 			}
-		}
+			else
+			{
+				this._objBoundsReuse.minX = Math.round(this.x * dpr);
+				this._objBoundsReuse.minY = Math.round(this.y * dpr);
+				this._objBoundsReuse.maxX = Math.round((this.x + scaledWidth) * dpr);
+				this._objBoundsReuse.maxY = Math.round((this.y + scaledHeight) * dpr);
+			}
 
-		this.artboard.draw(this.Renderer);
-		this.Renderer.restore();
+			this.Renderer.save();
+			this.Renderer.align(
+				this.Rive.Fit.contain,
+				this.Rive.Alignment.topLeft,
+				this._objBoundsReuse,
+				this.artboard.bounds
+			);
+
+			if(this._interactiveGraphics)
+			{
+				// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
+				// So divide by DPR to convert back to CSS coordinates for Pixi
+				const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+				this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
+				this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
+
+				this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+				this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+			}
+
+			if(this._textLabel)
+			{
+				// Cache resolution scale check
+				const resScale = this._resolutionScale !== -1 ? this._resolutionScale : 1;
+				const combinedScaleX = resScale * this.xScale;
+				const combinedScaleY = resScale * this.yScale;
+
+				this._textLabel.x = this._objBoundsReuse.minX;
+				this._textLabel.y = this._objBoundsReuse.maxY - (this._textLabel.height * combinedScaleY) - 5;
+
+				// Only update scale if it changed
+				if(this._textLabel.scale.x !== combinedScaleX || this._textLabel.scale.y !== combinedScaleY)
+				{
+					this._textLabel.scale.set(combinedScaleX, combinedScaleY);
+				}
+			}
+
+			this.artboard.draw(this.Renderer);
+			this.Renderer.restore();
+		}
 	}
 
 	public SetText(text: string): void
@@ -880,6 +935,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public Dispose(): void
 	{
+		this._disposed = true;
+
 		const debug = false;
 		if(debug)
 		{
@@ -966,6 +1023,9 @@ export class CanvasRiveObj extends BaseCanvasObj
 		this._onClickCallback = undefined;
 		this._onHoverCallback = undefined;
 		this._onHoverOutCallback = undefined;
+
+		// Clear event callbacks
+		this._eventCallbacks.clear();
 
 		if(debug) console.log('canvasriveobj dispose complete call super.......... ');
 		super.Dispose();

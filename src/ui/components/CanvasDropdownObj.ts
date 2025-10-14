@@ -41,7 +41,7 @@ export class CanvasDropdownObj extends BaseUIComponent
 	private _multiple:boolean;
 	private _searchable:boolean;
 	private _searchText:string = '';
-	
+
 	// Graphics elements
 	private _valueText:PIXI.Text | null = null;
 	private _placeholderText:PIXI.Text | null = null;
@@ -51,48 +51,64 @@ export class CanvasDropdownObj extends BaseUIComponent
 	private _optionContainers:PIXI.Container[] = [];
 	private _scrollContainer:PIXI.Container;
 	private _searchInput:PIXI.Text | null = null;
-	
+
 	// Animation
 	private _dropdownHeight:number = 0;
 	private _targetDropdownHeight:number = 0;
 	private _chevronRotation:number = 0;
 	private _targetChevronRotation:number = 0;
-	
+
 	constructor(config:DropdownConfig)
 	{
 		// Set default dimensions
 		if(!config.width) config.width = 200;
 		if(!config.height) config.height = 40;
-		
+
 		super(config);
 		this._dropdownConfig = config;
 		this._options = config.options || [];
 		this._placeholder = config.placeholder || 'Select...';
 		this._multiple = config.multiple || false;
 		this._searchable = config.searchable || false;
-		
-		// Set initial value
-		if(config.value !== undefined)
-		{
-			this.setValue(config.value);
-		}
-		
+
 		// Create dropdown elements
 		this._chevron = new PIXI.Graphics();
 		this._dropdown = new PIXI.Container();
 		this._dropdownBg = new PIXI.Graphics();
 		this._scrollContainer = new PIXI.Container();
-		
+
 		this._container.addChild(this._chevron);
-		
+
 		// Add dropdown to parent container (so it can overflow)
 		this._dropdown.addChild(this._dropdownBg);
 		this._dropdown.addChild(this._scrollContainer);
 		this._dropdown.visible = false;
+
+		// Now that all properties are initialized, call InitComponent and Render manually
+		// (they were skipped during super() because properties weren't ready)
+		console.log('%c CanvasDropdownObj: Calling InitComponent manually with options:', 'color: #00FF00', this._options);
+		this.InitComponent();
+		console.log('%c CanvasDropdownObj: After InitComponent, option containers:', 'color: #00FF00', this._optionContainers.length);
+		this.Render();
+
+		// Set initial value
+		if(config.value !== undefined)
+		{
+			this.setValue(config.value);
+		}
 	}
 	
 	protected InitComponent():void
 	{
+		// Safety check: if _placeholder hasn't been initialized yet (called during constructor), skip
+		// This happens because super() in constructor calls InitComponent() before child properties are set
+		if(!this._placeholder)
+		{
+			console.log('%c CanvasDropdownObj: InitComponent skipped (placeholder not ready)', 'color: #FF6600');
+			return;
+		}
+		console.log('%c CanvasDropdownObj: InitComponent running', 'color: #00FFFF');
+
 		// Create placeholder text
 		this._placeholderText = new PIXI.Text({
 			text: this._placeholder,
@@ -106,7 +122,7 @@ export class CanvasDropdownObj extends BaseUIComponent
 		this._placeholderText.x = this._theme.spacing.small;
 		this._placeholderText.y = (this.height - this._placeholderText.height) / 2;
 		this._container.addChild(this._placeholderText);
-		
+
 		// Create value text
 		this._valueText = new PIXI.Text({
 			text: '',
@@ -121,7 +137,7 @@ export class CanvasDropdownObj extends BaseUIComponent
 		this._valueText.y = (this.height - this._valueText.height) / 2;
 		this._valueText.visible = false;
 		this._container.addChild(this._valueText);
-		
+
 		// Create search input if searchable
 		if(this._searchable)
 		{
@@ -138,33 +154,45 @@ export class CanvasDropdownObj extends BaseUIComponent
 			this._searchInput.y = this._theme.spacing.small;
 			this._scrollContainer.addChild(this._searchInput);
 		}
-		
+
 		// Create option items
 		this.createOptionItems();
-		
+
 		// Position dropdown below the main container
 		this._dropdown.x = this.x;
 		this._dropdown.y = this.y + this.height + 2;
-		
+
 		// Add dropdown to stage when needed
 		if(this._container.parent)
 		{
 			this._container.parent.addChild(this._dropdown);
 		}
-		
+
 		// Update initial display
 		this.updateValueDisplay();
 	}
 	
 	private createOptionItems():void
 	{
+		// Safety check: if _dropdownConfig hasn't been initialized yet (called during constructor), skip
+		if(!this._dropdownConfig)
+		{
+			return;
+		}
+
+		// Initialize if not already initialized (safety check for initialization order issues)
+		if(!this._optionContainers)
+		{
+			this._optionContainers = [];
+		}
+
 		// Clear existing options
 		for(const container of this._optionContainers)
 		{
 			container.destroy();
 		}
 		this._optionContainers = [];
-		
+
 		let yPos = this._searchable ? 40 : 0;
 		const filteredOptions = this.getFilteredOptions();
 		
@@ -238,13 +266,19 @@ export class CanvasDropdownObj extends BaseUIComponent
 	
 	private getFilteredOptions():DropdownOption[]
 	{
+		// Safety check: if _options hasn't been initialized yet (called during constructor), return empty array
+		if(!this._options)
+		{
+			return [];
+		}
+
 		if(!this._searchable || !this._searchText)
 		{
 			return this._options;
 		}
-		
+
 		const searchLower = this._searchText.toLowerCase();
-		return this._options.filter(option => 
+		return this._options.filter(option =>
 			option.label.toLowerCase().includes(searchLower)
 		);
 	}
@@ -367,6 +401,12 @@ export class CanvasDropdownObj extends BaseUIComponent
 	
 	private updateValueDisplay():void
 	{
+		// Safety check: if _dropdownConfig hasn't been initialized yet, skip
+		if(!this._dropdownConfig)
+		{
+			return;
+		}
+
 		if(this._selectedOptions.length === 0)
 		{
 			if(this._valueText) this._valueText.visible = false;
@@ -378,7 +418,7 @@ export class CanvasDropdownObj extends BaseUIComponent
 			if(this._valueText)
 			{
 				this._valueText.visible = true;
-				
+
 				if(this._multiple)
 				{
 					this._valueText.text = `${this._selectedOptions.length} selected`;
@@ -397,24 +437,30 @@ export class CanvasDropdownObj extends BaseUIComponent
 	
 	protected Render():void
 	{
+		// Safety check: if _chevron hasn't been initialized yet (called during constructor), skip
+		if(!this._chevron)
+		{
+			return;
+		}
+
 		this._graphics.clear();
-		
+
 		// Get colors based on state
-		const bgColor = this._isOpen ? 
+		const bgColor = this._isOpen ?
 		                this._theme.colors.surfaceHover :
 		                this._theme.colors.surface;
-		
+
 		const borderColor = !this._isValid ? this._theme.colors.error :
 		                    this._isOpen ? this._theme.colors.primary :
 		                    this._hovered ? this._theme.colors.borderHover :
 		                    this._theme.colors.border;
-		
+
 		// Draw main container background
 		this._graphics.beginFill(bgColor);
 		this._graphics.lineStyle(2, borderColor);
 		this._graphics.drawRoundedRect(0, 0, this.width, this.height, this._theme.borderRadius);
 		this._graphics.endFill();
-		
+
 		// Draw chevron
 		this._chevron.clear();
 		this._chevron.lineStyle(2, this._theme.colors.text);
@@ -478,9 +524,7 @@ export class CanvasDropdownObj extends BaseUIComponent
 	protected HandlePointerDown = (event:PIXI.FederatedPointerEvent):void =>
 	{
 		if(!this._enabled) return;
-		
-		super.HandlePointerDown(event);
-		
+
 		// Toggle dropdown
 		if(this._isOpen)
 		{

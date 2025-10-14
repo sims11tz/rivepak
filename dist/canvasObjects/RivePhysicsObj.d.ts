@@ -71,6 +71,7 @@ declare const BaseRivePhysicsObject_base: {
             maxX: number;
             maxY: number;
         };
+        _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
         _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
