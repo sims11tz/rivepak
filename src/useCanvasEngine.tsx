@@ -401,6 +401,9 @@ export class CanvasEngine
 
 		for (const obj of objsToRemove)
 		{
+			// Safety check: skip if obj is null/undefined
+			if(!obj) continue;
+
 			const index = groupArray.indexOf(obj);
 			if (index !== -1)
 			{

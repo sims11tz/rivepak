@@ -343,6 +343,9 @@ export class CanvasEngine {
         }
         const objsToRemove = Array.isArray(objs) ? objs : [objs];
         for (const obj of objsToRemove) {
+            // Safety check: skip if obj is null/undefined
+            if (!obj)
+                continue;
             const index = groupArray.indexOf(obj);
             if (index !== -1) {
                 groupArray.splice(index, 1);

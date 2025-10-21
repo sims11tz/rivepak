@@ -20,6 +20,7 @@ export interface RiveObjectDef extends CanvasObjectDef
 	objectType:RIVE_OBJECT_TYPE;
 	artboardName:string;
 	id?:string;
+	primaryVMName?:string;
 	onClickCallback?:(event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj:CanvasRiveObj) => void;
 	onHoverCallback?:(sourceObj:CanvasRiveObj) => void;
 	onHoverOutCallback?:(sourceObj:CanvasRiveObj) => void;
@@ -105,7 +106,7 @@ export class RiveController
 		return bytes;
 	}
 
-	private _debug:boolean = false;
+	private _debug:boolean = true;
 
 	private _unsubscribeResize: (() => void) | null = null;
 	public async Init(canvas:HTMLCanvasElement)
@@ -295,7 +296,6 @@ export class RiveController
 			// Artboard needs to know actual DPR when renderer auto-detects
 			artboard.devicePixelRatioUsed = window.devicePixelRatio;
 
-
 			let canvasRiveObj:CanvasRiveObj | null = null;
 			if(def.classType)
 			{
@@ -318,24 +318,84 @@ export class RiveController
 				console.log('%c RiveController..... VIEW MODEL SHIT !!!! ','color:#00FF88');
 				console.log('%c riveFile.enums :','color:#00FF88', riveFile.enums());
 				console.log('%c riveFile.viewModelCount :','color:#00FF88', riveFile.viewModelCount());
+
+
+				console.log('%c ...... should we do step 1? :','color:#00FF88', riveFile.viewModelCount());
 			}
 
 			if (riveFile.viewModelCount && riveFile.viewModelCount() > 0)
 			{
-				const vmName = undefined; // keep your override if you want
-				const vm = RivePakUtils.PickBestViewModel(riveFile, artboard, vmName);
-				let vmi:ViewModelInstance | null = null;
+				console.log('');
+				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				if(debug) console.log(`🔍 Found ${riveFile.viewModelCount()} ViewModel(s) in Rive file`);
 
-				if(vm)
+				// STEP 1: Build a map of artboards that have ViewModels
+				// This helps us determine which artboard each ViewModel belongs to
+				const artboardViewModelMap = new Map<string, any[]>(); // artboardName -> ViewModels[]
+				if(debug) console.log('.......riveFile.artboardCount() : ', riveFile.artboardCount());
+				for(let artboardIdx = 0; artboardIdx < riveFile.artboardCount(); artboardIdx++)
 				{
-					if(debug)
+					const ab = riveFile.artboardByIndex(artboardIdx);
+					if(debug) console.log('MFing artboard bitch : ',ab);
+					if(!ab)
 					{
-						console.log("VM chosen:", vm?.name);
-						try
-						{
-							console.log("VM instance names:", (RivePakUtils._isFn(vm, "getInstanceNames") ? (vm as any).getInstanceNames() : "(n/a)"));
-						} catch {}
+						if(debug) console.log('artboard cock block ');
+						continue;
 					}
+
+					const abName = ab.name;
+					const abViewModels: any[] = [];
+					if(debug) console.log('artboard name: ', abName);
+
+					// Check if this artboard has ViewModels defined on it
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const abViewModelCount = (ab as any).viewModelCount?.();
+					if(debug) console.log('zzzzz abViewModelCount: ', abViewModelCount);
+					if(abViewModelCount && abViewModelCount > 0)
+					{
+						for(let vmIdx = 0; vmIdx < abViewModelCount; vmIdx++)
+						{
+							 if(debug) console.log('vmIdx........abViewModelCount<'+vmIdx+'> ');
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
+							const vmDef = (ab as any).viewModel?.(vmIdx);
+							if(vmDef)
+							{
+								abViewModels.push({vm: vmDef, artboard: ab});
+								if(debug) console.log(`  📍 Found ViewModel "${vmDef.name}" on artboard "${abName}"`);
+							}
+							else
+							{
+								if(debug) console.log('abViewModelCount<'+vmIdx+'> could not find viewmodel ');
+							}
+						}
+					}
+
+					if(abViewModels.length > 0)
+					{
+						if(debug) console.log('abViewModel FUCK YES');
+						artboardViewModelMap.set(abName, abViewModels);
+					}
+					else
+					{
+						if(debug) console.log('abViewModel FUCK no');
+					}
+				}
+
+				console.log('');
+				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+
+				// STEP 2: Process ViewModels from the file level and match them to artboards
+				for(let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++)
+				{
+					const vm = riveFile.viewModelByIndex(vmIndex);
+					if(!vm) continue;
+
+					const vmName = vm.name;
+					if(debug) console.log(`📝 Processing ViewModel[${vmIndex}]: "${vmName}"`);
 
 					// Try to get the first instance name if available
 					let instanceName:string | undefined = undefined;
@@ -345,42 +405,71 @@ export class RiveController
 						if(instanceNames && Array.isArray(instanceNames) && instanceNames.length > 0)
 						{
 							instanceName = instanceNames[0];
-							if(debug) console.log("Using VM instance name:", instanceName);
+							if(debug) console.log(`  Using VM instance name: "${instanceName}"`);
 						}
 					} catch {}
 
-					vmi = RivePakUtils.MakeBestVMI(vm, artboard, instanceName);
-					if(vmi && typeof (artboard as any).bindViewModelInstance === "function")
-					{
-						(artboard as any).bindViewModelInstance(vmi);
-					}
-				}
-				//RivePakUtils.DumpRiveDiagnostics(riveFile, artboard, vm, vmi);
+					// CRITICAL FIX: Find which artboard this ViewModel belongs to
+					let targetArtboard = artboard; // Default to main artboard
+					let foundInNestedArtboard = false;
 
-				if(vmi)
-				{
-					canvasRiveObj?.SetViewModelInstance(vmi);
-
-					// CRITICAL FIX: Also bind VMI to State Machine if it exists
-					// The state machine needs the VMI bound to react to ViewModel enum changes
-					const sm = (canvasRiveObj as any)?._stateMachine;
-					if(debug)
+					// Search through our artboard->ViewModel map to find where this VM is defined
+					for(const [abName, vmList] of artboardViewModelMap.entries())
 					{
-						console.log("🎯 Checking State Machine binding...");
-						console.log("  State Machine exists?", !!sm);
-						console.log("  State Machine name:", sm?.name);
-						console.log("  bindViewModelInstance exists?", typeof sm?.bindViewModelInstance === "function");
+						const foundVM = vmList.find(item => item.vm.name === vmName);
+						if(foundVM)
+						{
+							targetArtboard = foundVM.artboard;
+							foundInNestedArtboard = (abName !== artboard.name);
+							if(debug && foundInNestedArtboard)
+							{
+								console.log(`  🎯 ViewModel "${vmName}" belongs to nested artboard "${abName}"`);
+							}
+							break;
+						}
 					}
 
-					if(sm && typeof sm.bindViewModelInstance === "function")
+					if(debug) console.log('-----------------------------------------------');
+					if(debug) console.log('>>MakeBestVMI... vm:',vm);
+					if(debug) console.log('>>MakeBestVMI... targetArtboard:',targetArtboard);
+					if(debug) console.log('>>MakeBestVMI... instanceName:',instanceName);
+					// Create VMI with the CORRECT artboard
+					const vmi = RivePakUtils.MakeBestVMI(vm, targetArtboard, instanceName);
+					if(vmi)
 					{
-						if(debug) console.log("  ✅ Binding VMI to State Machine:", sm.name);
-						sm.bindViewModelInstance(vmi);
-						if(debug) console.log("  ✅ VMI bound successfully!");
+						RivePakUtils.DumpRiveDiagnostics(riveFile, targetArtboard, vm, vmi);
+						// Register this ViewModel by name
+						canvasRiveObj?.RegisterViewModel(vmName, vmi);
+						if(debug) console.log(`  ✅ Registered ViewModel: "${vmName}"`);
+
+						// Bind this ViewModel to its target artboard
+						if(typeof (targetArtboard as any).bindViewModelInstance === "function")
+						{
+							(targetArtboard as any).bindViewModelInstance(vmi);
+							if(debug) console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
+						}
+
+						// Set the primary ViewModel based on def.primaryVMName or use the first one
+						console.log('def.primaryVMName :', def.primaryVMName);
+						console.log(' vmName :', vmName);
+						console.log('vmIndex :', vmIndex);
+						const isPrimary = (def.primaryVMName && vmName === def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
+						//const isPrimary = (vmName == def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
+						//const isPrimary = (vmName == def.primaryVMName)? true : false;
+						if(isPrimary)
+						{
+							console.error('IS IS IS IS IS IS PRIMARY');
+							if(debug) console.log(`  🌟 Setting "${vmName}" as PRIMARY ViewModel`);
+							canvasRiveObj?.SetViewModelInstance(vmi);
+						}
+						else
+						{
+							console.error('NOT PRIMARY');
+						}
 					}
 					else
 					{
-						if(debug) console.log("  ❌ Cannot bind VMI to State Machine");
+						if(debug) console.warn(`  ❌ Failed to create ViewModelInstance for "${vmName}"`);
 					}
 				}
 			}
@@ -389,7 +478,69 @@ export class RiveController
 				if(debug) console.log('%c no view model count... ZERO !','color:#C586C0');
 			}
 
+			// IMPORTANT: InitRiveObject must be called BEFORE binding to State Machine
+			// because the State Machine is created inside InitRiveObject()
 			canvasRiveObj.InitRiveObject();
+
+			// NOW bind all ViewModels to the State Machine (after it's been created)
+			if(riveFile.viewModelCount && riveFile.viewModelCount() > 0)
+			{
+				const sm = (canvasRiveObj as any)?._stateMachine;
+				if(debug)
+				{
+					console.log(`🔍 Checking State Machine for ViewModel binding:`);
+					console.log(`  State Machine exists: ${!!sm}`);
+					console.log(`  State Machine name: ${sm?.name}`);
+					console.log(`  bindViewModelInstance exists: ${typeof sm?.bindViewModelInstance === "function"}`);
+					console.log(`  Artboard stateMachineCount: ${artboard.stateMachineCount()}`);
+				}
+
+				if(sm && typeof sm.bindViewModelInstance === "function")
+				{
+					if(debug) console.log(`🔗 Binding ${riveFile.viewModelCount()} ViewModel(s) to State Machine: "${sm.name}"`);
+
+					for(let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++)
+					{
+						if(debug) console.log(`🔗 Binding 1`);
+						const vm = riveFile.viewModelByIndex(vmIndex);
+						if(debug) console.log(`🔗 Binding 2`);
+						if(!vm) continue;
+						if(debug) console.log(`🔗 Binding 3`);
+
+						const vmName = vm.name;
+						if(debug) console.log(`🔗 Binding 4: ${vmName}`);
+						const vmi = canvasRiveObj?.GetViewModel(vmName);
+						if(debug) console.log('🔗 Binding 5',vmi);
+						if(vmi)
+						{
+							if(debug) console.log(`🔗 Binding 6`);
+							try
+							{
+								sm.bindViewModelInstance(vmi);
+								if(debug) console.log(`  ✅ Bound "${vmName}" to State Machine successfully`);
+							}
+							catch(e)
+							{
+								console.error(`  ❌ Failed to bind "${vmName}" to State Machine:`, e);
+							}
+						}
+						else
+						{
+							if(debug) console.warn(`  ⚠️ Could not get ViewModel "${vmName}" for binding`);
+						}
+						if(debug) console.log(`🔗 Binding 7`);
+					}
+				}
+				else
+				{
+					if(debug) console.warn(`  ❌ No State Machine found or bindViewModelInstance not available`);
+					if(debug && artboard.stateMachineCount() === 0)
+					{
+						console.warn(`  ⚠️ Artboard has NO state machines! ViewModels won't work without a state machine.`);
+					}
+				}
+				if(debug) console.log(`🔗 Binding 10`);
+			}
 
 			return canvasRiveObj;
 		})

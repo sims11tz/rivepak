@@ -48,7 +48,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _animations: AnimationMetadata[];
     protected _stateMachine: StateMachineInstance | null;
     protected _inputs: Map<string, SMIInput>;
-    protected _viewModels: Map<string, any>;
+    protected _viewModels: Map<string, ViewModelInstance>;
     protected _viewModelInstance: ViewModelInstance | null;
     private _vmEnumQueue;
     private _vmEnumQueueProcessedThisFrame;
@@ -70,6 +70,24 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     ClearAllRiveEventListeners(): void;
     SetViewModelInstance(vmi: ViewModelInstance | null): void;
     get ViewModelInstance(): ViewModelInstance | null;
+    /**
+     * Check if a specific ViewModel exists by name
+     * @param vmName - The name of the ViewModel to check
+     * @returns true if the ViewModel exists, false otherwise
+     */
+    HasViewModel(vmName: string): boolean;
+    /**
+     * Get a specific ViewModel by name
+     * @param vmName - The name of the ViewModel to retrieve
+     * @returns The ViewModelInstance or null if not found
+     */
+    GetViewModel(vmName: string): ViewModelInstance | null;
+    /**
+     * Register a ViewModel by name
+     * @param vmName - The name to register the ViewModel under
+     * @param vmi - The ViewModelInstance to register
+     */
+    RegisterViewModel(vmName: string, vmi: ViewModelInstance): void;
     /**
      * Queue a ViewModel enum change to be applied in the next frame.
      * This ensures State Machines process changes one per frame in sequence.
@@ -95,6 +113,12 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _entityObj;
     private dumpWasmObject;
     InitRiveObject(): void;
+    /**
+     * Discover and register ViewModels from nested artboards.
+     * This walks through all nested artboards, finds their ViewModels,
+     * and binds them to their respective state machines.
+     */
+    private _discoverNestedViewModels;
     updateEntityObj(): void;
     InputByName(name: string): SMIInput | null;
     RandomInput(): SMIInput | null;

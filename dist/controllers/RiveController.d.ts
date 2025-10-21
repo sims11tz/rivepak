@@ -11,6 +11,7 @@ export interface RiveObjectDef extends CanvasObjectDef {
     objectType: RIVE_OBJECT_TYPE;
     artboardName: string;
     id?: string;
+    primaryVMName?: string;
     onClickCallback?: (event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj: CanvasRiveObj) => void;
     onHoverCallback?: (sourceObj: CanvasRiveObj) => void;
     onHoverOutCallback?: (sourceObj: CanvasRiveObj) => void;
