@@ -71,8 +71,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
         var _a;
         console.error('SetViewModelInstanceq called for ' + this._label);
         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
         const debug = true;
         if (debug) {
             console.log(`📝 SetViewModelInstance called for "${this._label}"`);

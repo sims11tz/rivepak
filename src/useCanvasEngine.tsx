@@ -399,6 +399,8 @@ export class CanvasEngine
 
 		const objsToRemove = Array.isArray(objs) ? objs : [objs];
 
+		//console.log(`Removing ${objsToRemove.length} object(s) from group "${group}"`);
+
 		for (const obj of objsToRemove)
 		{
 			// Safety check: skip if obj is null/undefined
