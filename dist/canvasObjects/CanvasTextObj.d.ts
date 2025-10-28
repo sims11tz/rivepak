@@ -10,6 +10,7 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private _pulseTime;
     private _alignmentOffsetX;
     private _alignmentOffsetY;
+    private _isHovered;
     constructor(canvasDef: CanvasObjectDef);
     get z(): number;
     set z(value: number);
@@ -70,6 +71,7 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private onTextClick;
     private onTextHover;
     private onTextHoverOut;
+    private applyTextStyle;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
     Dispose(): void;
 }

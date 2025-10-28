@@ -51,6 +51,9 @@ export interface CanvasObjectDef
 /*TEXT Start*/
 	// Text styling options
 	textStyle?: Partial<TextStyleOptions>;
+	textStyleOver?: Partial<TextStyleOptions>;
+	textStyleDown?: Partial<TextStyleOptions>;
+
 	textAlign?: 'left' | 'center' | 'right' | 'justify';
 	verticalAlign?: 'top' | 'middle' | 'bottom';
 

@@ -106,7 +106,7 @@ export class RiveController
 		return bytes;
 	}
 
-	private _debug:boolean = true;
+	private _debug:boolean = false;
 
 	private _unsubscribeResize: (() => void) | null = null;
 	public async Init(canvas:HTMLCanvasElement)
@@ -153,7 +153,6 @@ export class RiveController
 				} else console.warn("⚠️ No GL on renderer; if feathers look boxy you’re on a fallback/canvas path.");
 			}
 
-//resizeDrawingSurfaceToCanvas
 			canvas.addEventListener("webglcontextlost", (e) => {
 				console.warn("🧯 WebGL context lost", e);
 				e.preventDefault();
@@ -168,49 +167,9 @@ export class RiveController
 				console.log('########## wasmBytes.length :', wasmBytes.length);
 			}
 
-			//const resyncDpr = () =>
-			//{
-			//	const dpr = Math.max(1, window.devicePixelRatio || 1);
-			//	const cssW = this._canvas!.clientWidth;
-			//	const cssH = this._canvas!.clientHeight;
-
-			//	// Only update if changed to avoid extra reallocs
-			//	const w = Math.max(1, Math.floor(cssW * dpr));
-			//	const h = Math.max(1, Math.floor(cssH * dpr));
-			//	if(this._canvas!.width !== w || this._canvas!.height !== h)
-			//	{
-			//		this._canvas!.width  = w;
-			//		this._canvas!.height = h;
-			//		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
-			//		console.log(' **** resyncDpr() Appply dpr : '+dpr+'   canvas size: '+w+'x'+h);
-			//	}
-			//};
-
-			//resyncDpr();
-			//this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
-
-			// react to zoom/DPR changes
-			//const mq = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-			//mq.addEventListener?.('change', resyncDpr);
-			//this._unsubscribeResize = CanvasEngineResizePubSub.Subscribe(resyncDpr);
-
-
 			window.addEventListener("mousemove", this.SetMouseGlobalPos);
 		} catch (error) { console.error("Failed to initialize Rive:", error); }
 	}
-
-	//public SetSize(width:number, height:number, dprIn:number=-1)
-	//{
-	//	if(this._canvas != null && !this._disposed)
-	//	{
-	//		this._canvas?.setAttribute("width", `${width}`);
-	//		this._canvas?.setAttribute("height", `${height}`);
-
-	//		const dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
-	//		(this._riveRenderer as any)?.setDevicePixelRatio?.(dpr);
-	//		this._canvasBounds = this._canvas!.getBoundingClientRect();
-	//	}
-	//}
 
 	public SetSize(width:number, height:number, dprIn:number=-1)
 	{
@@ -243,7 +202,7 @@ export class RiveController
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
 		//const debug = this._debug || false;
-		const debug = true;
+		const debug = false;
 		if(debug) console.log('%c RiveController: CreateRiveObj() ','color:#00FF88');
 
 		const defs:RiveObjectDef[] = [];
@@ -305,8 +264,8 @@ export class RiveController
 			{
 				switch (def.objectType)
 				{
-					case RIVE_OBJECT_TYPE.ANIMATION: console.log('creating .ANIMATION'); canvasRiveObj = new RiveAnimationObject(def, artboard); break;
-					case RIVE_OBJECT_TYPE.PHYSICS: console.log('creating .PHYSICS'); canvasRiveObj = new RivePhysicsObject(def, artboard); break;
+					case RIVE_OBJECT_TYPE.ANIMATION: canvasRiveObj = new RiveAnimationObject(def, artboard); break;
+					case RIVE_OBJECT_TYPE.PHYSICS: canvasRiveObj = new RivePhysicsObject(def, artboard); break;
 				}
 			}
 
@@ -325,68 +284,68 @@ export class RiveController
 
 			if (riveFile.viewModelCount && riveFile.viewModelCount() > 0)
 			{
-				console.log('');
-				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-				console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-				if(debug) console.log(`🔍 Found ${riveFile.viewModelCount()} ViewModel(s) in Rive file`);
+				//console.log('');
+				//console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				//console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				//console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
+				//if(debug) console.log(`🔍 Found ${riveFile.viewModelCount()} ViewModel(s) in Rive file`);
 
-				// STEP 1: Build a map of artboards that have ViewModels
-				// This helps us determine which artboard each ViewModel belongs to
-				const artboardViewModelMap = new Map<string, any[]>(); // artboardName -> ViewModels[]
-				if(debug) console.log('.......riveFile.artboardCount() : ', riveFile.artboardCount());
-				for(let artboardIdx = 0; artboardIdx < riveFile.artboardCount(); artboardIdx++)
-				{
-					const ab = riveFile.artboardByIndex(artboardIdx);
-					if(debug) console.log('MFing artboard bitch : ',ab);
-					if(!ab)
-					{
-						if(debug) console.log('artboard cock block ');
-						continue;
-					}
+				//// STEP 1: Build a map of artboards that have ViewModels
+				//// This helps us determine which artboard each ViewModel belongs to
+				//const artboardViewModelMap = new Map<string, any[]>(); // artboardName -> ViewModels[]
+				//if(debug) console.log('.......riveFile.artboardCount() : ', riveFile.artboardCount());
+				//for(let artboardIdx = 0; artboardIdx < riveFile.artboardCount(); artboardIdx++)
+				//{
+				//	const ab = riveFile.artboardByIndex(artboardIdx);
+				//	if(debug) console.log('MFing artboard bitch : ',ab);
+				//	if(!ab)
+				//	{
+				//		if(debug) console.log('artboard cock block ');
+				//		continue;
+				//	}
 
-					const abName = ab.name;
-					const abViewModels: any[] = [];
-					if(debug) console.log('artboard name: ', abName);
+				//	const abName = ab.name;
+				//	const abViewModels: any[] = [];
+				//	if(debug) console.log('artboard name: ', abName);
 
-					// Check if this artboard has ViewModels defined on it
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const abViewModelCount = (ab as any).viewModelCount?.();
-					if(debug) console.log('zzzzz abViewModelCount: ', abViewModelCount);
-					if(abViewModelCount && abViewModelCount > 0)
-					{
-						for(let vmIdx = 0; vmIdx < abViewModelCount; vmIdx++)
-						{
-							 if(debug) console.log('vmIdx........abViewModelCount<'+vmIdx+'> ');
-							// eslint-disable-next-line @typescript-eslint/no-explicit-any
-							const vmDef = (ab as any).viewModel?.(vmIdx);
-							if(vmDef)
-							{
-								abViewModels.push({vm: vmDef, artboard: ab});
-								if(debug) console.log(`  📍 Found ViewModel "${vmDef.name}" on artboard "${abName}"`);
-							}
-							else
-							{
-								if(debug) console.log('abViewModelCount<'+vmIdx+'> could not find viewmodel ');
-							}
-						}
-					}
+				//	// Check if this artboard has ViewModels defined on it
+				//	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				//	const abViewModelCount = (ab as any).viewModelCount?.();
+				//	if(debug) console.log('zzzzz abViewModelCount: ', abViewModelCount);
+				//	if(abViewModelCount && abViewModelCount > 0)
+				//	{
+				//		for(let vmIdx = 0; vmIdx < abViewModelCount; vmIdx++)
+				//		{
+				//			 if(debug) console.log('vmIdx........abViewModelCount<'+vmIdx+'> ');
+				//			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				//			const vmDef = (ab as any).viewModel?.(vmIdx);
+				//			if(vmDef)
+				//			{
+				//				abViewModels.push({vm: vmDef, artboard: ab});
+				//				if(debug) console.log(`  📍 Found ViewModel "${vmDef.name}" on artboard "${abName}"`);
+				//			}
+				//			else
+				//			{
+				//				if(debug) console.log('abViewModelCount<'+vmIdx+'> could not find viewmodel ');
+				//			}
+				//		}
+				//	}
 
-					if(abViewModels.length > 0)
-					{
-						if(debug) console.log('abViewModel FUCK YES');
-						artboardViewModelMap.set(abName, abViewModels);
-					}
-					else
-					{
-						if(debug) console.log('abViewModel FUCK no');
-					}
-				}
+				//	if(abViewModels.length > 0)
+				//	{
+				//		if(debug) console.log('abViewModel FUCK YES');
+				//		artboardViewModelMap.set(abName, abViewModels);
+				//	}
+				//	else
+				//	{
+				//		if(debug) console.log('abViewModel FUCK no');
+				//	}
+				//}
 
-				console.log('');
-				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
-				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
-				console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+				//console.log('');
+				//console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+				//console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
+				//console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
 
 				// STEP 2: Process ViewModels from the file level and match them to artboards
 				for(let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++)
@@ -414,20 +373,20 @@ export class RiveController
 					let foundInNestedArtboard = false;
 
 					// Search through our artboard->ViewModel map to find where this VM is defined
-					for(const [abName, vmList] of artboardViewModelMap.entries())
-					{
-						const foundVM = vmList.find(item => item.vm.name === vmName);
-						if(foundVM)
-						{
-							targetArtboard = foundVM.artboard;
-							foundInNestedArtboard = (abName !== artboard.name);
-							if(debug && foundInNestedArtboard)
-							{
-								console.log(`  🎯 ViewModel "${vmName}" belongs to nested artboard "${abName}"`);
-							}
-							break;
-						}
-					}
+					//for(const [abName, vmList] of artboardViewModelMap.entries())
+					//{
+					//	const foundVM = vmList.find(item => item.vm.name === vmName);
+					//	if(foundVM)
+					//	{
+					//		targetArtboard = foundVM.artboard;
+					//		foundInNestedArtboard = (abName !== artboard.name);
+					//		if(debug && foundInNestedArtboard)
+					//		{
+					//			console.log(`  🎯 ViewModel "${vmName}" belongs to nested artboard "${abName}"`);
+					//		}
+					//		break;
+					//	}
+					//}
 
 					if(debug) console.log('-----------------------------------------------');
 					if(debug) console.log('>>MakeBestVMI... vm:',vm);
@@ -437,7 +396,8 @@ export class RiveController
 					const vmi = RivePakUtils.MakeBestVMI(vm, targetArtboard, instanceName);
 					if(vmi)
 					{
-						RivePakUtils.DumpRiveDiagnostics(riveFile, targetArtboard, vm, vmi);
+						//RivePakUtils.DumpRiveDiagnostics(riveFile, targetArtboard, vm, vmi);
+						//RivePakUtils.DumpEnums(riveFile);
 						// Register this ViewModel by name
 						canvasRiveObj?.RegisterViewModel(vmName, vmi);
 						if(debug) console.log(`  ✅ Registered ViewModel: "${vmName}"`);
@@ -450,21 +410,24 @@ export class RiveController
 						}
 
 						// Set the primary ViewModel based on def.primaryVMName or use the first one
-						console.log('def.primaryVMName :', def.primaryVMName);
-						console.log(' vmName :', vmName);
-						console.log('vmIndex :', vmIndex);
+						if(debug)
+						{
+							console.log('def.primaryVMName :', def.primaryVMName);
+							console.log(' vmName :', vmName);
+							console.log('vmIndex :', vmIndex);
+						}
 						const isPrimary = (def.primaryVMName && vmName === def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
 						//const isPrimary = (vmName == def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
 						//const isPrimary = (vmName == def.primaryVMName)? true : false;
 						if(isPrimary)
 						{
-							console.error('IS IS IS IS IS IS PRIMARY');
+							if(debug) console.error('IS IS IS IS IS IS PRIMARY');
 							if(debug) console.log(`  🌟 Setting "${vmName}" as PRIMARY ViewModel`);
 							canvasRiveObj?.SetViewModelInstance(vmi);
 						}
 						else
 						{
-							console.error('NOT PRIMARY');
+							if(debug) console.error('NOT PRIMARY');
 						}
 					}
 					else
@@ -549,48 +512,6 @@ export class RiveController
 		this._riveObjectsSet = new RiveObjectsSet({ objects: riveObjects });
 
 		return this._riveObjectsSet;
-	}
-
-	private getVMForArtboard(file:RiveFile, artboard:Artboard, name?:string): ViewModel | null
-	{
-		const debug = this._debug || false;
-		if(debug) console.log('----%---getVMForArtboard -- file:'+file.defaultArtboard.name+',  artboard:'+artboard.name+'   name:'+name);
-		if(name && typeof file.viewModelByName === "function")
-		{
-			if(debug) console.log('----%---getVMForArtboard 1');
-			const vm = file.viewModelByName(name);
-			if(vm)
-			{
-				if(debug) console.log('----%---getVMForArtboard 2');
-				return vm;
-			}
-		}
-
-		if(typeof file.defaultArtboardViewModel === "function")
-		{
-			if(debug) console.log('----%---getVMForArtboard 3');
-			const vm = file.defaultArtboardViewModel(artboard);
-			if(vm)
-			{
-				if(debug) console.log('----%---getVMForArtboard 4');
-				return vm;
-			}
-		}
-
-		if(typeof file.viewModelCount === "function" && file.viewModelCount() > 0)
-		{
-			if(debug) console.log('----%---getVMForArtboard 5');
-			return file.viewModelByIndex?.(0) ?? null;
-		}
-
-		if(debug) console.log('----%---getVMForArtboard 6');
-		return null;
-	}
-
-	private makeVMI(vm:ViewModel, artboard:Artboard, vmName:string=""):ViewModelInstance | null
-	{
-		if(vmName != "") return vm?.instanceByName(vmName);
-		return vm?.defaultInstance?.() ?? vm?.instance?.() ?? null;
 	}
 
 	private async loadRiveFiles( filenames: string | string[], callback: (data: Array<{ filename: string; riveFile: RiveFile | null }>, error?: Error) => void)
@@ -764,30 +685,65 @@ export class RiveController
 	{
 		this._disposed = true;
 
+		// Remove window event listener
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
-		try
+
+		// Remove canvas event listeners
+		if (this._canvas)
 		{
-			this._riveInstance!.cleanup();
-		}
-		catch (error)
-		{
-			//console.log("RiveController - Error cleaning up Rive Renderer:", error);
+			this._canvas.removeEventListener("webglcontextlost", () => {});
+			this._canvas.removeEventListener("webglcontextrestored", () => {});
 		}
 
+		// CRITICAL: Destroy the Rive renderer to free WebGL context
+		if (this._riveRenderer)
+		{
+			try
+			{
+				// Delete the renderer which should free the WebGL context
+				this._riveRenderer.delete();
+			}
+			catch (error)
+			{
+				console.warn("RiveController - Error destroying Rive renderer:", error);
+			}
+		}
+
+		// Clean up Rive instance
+		if (this._riveInstance)
+		{
+			try
+			{
+				// Check if cleanup method exists before calling
+				if (typeof this._riveInstance.cleanup === 'function')
+				{
+					this._riveInstance.cleanup();
+				}
+			}
+			catch (error)
+			{
+				console.warn("RiveController - Error cleaning up Rive instance:", error);
+			}
+		}
+
+		// Clean up resize subscription
 		if (this._unsubscribeResize !== null)
 		{
 			this._unsubscribeResize();
 			this._unsubscribeResize = null;
 		}
 
+		// Clear all references
 		this._riveObjectsSet = null
 		this._riveRenderer = null;
 		this._canvas = null;
 		this._canvasBounds = null;
+		this._canvasGlobalBounds = null;
 		this._cache.clear();
 		this._riveInstance = null;
 		this._initCalled = false;
 		this._mousePos = { x: 0, y: 0 };
+		this._mouseGlobalPos = { x: 0, y: 0 };
 		this._mouseDown = false;
 	}
 }

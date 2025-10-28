@@ -151,17 +151,23 @@ export class PixiController {
             this._initialized = false;
             if (this._pixiInstanceAbove) {
                 try {
-                    //this._pixiInstanceAbove.destroy(true); // causing double destroy issues
                     // Remove event listeners BEFORE destroying to prevent memory leaks
                     this._pixiInstanceAbove.stage.off('pointermove');
                     this._pixiInstanceAbove.stage.off('pointerdown');
                     this._pixiInstanceAbove.stage.off('pointerup');
                     this._pixiInstanceAbove.stage.removeAllListeners();
+                    // Stop ticker
                     this._pixiInstanceAbove.ticker.stop();
+                    // Remove all children from stage
                     this._pixiInstanceAbove.stage.removeChildren();
                     this._pixiInstanceAbove.stage.interactive = false;
-                    // Destroy stage with options
-                    this._pixiInstanceAbove.stage.destroy({ children: true, texture: true, context: true });
+                    // CRITICAL: Destroy the application (includes renderer destruction)
+                    // The destroy() method handles renderer cleanup internally
+                    this._pixiInstanceAbove.destroy(true, {
+                        children: true,
+                        texture: true,
+                        textureSource: true,
+                    });
                 }
                 catch (error) {
                     console.warn("PixiController - Failed to destroy Above Pixi application:", error);
@@ -170,14 +176,20 @@ export class PixiController {
             }
             if (this._pixiInstanceBelow) {
                 try {
-                    //this._pixiInstanceBelow.destroy(true); // causing double destroy issues
                     // Remove any listeners if added in future
                     this._pixiInstanceBelow.stage.removeAllListeners();
+                    // Stop ticker
                     this._pixiInstanceBelow.ticker.stop();
+                    // Remove all children from stage
                     this._pixiInstanceBelow.stage.removeChildren();
                     this._pixiInstanceBelow.stage.interactive = false;
-                    // Destroy stage with options
-                    this._pixiInstanceBelow.stage.destroy({ children: true, texture: true });
+                    // CRITICAL: Destroy the application (includes renderer destruction)
+                    // The destroy() method handles renderer cleanup internally
+                    this._pixiInstanceBelow.destroy(true, {
+                        children: true,
+                        texture: true,
+                        textureSource: true,
+                    });
                 }
                 catch (error) {
                     console.warn("PixiController - Failed to destroy Below Pixi application:", error);

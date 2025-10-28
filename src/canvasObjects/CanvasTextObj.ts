@@ -18,6 +18,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 	private _alignmentOffsetX!:number;
 	private _alignmentOffsetY!:number;
 
+	private _isHovered = false;
+
 	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
@@ -209,6 +211,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			return;
 		}
 		this._styleDirty = false;
+
+
 
 		if(this._textField)
 		{
@@ -448,22 +452,44 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 	{
 		if(!this._textField) return;
 
-		this._textField.alpha = 0.8;
-		this._textField.scale.set(
-			this._textField.scale.x * 1.05,
-			this._textField.scale.y * 1.05
-		);
+		this._isHovered = true;
+
+		if(this.defObj.textStyleOver)
+		{
+			this.applyTextStyle(this.defObj.textStyleOver);
+		}
+		else
+		{
+			this._textField.alpha = 0.8;
+		}
 	}
 
 	private onTextHoverOut():void
 	{
 		if(!this._textField) return;
 
-		// Remove hover effect
-		this._textField.alpha = 1;
-		const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
-		const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
-		this._textField.scale.set(combinedScaleX, combinedScaleY);
+		this._isHovered = false;
+
+		if(this.defObj.textStyle)
+		{
+			this.applyTextStyle(this.defObj.textStyle);
+		}
+		else
+		{
+			this._textField.alpha = 1;
+		}
+	}
+
+	private applyTextStyle(styleOverrides:Partial<PIXI.TextStyleOptions>):void
+	{
+		if(!this._textField) return;
+
+		const migratedStyle = this.migrateStrokeStyle(styleOverrides);
+		Object.keys(migratedStyle).forEach(key =>
+		{
+			const styleKey = key as keyof PIXI.TextStyleOptions;
+			(this._textField!.style as any)[styleKey] = (migratedStyle as any)[styleKey];
+		});
 	}
 
 	public Update(time:number, frameCount:number, onceSecond:boolean): void

@@ -69,9 +69,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     SetViewModelInstance(vmi) {
         var _a;
-        console.error('SetViewModelInstanceq called for ' + this._label);
-        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        const debug = true;
+        const debug = false;
         if (debug) {
             console.log(`📝 SetViewModelInstance called for "${this._label}"`);
             console.log(`   VMI is null?`, vmi === null);
@@ -79,8 +77,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
             console.log(`   State Machine name:`, (_a = this._stateMachine) === null || _a === void 0 ? void 0 : _a.name);
         }
         this._viewModelInstance = vmi;
-        // CRITICAL: Bind VMI to State Machine if it exists
-        // The State Machine needs the VMI bound to react to ViewModel changes
         if (vmi && this._stateMachine && typeof this._stateMachine.bindViewModelInstance === "function") {
             if (debug)
                 console.log(`🔗 Binding VMI to State Machine "${this._stateMachine.name}" for object "${this._label}"`);
@@ -135,13 +131,13 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @param value - The string value to set (e.g., "SPACE")
      */
     QueueViewModelEnumChange(path, value) {
-        console.log('%c QueueViewModelEnumChange path=' + path + ', value=' + value, 'color: #ffc400; font-weight: bold;');
+        //console.log('%c QueueViewModelEnumChange path='+path+', value='+value, 'color: #ffc400; font-weight: bold;');
         if (!this._viewModelInstance) {
-            console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
+            //console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
             return;
         }
         this._vmEnumQueue.push({ path, value });
-        console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._vmEnumQueue.length})`);
+        //console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._vmEnumQueue.length})`);
     }
     /**
      * Process the next queued ViewModel enum change (called once per frame in Update)
@@ -375,148 +371,23 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 this._inputs.set(input.name, input);
                 //if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
             }
-            console.warn('HERE HER EHER EH ERHERHER HER HER HER EHR EHR EHR EH RHE RHE RHE RH EHR EHR EHR');
             // CRITICAL: Bind VMI to State Machine if VMI was set before the State Machine was created
             // This handles the timing issue where SetViewModelInstance() is called during super() before the SM exists
             if (this._viewModelInstance && typeof this._stateMachine.bindViewModelInstance === "function") {
-                console.warn(' YES YES YES YES YES YES YES YES YES YES ');
                 if (this._debugLogs)
                     console.log(`🔗 [Constructor] Binding VMI to State Machine "${this._stateMachine.name}" for "${this._label}"`);
                 this._stateMachine.bindViewModelInstance(this._viewModelInstance);
                 if (this._debugLogs)
                     console.log('✅ [Constructor] VMI successfully bound to State Machine! :: ' + this._viewModelInstance);
             }
-            else {
-                console.warn(' NO NO NO NO -----');
-            }
         }
         else {
             if (this._debugLogs)
                 console.log(`❌ No State Machine found in artboard "${this.artboard.name}"`);
         }
-        // IMPORTANT: Discover and register ViewModels from nested artboards
-        console.error('⭐⭐⭐⭐⭐ CALLING _discoverNestedViewModels() for: ' + this._label);
-        this._discoverNestedViewModels();
-        console.error('⭐⭐⭐⭐⭐ FINISHED _discoverNestedViewModels() for: ' + this._label);
-        //if(this._viewModelInstance)
-        //{
-        //	this._readVMFlags();
-        //}
         this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale: this.xScale, yScale: this.yScale, riveInteractiveLocalOnly: this.defObj.riveInteractiveLocalOnly };
         this.ApplyResolutionScale(this._resolutionScale, '*');
     }
-    /**
-     * Discover and register ViewModels from nested artboards.
-     * This walks through all nested artboards, finds their ViewModels,
-     * and binds them to their respective state machines.
-     */
-    _discoverNestedViewModels() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-        const debug = true;
-        if (debug)
-            console.log(`🔍 [${this._label}] Discovering nested ViewModels...`);
-        try {
-            // Access the artboard's internal structure to find nested artboards
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const artboardAny = this.artboard;
-            // Try to get object count
-            const objectCount = (_a = artboardAny.objectCount) === null || _a === void 0 ? void 0 : _a.call(artboardAny);
-            if (objectCount !== undefined && objectCount > 0) {
-                if (debug)
-                    console.log(`   Found ${objectCount} objects in artboard "${this.artboard.name}"`);
-                for (let i = 0; i < objectCount; i++) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const obj = (_b = artboardAny.object) === null || _b === void 0 ? void 0 : _b.call(artboardAny, i);
-                    if (!obj)
-                        continue;
-                    if (debug)
-                        console.log(`   Object[${i}]: name="${obj.name}", type="${(_c = obj.constructor) === null || _c === void 0 ? void 0 : _c.name}"`);
-                    // Check if this is a nested artboard
-                    // In Rive, nested artboards are typically NestedArtboard objects
-                    if (((_d = obj.constructor) === null || _d === void 0 ? void 0 : _d.name) === 'NestedArtboard' || obj.artboard !== undefined) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const nestedArtboard = obj.artboard;
-                        if (nestedArtboard) {
-                            if (debug)
-                                console.log(`   ✨ Found nested artboard: "${nestedArtboard.name}"`);
-                            // Check if the nested artboard has ViewModels
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const viewModelCount = (_f = (_e = nestedArtboard).viewModelCount) === null || _f === void 0 ? void 0 : _f.call(_e);
-                            if (viewModelCount && viewModelCount > 0) {
-                                if (debug)
-                                    console.log(`      Nested artboard has ${viewModelCount} ViewModel(s)`);
-                                for (let vmIdx = 0; vmIdx < viewModelCount; vmIdx++) {
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    const vmDef = (_h = (_g = nestedArtboard).viewModel) === null || _h === void 0 ? void 0 : _h.call(_g, vmIdx);
-                                    if (vmDef) {
-                                        const vmName = vmDef.name;
-                                        if (debug)
-                                            console.log(`      📝 Found ViewModel: "${vmName}"`);
-                                        // Create a ViewModel instance for this nested artboard's ViewModel
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        const ViewModelInstanceCtor = this.Rive.ViewModelInstance;
-                                        if (ViewModelInstanceCtor) {
-                                            const vmi = new ViewModelInstanceCtor(vmDef, nestedArtboard);
-                                            if (vmi) {
-                                                // Register it
-                                                this.RegisterViewModel(vmName, vmi);
-                                                if (debug)
-                                                    console.log(`      ✅ Registered ViewModel "${vmName}"`);
-                                                // Check if the nested artboard has a state machine
-                                                const smCount = (_j = nestedArtboard.stateMachineCount) === null || _j === void 0 ? void 0 : _j.call(nestedArtboard);
-                                                if (smCount && smCount > 0) {
-                                                    // Get the first state machine
-                                                    const smDef = nestedArtboard.stateMachineByIndex(0);
-                                                    const sm = new this.Rive.StateMachineInstance(smDef, nestedArtboard);
-                                                    if (sm && typeof sm.bindViewModelInstance === "function") {
-                                                        if (debug)
-                                                            console.log(`      🔗 Binding ViewModel "${vmName}" to nested state machine "${sm.name}"`);
-                                                        sm.bindViewModelInstance(vmi);
-                                                        if (debug)
-                                                            console.log(`      ✅ Successfully bound!`);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            console.warn(`      ⚠️ ViewModelInstance constructor not found in Rive runtime`);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                if (debug)
-                    console.log(`   No objects found or objectCount() not available`);
-            }
-        }
-        catch (error) {
-            console.error(`❌ Error discovering nested ViewModels:`, error);
-        }
-        if (debug)
-            console.log(`🏁 [${this._label}] Nested ViewModel discovery complete. Total ViewModels: ${this._viewModels.size}`);
-    }
-    //private _autoplayVM = new Map<string, boolean>();
-    //private _readVMFlags()
-    //{
-    //	this._autoplayVM.clear();
-    //	const vmi:ViewModelInstance | null = this._viewModelInstance;
-    //	if(vmi)
-    //	{
-    //		const props = vmi?.getProperties?.() ?? [];
-    //		for (const p of props)
-    //		{
-    //			if (p?.name?.startsWith('auto.'))
-    //			{
-    //				const animName = p.name.slice(15);
-    //				this._autoplayVM.set(animName, !!(p as any).value);
-    //			}
-    //		}
-    //	}
-    //}
     updateEntityObj() {
         this._entityObj.x = this.x;
         this._entityObj.y = this.y;

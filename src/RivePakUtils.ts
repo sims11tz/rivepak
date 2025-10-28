@@ -36,11 +36,11 @@ export default class RivePakUtils
 		{
 			if (!this._isFn(file, "enums")) { console.log("No enums() on file."); return; }
 			const enums:any[] = (file as any).enums?.() ?? [];
-			if(this._debug) console.log("🧩 Rive Enums (count:", enums.length, "):");
+			console.log("🧩 Rive Enums (count:", enums.length, "):");
 			enums.forEach((e:any, idx:number) => {
 				const name = e?.name ?? `(enum-${idx})`;
 				const opts = this._isFn(e, "options") ? e.options() : (e?.options ?? e?.values ?? []);
-				if(this._debug) console.log(`  • ${name}`, opts ? `options: ${JSON.stringify(opts)}` : "(no options API?)");
+				console.log(`  • ${name}`, opts ? `options: ${JSON.stringify(opts)}` : "(no options API?)");
 			});
 		}
 		catch (e)
@@ -129,7 +129,7 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully got defaultInstance()`);
 					return vmi;
 				}
-				console.log("❌ defaultInstance() returned empty/invalid VMI");
+				//console.log("❌ defaultInstance() returned empty/invalid VMI");
 			}
 
 			// Try instance()
@@ -142,7 +142,7 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully got instance()`);
 					return vmi;
 				}
-				console.log("❌ instance() returned empty/invalid VMI");
+				//console.log("❌ instance() returned empty/invalid VMI");
 			}
 
 			// Last resort: try creating a new instance
@@ -155,10 +155,10 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully created new instance`);
 					return vmi;
 				}
-				console.log("❌ createInstance() returned empty/invalid VMI");
+				//console.log("❌ createInstance() returned empty/invalid VMI");
 			}
 
-			console.log("❌ All VMI creation methods failed to return valid VMI");
+			//console.log("❌ All VMI creation methods failed to return valid VMI");
 
 		}
 		catch(e)

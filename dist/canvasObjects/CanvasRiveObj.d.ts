@@ -113,12 +113,6 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _entityObj;
     private dumpWasmObject;
     InitRiveObject(): void;
-    /**
-     * Discover and register ViewModels from nested artboards.
-     * This walks through all nested artboards, finds their ViewModels,
-     * and binds them to their respective state machines.
-     */
-    private _discoverNestedViewModels;
     updateEntityObj(): void;
     InputByName(name: string): SMIInput | null;
     RandomInput(): SMIInput | null;

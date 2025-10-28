@@ -5,6 +5,7 @@ import { PixiController } from "../controllers/PixiController";
 export class CanvasTextObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
+        this._isHovered = false;
         this._styleDirty = false;
         if (this.defObj.typewriterEffect && this.defObj.text) {
             this._fullText = this.defObj.text;
@@ -342,17 +343,33 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     onTextHover() {
         if (!this._textField)
             return;
-        this._textField.alpha = 0.8;
-        this._textField.scale.set(this._textField.scale.x * 1.05, this._textField.scale.y * 1.05);
+        this._isHovered = true;
+        if (this.defObj.textStyleOver) {
+            this.applyTextStyle(this.defObj.textStyleOver);
+        }
+        else {
+            this._textField.alpha = 0.8;
+        }
     }
     onTextHoverOut() {
         if (!this._textField)
             return;
-        // Remove hover effect
-        this._textField.alpha = 1;
-        const combinedScaleX = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.xScale;
-        const combinedScaleY = (this._resolutionScale !== -1 ? this._resolutionScale : 1) * this.yScale;
-        this._textField.scale.set(combinedScaleX, combinedScaleY);
+        this._isHovered = false;
+        if (this.defObj.textStyle) {
+            this.applyTextStyle(this.defObj.textStyle);
+        }
+        else {
+            this._textField.alpha = 1;
+        }
+    }
+    applyTextStyle(styleOverrides) {
+        if (!this._textField)
+            return;
+        const migratedStyle = this.migrateStrokeStyle(styleOverrides);
+        Object.keys(migratedStyle).forEach(key => {
+            const styleKey = key;
+            this._textField.style[styleKey] = migratedStyle[styleKey];
+        });
     }
     Update(time, frameCount, onceSecond) {
         var _a, _b, _c;
