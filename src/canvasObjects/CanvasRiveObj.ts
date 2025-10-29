@@ -784,8 +784,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 					}
 				}
 			}
-
-			// Skip state change checks if we're not using them
+			// Debug: Log state changes
 			//if(!this._disposed && this._stateMachine)
 			//{
 			//	const stateChangeCount = this._stateMachine.stateChangedCount();
@@ -796,7 +795,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
 			//			if (stateChange != undefined)
 			//			{
-			//				console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+			//				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
 			//			}
 			//		}
 			//	}
