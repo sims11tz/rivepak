@@ -41,6 +41,22 @@ export interface EntityObj {
     height: number;
     body: Matter.Body | null;
 }
+export type RiveActionQueueItem = {
+    type: 'enum';
+    path: string;
+    value: string;
+} | {
+    type: 'trigger';
+    inputName: string;
+} | {
+    type: 'boolean';
+    inputName: string;
+    value: boolean;
+} | {
+    type: 'number';
+    inputName: string;
+    value: number;
+};
 export declare class CanvasRiveObj extends BaseCanvasObj {
     private _artboard;
     protected _renderer: Renderer;
@@ -50,8 +66,8 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _inputs: Map<string, SMIInput>;
     protected _viewModels: Map<string, ViewModelInstance>;
     protected _viewModelInstance: ViewModelInstance | null;
-    private _vmEnumQueue;
-    private _vmEnumQueueProcessedThisFrame;
+    private _actionQueue;
+    private _actionQueueProcessedThisFrame;
     private _eventCallbacks;
     /**
      * Subscribe to a Rive event by name
@@ -96,9 +112,27 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      */
     QueueViewModelEnumChange(path: string, value: string): void;
     /**
-     * Process the next queued ViewModel enum change (called once per frame in Update)
+     * Queue an input trigger to be fired in the next available frame.
+     * This ensures State Machines process triggers one per frame in sequence.
+     * @param inputName - The name of the trigger input (e.g., "FADE_IN_EVENT")
      */
-    private _processVMEnumQueue;
+    QueueInputTrigger(inputName: string): void;
+    /**
+     * Queue an input boolean change to be applied in the next available frame.
+     * @param inputName - The name of the boolean input
+     * @param value - The boolean value to set
+     */
+    QueueInputBoolean(inputName: string, value: boolean): void;
+    /**
+     * Queue an input number change to be applied in the next available frame.
+     * @param inputName - The name of the number input
+     * @param value - The number value to set
+     */
+    QueueInputNumber(inputName: string, value: number): void;
+    /**
+     * Process the next queued action (ViewModel enum change or input action) - called once per frame in Update
+     */
+    private _processActionQueue;
     private _riveObjDef;
     get riveObjDef(): RiveObjectDef;
     private _artboardName;

@@ -175,7 +175,7 @@ export class RiveController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             //const debug = this._debug || false;
-            const debug = false;
+            const debug = true;
             if (debug)
                 console.log('%c RiveController: CreateRiveObj() ', 'color:#00FF88');
             const defs = [];
@@ -430,6 +430,14 @@ export class RiveController {
                                 }
                                 catch (e) {
                                     console.error(`  ❌ Failed to bind "${vmName}" to State Machine:`, e);
+                                }
+                                if (vmi.enum("DEBUG_IN_EDITOR")) { //UNSET THE in editor debug FLAG
+                                    try {
+                                        vmi.enum("DEBUG_IN_EDITOR").value = 'FALSE';
+                                    }
+                                    catch (e) {
+                                        console.error('ERR setting DEBUG_IN_EDITOR ', e);
+                                    }
                                 }
                             }
                             else {

@@ -136,28 +136,97 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //console.warn(`QueueViewModelEnumChange: No ViewModelInstance available for "${this._label}"`);
             return;
         }
-        this._vmEnumQueue.push({ path, value });
-        //console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._vmEnumQueue.length})`);
+        this._actionQueue.push({ type: 'enum', path, value });
+        //console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
     }
     /**
-     * Process the next queued ViewModel enum change (called once per frame in Update)
+     * Queue an input trigger to be fired in the next available frame.
+     * This ensures State Machines process triggers one per frame in sequence.
+     * @param inputName - The name of the trigger input (e.g., "FADE_IN_EVENT")
      */
-    _processVMEnumQueue() {
-        if (this._vmEnumQueue.length === 0 || !this._viewModelInstance)
+    QueueInputTrigger(inputName) {
+        this._actionQueue.push({ type: 'trigger', inputName });
+        //console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
+    }
+    /**
+     * Queue an input boolean change to be applied in the next available frame.
+     * @param inputName - The name of the boolean input
+     * @param value - The boolean value to set
+     */
+    QueueInputBoolean(inputName, value) {
+        this._actionQueue.push({ type: 'boolean', inputName, value });
+        //console.log(`📋 Queued boolean: ${inputName} = ${value} (queue length: ${this._actionQueue.length})`);
+    }
+    /**
+     * Queue an input number change to be applied in the next available frame.
+     * @param inputName - The name of the number input
+     * @param value - The number value to set
+     */
+    QueueInputNumber(inputName, value) {
+        this._actionQueue.push({ type: 'number', inputName, value });
+        //console.log(`📋 Queued number: ${inputName} = ${value} (queue length: ${this._actionQueue.length})`);
+    }
+    /**
+     * Process the next queued action (ViewModel enum change or input action) - called once per frame in Update
+     */
+    _processActionQueue() {
+        if (this._actionQueue.length === 0)
             return;
-        // Only process one change per frame
-        if (this._vmEnumQueueProcessedThisFrame)
+        // Only process one action per frame
+        if (this._actionQueueProcessedThisFrame)
             return;
-        const change = this._vmEnumQueue.shift();
-        if (change) {
+        const action = this._actionQueue.shift();
+        if (action) {
             try {
-                this._viewModelInstance.enum(change.path).value = change.value;
-                //console.log(`✅ Applied queued enum change: ${change.path} = ${change.value} (${this._vmEnumQueue.length} remaining)`);
+                switch (action.type) {
+                    case 'enum':
+                        if (this._viewModelInstance) {
+                            this._viewModelInstance.enum(action.path).value = action.value;
+                            //console.log(`✅ Applied queued enum: ${action.path} = ${action.value} (${this._actionQueue.length} remaining)`);
+                        }
+                        break;
+                    case 'trigger':
+                        {
+                            const input = this.InputByName(action.inputName);
+                            if (input) {
+                                input.asTrigger().fire();
+                                //console.log(`✅ Fired queued trigger: ${action.inputName} (${this._actionQueue.length} remaining)`);
+                            }
+                            else {
+                                console.warn(`❌ Input not found for trigger: ${action.inputName}`);
+                            }
+                        }
+                        break;
+                    case 'boolean':
+                        {
+                            const input = this.InputByName(action.inputName);
+                            if (input) {
+                                input.asBool().value = action.value;
+                                //console.log(`✅ Applied queued boolean: ${action.inputName} = ${action.value} (${this._actionQueue.length} remaining)`);
+                            }
+                            else {
+                                console.warn(`❌ Input not found for boolean: ${action.inputName}`);
+                            }
+                        }
+                        break;
+                    case 'number':
+                        {
+                            const input = this.InputByName(action.inputName);
+                            if (input) {
+                                input.asNumber().value = action.value;
+                                //console.log(`✅ Applied queued number: ${action.inputName} = ${action.value} (${this._actionQueue.length} remaining)`);
+                            }
+                            else {
+                                console.warn(`❌ Input not found for number: ${action.inputName}`);
+                            }
+                        }
+                        break;
+                }
             }
             catch (error) {
-                console.error(`❌ Failed to apply queued enum change: ${change.path} = ${change.value}`, error);
+                console.error(`❌ Failed to apply queued action:`, action, error);
             }
-            this._vmEnumQueueProcessedThisFrame = true;
+            this._actionQueueProcessedThisFrame = true;
         }
     }
     get riveObjDef() { return this._riveObjDef; }
@@ -171,8 +240,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._inputs = new Map();
         this._viewModels = new Map();
         this._viewModelInstance = null;
-        this._vmEnumQueue = [];
-        this._vmEnumQueueProcessedThisFrame = false;
+        // Unified action queue for ViewModel changes and input actions
+        this._actionQueue = [];
+        this._actionQueueProcessedThisFrame = false;
         // Event subscription system
         this._eventCallbacks = new Map();
         this._artboardName = "";
@@ -474,9 +544,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
         if (this.enabled === false || this.visible === false || this._disposed)
             return;
         // Reset the queue processing flag at the start of each frame
-        this._vmEnumQueueProcessedThisFrame = false;
-        // Process one queued ViewModel enum change per frame (if any)
-        this._processVMEnumQueue();
+        this._actionQueueProcessedThisFrame = false;
+        // Process one queued action (ViewModel enum or input action) per frame (if any)
+        this._processActionQueue();
         // IMPORTANT: Advance the artboard FIRST before processing animations and state machines
         // This ensures nested artboards and their state machines are updated with any ViewModel changes
         if (!this._disposed) {
@@ -518,15 +588,18 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 }
             }
             // Skip state change checks if we're not using them
-            //const stateChangeCount = this._stateMachine.stateChangedCount();
-            //if(!this._disposed && stateChangeCount > 0)
+            //if(!this._disposed && this._stateMachine)
             //{
-            //	for(let x = 0; x < stateChangeCount; x++)
+            //	const stateChangeCount = this._stateMachine.stateChangedCount();
+            //	if(stateChangeCount > 0)
             //	{
-            //		const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-            //		if (stateChange != undefined)
+            //		for(let x = 0; x < stateChangeCount; x++)
             //		{
-            //			console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+            //			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+            //			if (stateChange != undefined)
+            //			{
+            //				console.log('RIVE STATE CHANGE<'+x+'>: ', stateChange);
+            //			}
             //		}
             //	}
             //}
@@ -723,8 +796,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
             if (debug)
                 console.log('dispose NO animation... THERE IS NO ANIMATION ');
         }
-        if (this._vmEnumQueue) {
-            this._vmEnumQueue = [];
+        if (this._actionQueue) {
+            this._actionQueue = [];
         }
         if (this._stateMachine) {
             try {
