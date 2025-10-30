@@ -303,6 +303,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     InitRiveObject() {
         var _a, _b, _c, _d, _e, _f, _g;
+        this._debugLogs = false;
         if (this._debugLogs) {
             console.log("");
             console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
@@ -439,7 +440,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
             for (let j = 0; j < this._stateMachine.inputCount(); j++) {
                 const input = this._stateMachine.input(j);
                 this._inputs.set(input.name, input);
-                //if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
+                if (this._debugLogs)
+                    console.log("Input[" + j + "]: " + input.name + " -- " + input.type + " -- " + input.value);
             }
             // CRITICAL: Bind VMI to State Machine if VMI was set before the State Machine was created
             // This handles the timing issue where SetViewModelInstance() is called during super() before the SM exists
@@ -616,16 +618,16 @@ export class CanvasRiveObj extends BaseCanvasObj {
                         //console.log('CanvasRiveObj<'+this._label+'>: '+this._stateMachine?.name+' -- mouseDown @ ');
                         //console.log('CanvasRiveObj<'+this._label+'>: DOWN ', artboardMoveSpace.x, artboardMoveSpace.y, ' -- interaction space: ', artBoardInteractionSpace.x, artBoardInteractionSpace.y);
                         //this._stateMachine.pointerDown(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
-                        this._stateMachine.pointerDown(artboardMoveSpace.x, artboardMoveSpace.y);
+                        this._stateMachine.pointerDown(artboardMoveSpace.x, artboardMoveSpace.y, 1);
                     }
                     else {
                         //this._stateMachine.pointerUp(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
-                        this._stateMachine.pointerUp(artboardMoveSpace.x, artboardMoveSpace.y);
+                        this._stateMachine.pointerUp(artboardMoveSpace.x, artboardMoveSpace.y, 1);
                     }
                 }
                 if (mousePosChanged) {
                     //console.log("Rive Interaction<"+this._label+">: MOVE ", artboardMoveSpace.x, artboardMoveSpace.y);
-                    this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y);
+                    this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y, 1);
                 }
                 this._lastMousePos.x = artboardMoveSpace.x;
                 this._lastMousePos.y = artboardMoveSpace.y;

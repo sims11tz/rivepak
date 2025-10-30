@@ -413,6 +413,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public InitRiveObject():void
 	{
+		this._debugLogs = false;
+
 		if(this._debugLogs)
 		{
 			console.log("");
@@ -578,7 +580,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			{
 				const input = this._stateMachine.input(j);
 				this._inputs.set(input.name, input);
-				//if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
+				if(this._debugLogs) console.log("Input["+j+"]: "+input.name+" -- "+input.type+" -- "+input.value);
 			}
 
 			// CRITICAL: Bind VMI to State Machine if VMI was set before the State Machine was created
@@ -820,19 +822,19 @@ export class CanvasRiveObj extends BaseCanvasObj
 						//console.log('CanvasRiveObj<'+this._label+'>: '+this._stateMachine?.name+' -- mouseDown @ ');
 						//console.log('CanvasRiveObj<'+this._label+'>: DOWN ', artboardMoveSpace.x, artboardMoveSpace.y, ' -- interaction space: ', artBoardInteractionSpace.x, artBoardInteractionSpace.y);
 						//this._stateMachine.pointerDown(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
-						this._stateMachine.pointerDown(artboardMoveSpace.x, artboardMoveSpace.y);
+						this._stateMachine.pointerDown(artboardMoveSpace.x, artboardMoveSpace.y, 1);
 					}
 					else
 					{
 						//this._stateMachine.pointerUp(artBoardInteractionSpace.x, artBoardInteractionSpace.y);
-						this._stateMachine.pointerUp(artboardMoveSpace.x, artboardMoveSpace.y);
+						this._stateMachine.pointerUp(artboardMoveSpace.x, artboardMoveSpace.y, 1);
 					}
 				}
 
 				if (mousePosChanged)
 				{
 					//console.log("Rive Interaction<"+this._label+">: MOVE ", artboardMoveSpace.x, artboardMoveSpace.y);
-					this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y);
+					this._stateMachine.pointerMove(artboardMoveSpace.x, artboardMoveSpace.y, 1);
 				}
 
 				this._lastMousePos.x = artboardMoveSpace.x;
