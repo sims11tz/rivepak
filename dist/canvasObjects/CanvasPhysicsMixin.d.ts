@@ -36,6 +36,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
             xScale: number;
             yScale: number;
             visible: boolean;
+            render: boolean;
         };
         centerLocally: boolean;
         centerGlobally: boolean;
@@ -73,8 +74,9 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render", (oldValue: number | boolean, newValue: number | boolean) => void>;
         visible: boolean;
+        render: boolean;
         z: number;
         xScale: number;
         yScale: number;

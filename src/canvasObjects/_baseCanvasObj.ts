@@ -47,6 +47,7 @@ export interface CanvasObjectDef
 	text?:string;
 
 	visible?:boolean;
+	render?:boolean;
 
 /*TEXT Start*/
 	// Text styling options
@@ -166,7 +167,7 @@ export abstract class BaseCanvasObj
 	public get defObj():CanvasObjectDef { return this._defObj!; }
 
 	public enabled:boolean = true;
-	public _state:{ x:number; y:number; z:number; xScale:number; yScale:number; visible:boolean };
+	public _state:{ x:number; y:number; z:number; xScale:number; yScale:number; visible:boolean, render:boolean; };
 
 	public centerLocally:boolean=false;
 	public centerGlobally:boolean=false;
@@ -218,7 +219,7 @@ export abstract class BaseCanvasObj
 	public _debugRive!:boolean;
 	public _debugLogs!:boolean;
 
-	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue:number | boolean, newValue:number | boolean) => void> = new Map();
+	public _propertyChangeListeners:Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render", (oldValue:number | boolean, newValue:number | boolean) => void> = new Map();
 	constructor(defObj:CanvasObjectDef)
 	{
 		this._debugRive = defObj.debugMode ?? false;
@@ -228,7 +229,7 @@ export abstract class BaseCanvasObj
 		this._uuid = GlobalUIDGenerator.generateUID();
 		this._label = this.defObj.label ?? GlobalUIDGenerator.generateUniqueString(this.constructor.name);
 
-		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0, xScale: defObj.xScale ?? 1, yScale: defObj.yScale ?? 1, visible: defObj.visible ?? true };
+		this._state = { x: defObj.x ?? 0, y: defObj.y ?? 0, z: defObj.z ?? 0, xScale: defObj.xScale ?? 1, yScale: defObj.yScale ?? 1, visible: defObj.visible ?? true, render: defObj.render ?? true };
 
 		//console.log("");
 		//console.log("CanvasObj["+this._uuid+"] / "+this._label+"  created. pos=<"+this._state.x+","+this._state.y+">  size=<"+defObj.width+","+defObj.height+">  scale=<"+this._state.xScale+","+this._state.yScale+"> ");
@@ -261,7 +262,7 @@ export abstract class BaseCanvasObj
 					if (oldValue !== value)
 					{
 						(target as any)[typedKey] = value;
-						this._propertyChangeListeners.get(key as "x" | "y" | "z" | "xScale" | "yScale" | "visible")?.(oldValue, value);
+						this._propertyChangeListeners.get(key as "x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render")?.(oldValue, value);
 					}
 				}
 				return true;
@@ -289,6 +290,16 @@ export abstract class BaseCanvasObj
 	{
 		if(value == this._state.visible) return;
 		this._state.visible = value;
+	}
+
+	public get render():boolean
+	{
+		return this._state.render ?? true;
+	}
+	public set render(value:boolean)
+	{
+		if(value == this._state.render) return;
+		this._state.render = value;
 	}
 
 	public get x():number { return this._state.x; }

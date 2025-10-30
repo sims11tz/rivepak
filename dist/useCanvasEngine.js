@@ -232,7 +232,7 @@ export class CanvasEngine {
                 riveRenderer.clear();
                 this._canvasObjects.forEach((objects) => {
                     objects.forEach((obj) => {
-                        if (obj.visible) {
+                        if (obj.render) {
                             obj.Update(elapsedTimeSec, frameCount, onceSecond);
                         }
                     });

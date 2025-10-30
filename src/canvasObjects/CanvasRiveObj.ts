@@ -723,22 +723,16 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public Update(time:number, frameCount:number, onceSecond:boolean): void
 	{
-		if(this.enabled === false || this.visible === false || this._disposed) return;
+		if(this.enabled === false || this._disposed) return;
 
-		// Reset the queue processing flag at the start of each frame
 		this._actionQueueProcessedThisFrame = false;
-
-		// Process one queued action (ViewModel enum or input action) per frame (if any)
 		this._processActionQueue();
 
-		// IMPORTANT: Advance the artboard FIRST before processing animations and state machines
-		// This ensures nested artboards and their state machines are updated with any ViewModel changes
 		if(!this._disposed)
 		{
 			this.artboard.advance(time);
 		}
 
-		// Process animations - skip if timeline controlled or autoPlay is false
 		for (let i = 0; i < this._animations.length; i++)
 		{
 			const animationMeta = this._animations[i];
@@ -746,10 +740,6 @@ export class CanvasRiveObj extends BaseCanvasObj
 			{
 				if(animationMeta.autoPlay)
 				{
-					if(onceSecond)
-					{
-						//console.log('YES Update('+time+' me : '+this._riveObjDef.artboardName+'-'+animationMeta.name+')');
-					}
 					animationMeta.animation.advance(time);
 					animationMeta.animation.apply(1);
 				}
@@ -843,8 +833,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 			}
 		}
 
-		// Render the artboard
-		if(!this._disposed)
+		// Render the artboard (only if visible)
+		if(!this._disposed && this.visible)
 		{
 			const scaledWidth = this.artboard.width * this.xScale;
 			const scaledHeight = this.artboard.height * this.yScale;

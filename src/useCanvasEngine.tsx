@@ -240,7 +240,7 @@ export class CanvasEngine
 			{
 				objects.forEach((obj) =>
 				{
-					if(obj.visible)
+					if(obj.render)
 					{
 						obj.Update(elapsedTimeSec, frameCount, onceSecond);
 					}
