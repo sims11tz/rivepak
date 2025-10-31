@@ -201,6 +201,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 	 */
 	public RegisterViewModel(vmName:string, vmi:ViewModelInstance):void
 	{
+		console.warn('RegisterViewModel('+vmName+') ',vmi);
 		this._viewModels.set(vmName, vmi);
 	}
 

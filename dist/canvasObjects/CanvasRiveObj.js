@@ -123,6 +123,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @param vmi - The ViewModelInstance to register
      */
     RegisterViewModel(vmName, vmi) {
+        console.warn('RegisterViewModel(' + vmName + ') ', vmi);
         this._viewModels.set(vmName, vmi);
     }
     /**
