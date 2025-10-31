@@ -80,8 +80,15 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     /**
      * Resolves a wildcard trigger pattern to multiple concrete triggers
      * Example: "/ColorSlot*VM/TRIGGER" → [ColorSlot1VM/TRIGGER, ColorSlot2VM/TRIGGER, ...]
+     * NOTE: Uses strict matching - no fallback searches. Only matches exact ViewModel names.
      */
     private _resolveWildcardTriggers;
+    /**
+     * Strict ViewModel property resolver - only looks in registered VMs and nested VMs
+     * Does NOT fall back to searching all ViewModels
+     * Used by wildcard resolution to prevent false matches
+     */
+    private _resolveViewModelPropertyStrict;
     /**
      * Recursively searches for a nested ViewModel by name within a parent ViewModel
      * @param parentVMI - The parent ViewModelInstance to search within
@@ -101,10 +108,10 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
      * @returns The resolved property or null
      */
-    protected _resolveViewModelProperty<T = any>(path: string, propertyType: 'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'): T | null;
+    protected _viewModelProperty<T = any>(path: string, propertyType: 'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'): T | null;
     /**
      * Legacy trigger resolver - now uses the generic resolver
-     * @deprecated Use _resolveViewModelProperty instead
+     * @deprecated Use _viewModelProperty instead
      */
     /**
      * Remove all event listeners for a specific event name

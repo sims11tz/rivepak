@@ -128,9 +128,10 @@ export class CanvasRiveObj extends BaseCanvasObj
 			else
 			{
 				// Normal single trigger resolution
-				const trigger = this._resolveViewModelProperty(eventName, 'trigger') as ViewModelInstanceTrigger | null;
+				const trigger = this._viewModelProperty(eventName, 'trigger') as ViewModelInstanceTrigger | null;
 				if(trigger)
 				{
+					console.log('RESOLVEDSINGLETRIGGER...'+eventName);
 					this._triggerCache.set(eventName, trigger);
 				}
 				else
@@ -166,6 +167,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 	/**
 	 * Resolves a wildcard trigger pattern to multiple concrete triggers
 	 * Example: "/ColorSlot*VM/TRIGGER" → [ColorSlot1VM/TRIGGER, ColorSlot2VM/TRIGGER, ...]
+	 * NOTE: Uses strict matching - no fallback searches. Only matches exact ViewModel names.
 	 */
 	private _resolveWildcardTriggers(wildcardPath:string):Array<{trigger:ViewModelInstanceTrigger; vmName:string; index:number}>
 	{
@@ -189,8 +191,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 		{
 			const vmName = `${prefix}${i}${suffix}`;
 
-			// Try to get the trigger from this ViewModel
-			const trigger = this._resolveViewModelProperty(`/${vmName}/${propertyName}`, 'trigger') as ViewModelInstanceTrigger | null;
+			// Use strict resolution - no fallback searches
+			const trigger = this._resolveViewModelPropertyStrict(vmName, propertyName, 'trigger') as ViewModelInstanceTrigger | null;
 
 			if(trigger)
 			{
@@ -204,6 +206,78 @@ export class CanvasRiveObj extends BaseCanvasObj
 		}
 
 		return results;
+	}
+
+	/**
+	 * Strict ViewModel property resolver - only looks in registered VMs and nested VMs
+	 * Does NOT fall back to searching all ViewModels
+	 * Used by wildcard resolution to prevent false matches
+	 */
+	private _resolveViewModelPropertyStrict<T = any>(
+		viewModelName:string,
+		propertyName:string,
+		propertyType:'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'
+	):T | null
+	{
+		// First try registered viewModels
+		const vmi = this._viewModels.get(viewModelName);
+		if(vmi)
+		{
+			try
+			{
+				const property = (vmi as any)[propertyType](propertyName);
+				if(property)
+				{
+					return property;
+				}
+			}
+			catch(e)
+			{
+				// Property doesn't exist in this viewModel
+			}
+		}
+
+		// Try to find nested ViewModel by exact name
+		const nestedVMI = this._findNestedViewModel(this._viewModelInstance, viewModelName);
+		if(nestedVMI)
+		{
+			try
+			{
+				const property = (nestedVMI as any)[propertyType](propertyName);
+				if(property)
+				{
+					return property;
+				}
+			}
+			catch(e)
+			{
+				// Property doesn't exist
+			}
+		}
+
+		// Also search through all registered viewModels recursively
+		for(const [vmName, vmi] of this._viewModels)
+		{
+			const nestedVMI2 = this._findNestedViewModel(vmi, viewModelName);
+			if(nestedVMI2)
+			{
+				try
+				{
+					const property = (nestedVMI2 as any)[propertyType](propertyName);
+					if(property)
+					{
+						return property;
+					}
+				}
+				catch(e)
+				{
+					// Continue searching
+				}
+			}
+		}
+
+		// NOT FOUND - return null (no fallback searching)
+		return null;
 	}
 
 	/**
@@ -285,10 +359,10 @@ export class CanvasRiveObj extends BaseCanvasObj
 	 * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
 	 * @returns The resolved property or null
 	 */
-	protected _resolveViewModelProperty<T = any>(path:string, propertyType:'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'):T | null
+	protected _viewModelProperty<T = any>(path:string, propertyType:'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'):T | null
 	{
-		const debug = false;
-		if(debug) console.log(`%c [_resolveViewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
+		const debug = true;
+		if(debug) console.log(`%c [_viewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
 
 		const slashCount = (path.match(/\//g) || []).length;
 
@@ -296,91 +370,140 @@ export class CanvasRiveObj extends BaseCanvasObj
 		// Try this._viewModelInstance first
 		if(slashCount === 0 || (slashCount === 1 && path.startsWith('/') && !path.endsWith('/')))
 		{
+			if(debug) console.log(`%c [_viewModelProperty] A1 `, 'color: #9687edff;');
 			const propertyName = path.startsWith('/') ? path.substring(1) : path;
 
 			if(this._viewModelInstance)
 			{
+				if(debug) console.log(`%c [_viewModelProperty] A2 `, 'color: #9687edff;');
 				try
 				{
 					const property = (this._viewModelInstance as any)[propertyType](propertyName);
+					if(debug) console.log(`%c [_viewModelProperty] A3 `, 'color: #9687edff;');
 					if(property)
 					{
-						if(debug) console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in _viewModelInstance`, 'color: #00ff00;');
+						if(debug) console.log(`%c [_viewModelProperty] A4 `, 'color: #9687edff;');
+						if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in _viewModelInstance`, 'color: #00ff00;');
 						return property;
 					}
 				}
 				catch(e)
 				{
 					// Property doesn't exist in this viewModel, continue to fallback
+					if(debug) console.log(`%c [_viewModelProperty] AERROR `, 'color: #9687edff;');
 				}
+			}
+			else
+			{
+				if(debug) console.log(`%c [_viewModelProperty] A uhhhh wtf bitch 1 `, 'color: #9687edff;');
 			}
 		}
 
 		// Case 2: Two or more slashes - parse viewModel path and property name
 		if(slashCount >= 2)
 		{
+			if(debug) console.log(`%c [_viewModelProperty] B1 `, 'color: #9687edff;');
 			const parts = path.split('/').filter(p => p.length > 0);
 			if(parts.length === 2)
 			{
+				if(debug) console.log(`%c [_viewModelProperty] B2 `, 'color: #9687edff;');
 				const [viewModelName, propertyName] = parts;
 
-				// First try registered viewModels
-				const vmi = this._viewModels.get(viewModelName);
-				if(vmi)
+				// FIRST: Check if the property exists directly in root _viewModelInstance
+				// This handles cases like "/AvatarPODVM/TRIGGER" where AvatarPODVM is the root VM name
+				if(this._viewModelInstance)
 				{
+					if(debug) console.log(`%c [_viewModelProperty] B3 `, 'color: #9687edff;');
 					try
 					{
-						const property = (vmi as any)[propertyType](propertyName);
+						const property = (this._viewModelInstance as any)[propertyType](propertyName);
+						if(debug) console.log(`%c [_viewModelProperty] B4 `, 'color: #9687edff;');
 						if(property)
 						{
-							if(debug) console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in registered VM "${viewModelName}"`, 'color: #00ff00;');
+							if(debug) console.log(`%c [_viewModelProperty] B5 `, 'color: #9687edff;');
+							if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in root _viewModelInstance (path was "${path}")`, 'color: #00ff00;');
 							return property;
 						}
 					}
 					catch(e)
 					{
+						if(debug) console.log(`%c [_viewModelProperty] Berror `, 'color: #9687edff;');
+						// Property doesn't exist in root viewModel, continue searching
+					}
+				}
+
+				if(debug) console.log(`%c [_viewModelProperty] B6 `, 'color: #9687edff;');
+				// SECOND: Try registered viewModels
+				const vmi = this._viewModels.get(viewModelName);
+				if(vmi)
+				{
+					if(debug) console.log(`%c [_viewModelProperty] B7 `, 'color: #9687edff;');
+					try
+					{
+						if(debug) console.log(`%c [_viewModelProperty] B8 `, 'color: #9687edff;');
+						const property = (vmi as any)[propertyType](propertyName);
+						if(property)
+						{
+							if(debug) console.log(`%c [_viewModelProperty] B9 `, 'color: #9687edff;');
+							if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in registered VM "${viewModelName}"`, 'color: #00ff00;');
+							return property;
+						}
+					}
+					catch(e)
+					{
+						if(debug) console.log(`%c [_viewModelProperty] Berror `, 'color: #9687edff;');
 						// Property doesn't exist in this viewModel, continue
 					}
 				}
 				else
 				{
+					if(debug) console.log(`%c [_viewModelProperty] C1 `, 'color: #9687edff;');
 					// ViewModelName not found in _viewModels, search recursively
-					if(debug) console.log(`%c [_resolveViewModelProperty] Searching for nested VM "${viewModelName}"`, 'color: #ffcc00;');
+					if(debug) console.log(`%c [_viewModelProperty] Searching for nested VM "${viewModelName}"`, 'color: #ffcc00;');
 					const nestedVMI = this._findNestedViewModel(this._viewModelInstance, viewModelName);
 					if(nestedVMI)
 					{
+						if(debug) console.log(`%c [_viewModelProperty] C2 `, 'color: #9687edff;');
 						try
 						{
 							const property = (nestedVMI as any)[propertyType](propertyName);
+							if(debug) console.log(`%c [_viewModelProperty] C3 `, 'color: #9687edff;');
 							if(property)
 							{
-								if(debug) console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}"`, 'color: #00ff00;');
+								if(debug) console.log(`%c [_viewModelProperty] C4 `, 'color: #9687edff;');
+								if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}"`, 'color: #00ff00;');
 								return property;
 							}
 						}
 						catch(e)
 						{
+							if(debug) console.log(`%c [_viewModelProperty] Cerror `, 'color: #9687edff;');
 							// Property doesn't exist, continue
 						}
 					}
 
+					if(debug) console.log(`%c [_viewModelProperty] C5 `, 'color: #9687edff;');
 					// Also search through all registered viewModels recursively
 					for(const [vmName, vmi] of this._viewModels)
 					{
 						const nestedVMI2 = this._findNestedViewModel(vmi, viewModelName);
+						if(debug) console.log(`%c [_viewModelProperty] C6 `, 'color: #9687edff;');
 						if(nestedVMI2)
 						{
 							try
 							{
 								const property = (nestedVMI2 as any)[propertyType](propertyName);
+								if(debug) console.log(`%c [_viewModelProperty] C7 `, 'color: #9687edff;');
 								if(property)
 								{
-									if(debug) console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}" within "${vmName}"`, 'color: #00ff00;');
+									if(debug) console.log(`%c [_viewModelProperty] C8 `, 'color: #9687edff;');
+									if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}" within "${vmName}"`, 'color: #00ff00;');
 									return property;
 								}
 							}
 							catch(e)
 							{
+								if(debug) console.log(`%c [_viewModelProperty] Cerror `, 'color: #9687edff;');
 								// Continue searching
 							}
 						}
@@ -391,32 +514,35 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 		// Case 3: Fallback - search through all viewModels
 		const propertyName = path.split('/').filter(p => p.length > 0).pop() || path;
-
+		if(debug) console.log(`%c [_viewModelProperty] D1 `, 'color: #9687edff;');
 		for(const [vmName, vmi] of this._viewModels)
 		{
 			try
 			{
+				if(debug) console.log(`%c [_viewModelProperty] D2 `, 'color: #9687edff;');
 				const property = (vmi as any)[propertyType](propertyName);
 				if(property)
 				{
-					if(debug) console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in VM "${vmName}" (fallback)`, 'color: #ffcc00;');
+					if(debug) console.log(`%c [_viewModelProperty] De `, 'color: #9687edff;');
+					if(debug) console.log(`%c [_viewModelProperty] Found ${propertyType} "${propertyName}" in VM "${vmName}" (fallback)`, 'color: #ffcc00;');
 					return property;
 				}
 			}
 			catch(e)
 			{
+				if(debug) console.log(`%c [_viewModelProperty] Derror `, 'color: #9687edff;');
 				// Continue searching
 			}
 		}
 
 		// Case 4: Give up gracefully
-		console.warn(`%c [_resolveViewModelProperty] Could not find ${propertyType} "${path}" in any viewModel`, 'color: #ff0000;');
+		console.warn(`%c [_viewModelProperty] Could not find ${propertyType} "${path}" in any viewModel`, 'color: #ff0000;');
 		return null;
 	}
 
 	/**
 	 * Legacy trigger resolver - now uses the generic resolver
-	 * @deprecated Use _resolveViewModelProperty instead
+	 * @deprecated Use _viewModelProperty instead
 	 */
 	//protected _resolveTrigger(eventName:string):ViewModelInstanceTrigger | null
 	//{
@@ -626,7 +752,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public SetViewModelInstance(vmi:ViewModelInstance | null)
 	{
-		const debug = false;
+		const debug = true;
 		if(debug)
 		{
 			console.log(`📝 SetViewModelInstance called for "${this._label}"`);
@@ -1297,23 +1423,23 @@ export class CanvasRiveObj extends BaseCanvasObj
 			}
 
 			// DEPRECATED Check for events and do callbacks
-			const eventCount = this._stateMachine.reportedEventCount();
-			if(!this._disposed && eventCount > 0)
-			{
-				for(let i = 0; i < eventCount; i++)
-				{
-					const event = this._stateMachine.reportedEventAt(i);
-					if (event != undefined)
-					{
-						// Trigger any subscribed callbacks for this event
-						const callbacks = this._eventCallbacks.get(event.name);
-						if(callbacks && callbacks.length > 0)
-						{
-							callbacks.forEach(callback => callback(event));
-						}
-					}
-				}
-			}
+			//const eventCount = this._stateMachine.reportedEventCount();
+			//if(!this._disposed && eventCount > 0)
+			//{
+			//	for(let i = 0; i < eventCount; i++)
+			//	{
+			//		const event = this._stateMachine.reportedEventAt(i);
+			//		if (event != undefined)
+			//		{
+			//			// Trigger any subscribed callbacks for this event
+			//			const callbacks = this._eventCallbacks.get(event.name);
+			//			if(callbacks && callbacks.length > 0)
+			//			{
+			//				callbacks.forEach(callback => callback(event));
+			//			}
+			//		}
+			//	}
+			//}
 
 // Debug: Log state changes
 			//if(!this._disposed && this._stateMachine)
@@ -1573,10 +1699,11 @@ export class CanvasRiveObj extends BaseCanvasObj
 	{
 		this._disposed = true;
 
-		const debug = false;
+		const debug = true;
 		if(debug)
 		{
 			console.log('');
+			console.log((new Error('stack')).stack);
 			console.log('Canvas rive obj dispose');
 		}
 		// Clean up Rive resources properly
