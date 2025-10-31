@@ -40,6 +40,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @returns Unsubscribe function
      */
     OnRiveEvent(eventName, callback) {
+        console.log(`%c [CanvasRiveObj] OnRiveEvent subscribed to "${eventName}"`, 'color: #00ff00;');
         if (!this._eventCallbacks.has(eventName)) {
             this._eventCallbacks.set(eventName, []);
         }
@@ -303,7 +304,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     InitRiveObject() {
         var _a, _b, _c, _d, _e, _f, _g;
-        this._debugLogs = false;
+        this._debugLogs = true;
         if (this._debugLogs) {
             console.log("");
             console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
@@ -582,21 +583,17 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 }
             }
             // Debug: Log state changes
-            //if(!this._disposed && this._stateMachine)
-            //{
-            //	const stateChangeCount = this._stateMachine.stateChangedCount();
-            //	if(stateChangeCount > 0)
-            //	{
-            //		for(let x = 0; x < stateChangeCount; x++)
-            //		{
-            //			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-            //			if (stateChange != undefined)
-            //			{
-            //				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-            //			}
-            //		}
-            //	}
-            //}
+            if (!this._disposed && this._stateMachine) {
+                const stateChangeCount = this._stateMachine.stateChangedCount();
+                if (stateChangeCount > 0) {
+                    for (let x = 0; x < stateChangeCount; x++) {
+                        const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+                        if (stateChange != undefined) {
+                            console.log(this.id + '> RIVE STATE CHANGE<' + x + '>: ', stateChange);
+                        }
+                    }
+                }
+            }
             if (!this._disposed && this.defObj.riveInteractive) {
                 this.updateEntityObj();
                 const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj);
