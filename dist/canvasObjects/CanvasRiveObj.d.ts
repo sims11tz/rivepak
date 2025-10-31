@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
+import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance, ViewModelInstanceTrigger } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
@@ -69,6 +69,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _actionQueue;
     private _actionQueueProcessedThisFrame;
     _triggerCallbacks: Map<string, ((event: any) => void)[]>;
+    protected _triggerCache: Map<string, any>;
     /**
      * Subscribe to a Rive event by name
      * @param eventName The name of the Rive event to listen for
@@ -76,6 +77,22 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * @returns Unsubscribe function
      */
     OnRiveTrigger(eventName: string, callback: (event: any) => void): () => void;
+    /**
+     * Recursively searches for a nested ViewModel by name within a parent ViewModel
+     * @param parentVMI - The parent ViewModelInstance to search within
+     * @param targetName - The name of the nested ViewModel to find
+     * @returns The found ViewModelInstance or null
+     */
+    private _findNestedViewModel;
+    /**
+     * Resolves a trigger reference based on the eventName pattern
+     * Supports:
+     * - "TRIGGER_NAME" -> looks in this._viewModelInstance
+     * - "/TRIGGER_NAME" -> looks in this._viewModelInstance
+     * - "/viewModelName/TRIGGER_NAME" -> looks in this._viewModels.get(viewModelName)
+     * - Falls back to searching all viewModels
+     */
+    protected _resolveTrigger(eventName: string): ViewModelInstanceTrigger | null;
     /**
      * Remove all event listeners for a specific event name
      */
