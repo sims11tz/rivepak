@@ -40,14 +40,31 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @returns Unsubscribe function
      */
     OnRiveTrigger(eventName, callback) {
+        // Check if this is a wildcard pattern
+        const hasWildcard = eventName.includes('*');
         if (!this._triggerCache.has(eventName)) {
-            const trigger = this._resolveViewModelProperty(eventName, 'trigger');
-            if (trigger) {
-                this._triggerCache.set(eventName, trigger);
+            if (hasWildcard) {
+                // Resolve wildcard pattern to multiple triggers
+                const triggers = this._resolveWildcardTriggers(eventName);
+                if (triggers.length > 0) {
+                    this._triggerCache.set(eventName, triggers);
+                    console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
+                }
+                else {
+                    console.warn(`%c  [OnRiveTrigger] Could not find any triggers matching wildcard "${eventName}"`, 'color: #ff0000;');
+                    return () => { };
+                }
             }
             else {
-                console.warn(`%c  [OnRiveTrigger] 3 Could not find trigger "${eventName}" to subscribe to`, 'color: #ff0000;');
-                return () => { };
+                // Normal single trigger resolution
+                const trigger = this._resolveViewModelProperty(eventName, 'trigger');
+                if (trigger) {
+                    this._triggerCache.set(eventName, trigger);
+                }
+                else {
+                    console.warn(`%c  [OnRiveTrigger] Could not find trigger "${eventName}" to subscribe to`, 'color: #ff0000;');
+                    return () => { };
+                }
             }
         }
         // Store callback
@@ -65,6 +82,39 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 }
             }
         };
+    }
+    /**
+     * Resolves a wildcard trigger pattern to multiple concrete triggers
+     * Example: "/ColorSlot*VM/TRIGGER" → [ColorSlot1VM/TRIGGER, ColorSlot2VM/TRIGGER, ...]
+     */
+    _resolveWildcardTriggers(wildcardPath) {
+        const results = [];
+        // Parse the wildcard path
+        const parts = wildcardPath.split('/').filter(p => p.length > 0);
+        if (parts.length !== 2)
+            return results; // Only support "/ViewModelPattern/PropertyName" format
+        const [vmPattern, propertyName] = parts;
+        // Extract prefix and suffix from pattern (e.g., "ColorSlot*VM" → prefix="ColorSlot", suffix="VM")
+        const wildcardIndex = vmPattern.indexOf('*');
+        if (wildcardIndex === -1)
+            return results;
+        const prefix = vmPattern.substring(0, wildcardIndex);
+        const suffix = vmPattern.substring(wildcardIndex + 1);
+        // Try numbered ViewModels starting from 1
+        for (let i = 1; i <= 100; i++) // Limit to 100 to prevent infinite loop
+         {
+            const vmName = `${prefix}${i}${suffix}`;
+            // Try to get the trigger from this ViewModel
+            const trigger = this._resolveViewModelProperty(`/${vmName}/${propertyName}`, 'trigger');
+            if (trigger) {
+                results.push({ trigger, vmName, index: i });
+            }
+            else {
+                // Stop when we can't find the next numbered ViewModel
+                break;
+            }
+        }
+        return results;
     }
     /**
      * Recursively searches for a nested ViewModel by name within a parent ViewModel
@@ -591,6 +641,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         // Event subscription syste
         this._triggerCallbacks = new Map();
         // Cache resolved trigger references by eventName for efficient lookup
+        // For wildcards, stores array of {trigger, metadata} objects
         this._triggerCache = new Map();
         // Event subscription syste
         this._eventCallbacks = new Map();
@@ -918,14 +969,40 @@ export class CanvasRiveObj extends BaseCanvasObj {
             this._stateMachine.advance(time);
             //Check cached triggers for hasChanged and fire callbacks
             if (!this._disposed && this._triggerCache.size > 0) {
-                this._triggerCache.forEach((trigger, eventName) => {
-                    if (trigger && 'hasChanged' in trigger) {
-                        if (trigger.hasChanged) {
-                            trigger.clearChanges();
-                            const callbacks = this._triggerCallbacks.get(eventName);
-                            if (callbacks && callbacks.length > 0) {
-                                //console.log(`%c  [Update] Trigger "${eventName}" hasChanged - firing ${callbacks.length} callback(s)`, 'color: #00ff00;');
-                                callbacks.forEach(callback => callback(trigger));
+                this._triggerCache.forEach((cachedValue, eventName) => {
+                    // Check if this is a wildcard pattern (array of triggers)
+                    if (Array.isArray(cachedValue)) {
+                        // Wildcard case: iterate through all matched triggers
+                        cachedValue.forEach(({ trigger, vmName, index }) => {
+                            if (trigger && 'hasChanged' in trigger) {
+                                if (trigger.hasChanged) {
+                                    trigger.clearChanges();
+                                    const callbacks = this._triggerCallbacks.get(eventName);
+                                    if (callbacks && callbacks.length > 0) {
+                                        // Pass metadata object with trigger info to callback
+                                        const metadata = {
+                                            trigger,
+                                            vmName,
+                                            index,
+                                            eventName
+                                        };
+                                        callbacks.forEach(callback => callback(metadata));
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        // Single trigger case
+                        const trigger = cachedValue;
+                        if (trigger && 'hasChanged' in trigger) {
+                            if (trigger.hasChanged) {
+                                trigger.clearChanges();
+                                const callbacks = this._triggerCallbacks.get(eventName);
+                                if (callbacks && callbacks.length > 0) {
+                                    //console.log(`%c  [Update] Trigger "${eventName}" hasChanged - firing ${callbacks.length} callback(s)`, 'color: #00ff00;');
+                                    callbacks.forEach(callback => callback(trigger));
+                                }
                             }
                         }
                     }

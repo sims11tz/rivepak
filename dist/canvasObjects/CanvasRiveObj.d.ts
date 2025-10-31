@@ -78,6 +78,11 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      */
     OnRiveTrigger(eventName: string, callback: (event: any) => void): () => void;
     /**
+     * Resolves a wildcard trigger pattern to multiple concrete triggers
+     * Example: "/ColorSlot*VM/TRIGGER" → [ColorSlot1VM/TRIGGER, ColorSlot2VM/TRIGGER, ...]
+     */
+    private _resolveWildcardTriggers;
+    /**
      * Recursively searches for a nested ViewModel by name within a parent ViewModel
      * @param parentVMI - The parent ViewModelInstance to search within
      * @param targetName - The name of the nested ViewModel to find
