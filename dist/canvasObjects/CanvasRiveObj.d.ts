@@ -1,5 +1,5 @@
 /// <reference types="matter-js" />
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance, ViewModelInstanceTrigger } from "@rive-app/webgl2-advanced";
+import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
 import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
@@ -85,14 +85,22 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      */
     private _findNestedViewModel;
     /**
-     * Resolves a trigger reference based on the eventName pattern
+     * Generic resolver for ViewModel properties (trigger, enum, color, number, etc.)
      * Supports:
-     * - "TRIGGER_NAME" -> looks in this._viewModelInstance
-     * - "/TRIGGER_NAME" -> looks in this._viewModelInstance
-     * - "/viewModelName/TRIGGER_NAME" -> looks in this._viewModels.get(viewModelName)
+     * - "PROPERTY_NAME" -> looks in this._viewModelInstance
+     * - "/PROPERTY_NAME" -> looks in this._viewModelInstance
+     * - "/viewModelName/PROPERTY_NAME" -> looks in this._viewModels.get(viewModelName) or nested
      * - Falls back to searching all viewModels
+     *
+     * @param path - The path to the property (e.g., "MY_TRIGGER", "/nested/MY_COLOR")
+     * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
+     * @returns The resolved property or null
      */
-    protected _resolveTrigger(eventName: string): ViewModelInstanceTrigger | null;
+    protected _resolveViewModelProperty<T = any>(path: string, propertyType: 'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'): T | null;
+    /**
+     * Legacy trigger resolver - now uses the generic resolver
+     * @deprecated Use _resolveViewModelProperty instead
+     */
     /**
      * Remove all event listeners for a specific event name
      */

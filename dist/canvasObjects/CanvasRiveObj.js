@@ -41,7 +41,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      */
     OnRiveTrigger(eventName, callback) {
         if (!this._triggerCache.has(eventName)) {
-            const trigger = this._resolveTrigger(eventName);
+            const trigger = this._resolveViewModelProperty(eventName, 'trigger');
             if (trigger) {
                 this._triggerCache.set(eventName, trigger);
             }
@@ -118,109 +118,88 @@ export class CanvasRiveObj extends BaseCanvasObj {
         return null;
     }
     /**
-     * Resolves a trigger reference based on the eventName pattern
+     * Generic resolver for ViewModel properties (trigger, enum, color, number, etc.)
      * Supports:
-     * - "TRIGGER_NAME" -> looks in this._viewModelInstance
-     * - "/TRIGGER_NAME" -> looks in this._viewModelInstance
-     * - "/viewModelName/TRIGGER_NAME" -> looks in this._viewModels.get(viewModelName)
+     * - "PROPERTY_NAME" -> looks in this._viewModelInstance
+     * - "/PROPERTY_NAME" -> looks in this._viewModelInstance
+     * - "/viewModelName/PROPERTY_NAME" -> looks in this._viewModels.get(viewModelName) or nested
      * - Falls back to searching all viewModels
+     *
+     * @param path - The path to the property (e.g., "MY_TRIGGER", "/nested/MY_COLOR")
+     * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
+     * @returns The resolved property or null
      */
-    _resolveTrigger(eventName) {
+    _resolveViewModelProperty(path, propertyType) {
         const debug = false;
         if (debug)
-            console.log(`%c RT..1`, 'color: #1ba014ff;');
-        const slashCount = (eventName.match(/\//g) || []).length;
-        if (debug)
-            console.log(`%c RT..2`, 'color: #1ba014ff;');
-        if (slashCount === 0 || (slashCount === 1 && eventName.startsWith('/') && !eventName.endsWith('/'))) {
-            if (debug)
-                console.log(`%c RT..3`, 'color: #1ba014ff;');
-            const triggerName = eventName.startsWith('/') ? eventName.substring(1) : eventName;
-            if (debug)
-                console.log(`%c RT..4`, 'color: #1ba014ff;');
+            console.log(`%c [_resolveViewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
+        const slashCount = (path.match(/\//g) || []).length;
+        // Case 1: No slash or single leading slash (no trailing slash)
+        // Try this._viewModelInstance first
+        if (slashCount === 0 || (slashCount === 1 && path.startsWith('/') && !path.endsWith('/'))) {
+            const propertyName = path.startsWith('/') ? path.substring(1) : path;
             if (this._viewModelInstance) {
-                if (debug)
-                    console.log(`%c RT..5`, 'color: #1ba014ff;');
                 try {
-                    const trigger = this._viewModelInstance.trigger(triggerName);
-                    if (debug)
-                        console.log(`%c RT..6`, 'color: #1ba014ff;');
-                    if (trigger) {
+                    const property = this._viewModelInstance[propertyType](propertyName);
+                    if (property) {
                         if (debug)
-                            console.log(`%c RT..7 FROM _viewModelInstance`, 'color: #1ba014ff;');
-                        return trigger;
+                            console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in _viewModelInstance`, 'color: #00ff00;');
+                        return property;
                     }
                 }
                 catch (e) {
-                    // Trigger doesn't exist in this viewModel, continue to fallback
+                    // Property doesn't exist in this viewModel, continue to fallback
                 }
             }
         }
-        if (debug)
-            console.log(`%c RT..8`, 'color: #1ba014ff;');
-        // Case 2: Two slashes - parse viewModel name and trigger name
+        // Case 2: Two or more slashes - parse viewModel path and property name
         if (slashCount >= 2) {
-            if (debug)
-                console.log(`%c RT..9`, 'color: #1ba014ff;');
-            const parts = eventName.split('/').filter(p => p.length > 0);
+            const parts = path.split('/').filter(p => p.length > 0);
             if (parts.length === 2) {
-                const [viewModelName, triggerName] = parts;
-                if (debug)
-                    console.log(`%c RT..10`, 'color: #1ba014ff;', viewModelName);
-                if (debug)
-                    console.log(`%c RT..10`, 'color: #1ba014ff;', this._viewModels);
+                const [viewModelName, propertyName] = parts;
+                // First try registered viewModels
                 const vmi = this._viewModels.get(viewModelName);
-                if (debug)
-                    console.log(`%c RT..10`, 'color: #1ba014ff;', vmi);
                 if (vmi) {
                     try {
-                        if (debug)
-                            console.log(`%c RT..11`, 'color: #1ba014ff;');
-                        const trigger = vmi.trigger(triggerName);
-                        if (trigger) {
+                        const property = vmi[propertyType](propertyName);
+                        if (property) {
                             if (debug)
-                                console.log(`%c RT..12`, 'color: #1ba014ff;');
-                            return trigger;
+                                console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in registered VM "${viewModelName}"`, 'color: #00ff00;');
+                            return property;
                         }
                     }
                     catch (e) {
-                        // Trigger doesn't exist in this viewModel, continue to fallback
+                        // Property doesn't exist in this viewModel, continue
                     }
                 }
                 else {
-                    // ViewModelName not found in _viewModels, search recursively in _viewModelInstance
+                    // ViewModelName not found in _viewModels, search recursively
                     if (debug)
-                        console.log(`%c RT..16 Searching for nested VM "${viewModelName}"`, 'color: #1ba014ff;');
+                        console.log(`%c [_resolveViewModelProperty] Searching for nested VM "${viewModelName}"`, 'color: #ffcc00;');
                     const nestedVMI = this._findNestedViewModel(this._viewModelInstance, viewModelName);
                     if (nestedVMI) {
                         try {
-                            if (debug)
-                                console.log(`%c RT..17 Found nested VM "${viewModelName}"`, 'color: #1ba014ff;');
-                            const trigger = nestedVMI.trigger(triggerName);
-                            if (trigger) {
+                            const property = nestedVMI[propertyType](propertyName);
+                            if (property) {
                                 if (debug)
-                                    console.log(`%c RT..18 Found trigger in nested VM`, 'color: #1ba014ff;');
-                                return trigger;
+                                    console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}"`, 'color: #00ff00;');
+                                return property;
                             }
                         }
                         catch (e) {
-                            // Trigger doesn't exist in this viewModel, continue to fallback
+                            // Property doesn't exist, continue
                         }
                     }
                     // Also search through all registered viewModels recursively
-                    if (debug)
-                        console.log(`%c RT..19 Searching nested VMs in _viewModels`, 'color: #1ba014ff;');
                     for (const [vmName, vmi] of this._viewModels) {
                         const nestedVMI2 = this._findNestedViewModel(vmi, viewModelName);
                         if (nestedVMI2) {
                             try {
-                                if (debug)
-                                    console.log(`%c RT..20 Found nested VM "${viewModelName}" in "${vmName}"`, 'color: #1ba014ff;');
-                                const trigger = nestedVMI2.trigger(triggerName);
-                                if (trigger) {
+                                const property = nestedVMI2[propertyType](propertyName);
+                                if (property) {
                                     if (debug)
-                                        console.log(`%c RT..21 Found trigger in nested VM`, 'color: #1ba014ff;');
-                                    return trigger;
+                                        console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in nested VM "${viewModelName}" within "${vmName}"`, 'color: #00ff00;');
+                                    return property;
                                 }
                             }
                             catch (e) {
@@ -232,18 +211,14 @@ export class CanvasRiveObj extends BaseCanvasObj {
             }
         }
         // Case 3: Fallback - search through all viewModels
-        const triggerName = eventName.split('/').filter(p => p.length > 0).pop() || eventName;
-        if (debug)
-            console.log(`%c RT..13 --- ${triggerName} `, 'color: #1ba014ff;');
+        const propertyName = path.split('/').filter(p => p.length > 0).pop() || path;
         for (const [vmName, vmi] of this._viewModels) {
             try {
-                if (debug)
-                    console.log(`%c RT..14 ${vmName}`, 'color: #1ba014ff;');
-                const trigger = vmi.trigger(triggerName);
-                if (trigger) {
+                const property = vmi[propertyType](propertyName);
+                if (property) {
                     if (debug)
-                        console.log(`%c RT..15`, 'color: #1ba014ff;');
-                    return trigger;
+                        console.log(`%c [_resolveViewModelProperty] Found ${propertyType} "${propertyName}" in VM "${vmName}" (fallback)`, 'color: #ffcc00;');
+                    return property;
                 }
             }
             catch (e) {
@@ -251,9 +226,145 @@ export class CanvasRiveObj extends BaseCanvasObj {
             }
         }
         // Case 4: Give up gracefully
-        console.warn(`%c  [_resolveTrigger] Could not find trigger "${eventName}" in any viewModel`, 'color: #ff0000;');
+        console.warn(`%c [_resolveViewModelProperty] Could not find ${propertyType} "${path}" in any viewModel`, 'color: #ff0000;');
         return null;
     }
+    /**
+     * Legacy trigger resolver - now uses the generic resolver
+     * @deprecated Use _resolveViewModelProperty instead
+     */
+    //protected _resolveTrigger(eventName:string):ViewModelInstanceTrigger | null
+    //{
+    //	const debug = false;
+    //	if(debug) console.log(`%c RT..1`, 'color: #1ba014ff;');
+    //	const slashCount = (eventName.match(/\//g) || []).length;
+    //	if(debug) console.log(`%c RT..2`, 'color: #1ba014ff;');
+    //	if(slashCount === 0 || (slashCount === 1 && eventName.startsWith('/') && !eventName.endsWith('/')))
+    //	{
+    //		if(debug) console.log(`%c RT..3`, 'color: #1ba014ff;');
+    //		const triggerName = eventName.startsWith('/') ? eventName.substring(1) : eventName;
+    //		if(debug) console.log(`%c RT..4`, 'color: #1ba014ff;');
+    //		if(this._viewModelInstance)
+    //		{
+    //			if(debug) console.log(`%c RT..5`, 'color: #1ba014ff;');
+    //			try
+    //			{
+    //				const trigger = this._viewModelInstance.trigger(triggerName);
+    //				if(debug) console.log(`%c RT..6`, 'color: #1ba014ff;');
+    //				if(trigger)
+    //				{
+    //					if(debug) console.log(`%c RT..7 FROM _viewModelInstance`, 'color: #1ba014ff;');
+    //					return trigger;
+    //				}
+    //			}
+    //			catch(e)
+    //			{
+    //				// Trigger doesn't exist in this viewModel, continue to fallback
+    //			}
+    //		}
+    //	}
+    //	if(debug) console.log(`%c RT..8`, 'color: #1ba014ff;');
+    //	// Case 2: Two slashes - parse viewModel name and trigger name
+    //	if(slashCount >= 2)
+    //	{
+    //		if(debug) console.log(`%c RT..9`, 'color: #1ba014ff;');
+    //		const parts = eventName.split('/').filter(p => p.length > 0);
+    //		if(parts.length === 2)
+    //		{
+    //			const [viewModelName, triggerName] = parts;
+    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', viewModelName);
+    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', this._viewModels);
+    //			const vmi = this._viewModels.get(viewModelName);
+    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', vmi);
+    //			if(vmi)
+    //			{
+    //				try
+    //				{
+    //					if(debug) console.log(`%c RT..11`, 'color: #1ba014ff;');
+    //					const trigger = vmi.trigger(triggerName);
+    //					if(trigger)
+    //					{
+    //						if(debug) console.log(`%c RT..12`, 'color: #1ba014ff;');
+    //						return trigger;
+    //					}
+    //				}
+    //				catch(e)
+    //				{
+    //					// Trigger doesn't exist in this viewModel, continue to fallback
+    //				}
+    //			}
+    //			else
+    //			{
+    //				// ViewModelName not found in _viewModels, search recursively in _viewModelInstance
+    //				if(debug) console.log(`%c RT..16 Searching for nested VM "${viewModelName}"`, 'color: #1ba014ff;');
+    //				const nestedVMI = this._findNestedViewModel(this._viewModelInstance, viewModelName);
+    //				if(nestedVMI)
+    //				{
+    //					try
+    //					{
+    //						if(debug) console.log(`%c RT..17 Found nested VM "${viewModelName}"`, 'color: #1ba014ff;');
+    //						const trigger = nestedVMI.trigger(triggerName);
+    //						if(trigger)
+    //						{
+    //							if(debug) console.log(`%c RT..18 Found trigger in nested VM`, 'color: #1ba014ff;');
+    //							return trigger;
+    //						}
+    //					}
+    //					catch(e)
+    //					{
+    //						// Trigger doesn't exist in this viewModel, continue to fallback
+    //					}
+    //				}
+    //				// Also search through all registered viewModels recursively
+    //				if(debug) console.log(`%c RT..19 Searching nested VMs in _viewModels`, 'color: #1ba014ff;');
+    //				for(const [vmName, vmi] of this._viewModels)
+    //				{
+    //					const nestedVMI2 = this._findNestedViewModel(vmi, viewModelName);
+    //					if(nestedVMI2)
+    //					{
+    //						try
+    //						{
+    //							if(debug) console.log(`%c RT..20 Found nested VM "${viewModelName}" in "${vmName}"`, 'color: #1ba014ff;');
+    //							const trigger = nestedVMI2.trigger(triggerName);
+    //							if(trigger)
+    //							{
+    //								if(debug) console.log(`%c RT..21 Found trigger in nested VM`, 'color: #1ba014ff;');
+    //								return trigger;
+    //							}
+    //						}
+    //						catch(e)
+    //						{
+    //							// Continue searching
+    //						}
+    //					}
+    //				}
+    //			}
+    //		}
+    //	}
+    //	// Case 3: Fallback - search through all viewModels
+    //	const triggerName = eventName.split('/').filter(p => p.length > 0).pop() || eventName;
+    //	if(debug) console.log(`%c RT..13 --- ${triggerName} `, 'color: #1ba014ff;');
+    //	for(const [vmName, vmi] of this._viewModels)
+    //	{
+    //		try
+    //		{
+    //			if(debug) console.log(`%c RT..14 ${vmName}`, 'color: #1ba014ff;');
+    //			const trigger = vmi.trigger(triggerName);
+    //			if(trigger)
+    //			{
+    //				if(debug) console.log(`%c RT..15`, 'color: #1ba014ff;');
+    //				return trigger;
+    //			}
+    //		}
+    //		catch(e)
+    //		{
+    //			// Continue searching
+    //		}
+    //	}
+    //	// Case 4: Give up gracefully
+    //	console.warn(`%c  [_resolveTrigger] Could not find trigger "${eventName}" in any viewModel`, 'color: #ff0000;');
+    //	return null;
+    //}
     /**
      * Remove all event listeners for a specific event name
      */
