@@ -68,6 +68,22 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _viewModelInstance: ViewModelInstance | null;
     private _actionQueue;
     private _actionQueueProcessedThisFrame;
+    _triggerCallbacks: Map<string, ((event: any) => void)[]>;
+    /**
+     * Subscribe to a Rive event by name
+     * @param eventName The name of the Rive event to listen for
+     * @param callback Function to call when the event fires
+     * @returns Unsubscribe function
+     */
+    OnRiveTrigger(eventName: string, callback: (event: any) => void): () => void;
+    /**
+     * Remove all event listeners for a specific event name
+     */
+    ClearRiveTriggerListeners(eventName: string): void;
+    /**
+     * Remove all event listeners
+     */
+    ClearAllRiveTriggerListeners(): void;
     private _eventCallbacks;
     /**
      * Subscribe to a Rive event by name
@@ -75,7 +91,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * @param callback Function to call when the event fires
      * @returns Unsubscribe function
      */
-    OnRiveEvent(eventName: string, callback: (event: any) => void): () => void;
+    OnRiveEventDeprecated(eventName: string, callback: (event: any) => void): () => void;
     /**
      * Remove all event listeners for a specific event name
      */

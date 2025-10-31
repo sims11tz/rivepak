@@ -91,7 +91,69 @@ export class CanvasRiveObj extends BaseCanvasObj
 	private _actionQueue:Array<RiveActionQueueItem> = [];
 	private _actionQueueProcessedThisFrame = false;
 
-	// Event subscription system
+	// Event subscription syste
+	public _triggerCallbacks = new Map<string, ((event:any) => void)[]>();
+
+	/**
+	 * Subscribe to a Rive event by name
+	 * @param eventName The name of the Rive event to listen for
+	 * @param callback Function to call when the event fires
+	 * @returns Unsubscribe function
+	 */
+	public OnRiveTrigger(eventName:string, callback:(event:any) => void):() => void
+	{
+
+		//find the trigger and store it so we can use it later...
+		//this.ViewModelInstance!.trigger('TEST_TRIGGER').trigger();
+		//When there is not a / at the front of the eventName first try to use this._viewModelInstance!.trigger(eventName).trigger();
+		//.... if there is only one / at the start and not at the end also first try this._viewModelInstance!.trigger(eventName).trigger();
+		//if there are 2 slashes the first should be viewmodels name that is in this._viewModels.. so try to find it and the trigger.
+		//... after that try to find the trigger in all of the this._viewModels
+		// or i guess give up or something nice here.............
+		//So this is where we store triggers that should be used later by eventName when we want to check .hasChanged
+
+
+
+		console.log(`%c  use viewModel trigger[CanvasRiveObj] OnRiveEventDeprecated subscribed to "${eventName}"`, 'color: #1933c8;');
+		if(!this._triggerCallbacks.has(eventName))
+		{
+			this._triggerCallbacks.set(eventName, []);
+		}
+		this._triggerCallbacks.get(eventName)!.push(callback);
+
+		// Return unsubscribe function
+		return () =>
+		{
+			const callbacks = this._triggerCallbacks.get(eventName);
+			if(callbacks)
+			{
+				const index = callbacks.indexOf(callback);
+				if(index !== -1)
+				{
+					callbacks.splice(index, 1);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Remove all event listeners for a specific event name
+	 */
+	public ClearRiveTriggerListeners(eventName:string):void
+	{
+		this._triggerCallbacks.delete(eventName);
+	}
+
+	/**
+	 * Remove all event listeners
+	 */
+	public ClearAllRiveTriggerListeners():void
+	{
+		this._triggerCallbacks.clear();
+	}
+
+
+	// Event subscription syste
 	private _eventCallbacks = new Map<string, ((event:any) => void)[]>();
 
 	/**
@@ -100,9 +162,9 @@ export class CanvasRiveObj extends BaseCanvasObj
 	 * @param callback Function to call when the event fires
 	 * @returns Unsubscribe function
 	 */
-	public OnRiveEvent(eventName:string, callback:(event:any) => void):() => void
+	public OnRiveEventDeprecated(eventName:string, callback:(event:any) => void):() => void
 	{
-		console.log(`%c [CanvasRiveObj] OnRiveEvent subscribed to "${eventName}"`, 'color: #00ff00;');
+		console.warn(`%c DEPRECATED... use viewModel trigger[CanvasRiveObj] OnRiveEventDeprecated subscribed to "${eventName}"`, 'color: #ff3700ff;');
 		if(!this._eventCallbacks.has(eventName))
 		{
 			this._eventCallbacks.set(eventName, []);
@@ -760,7 +822,32 @@ export class CanvasRiveObj extends BaseCanvasObj
 		{
 			this._stateMachine.advance(time);
 
-			// Check for events and trigger callbacks
+
+
+/**new way viewmodel triggers */
+			//this._viewModels.forEach((vmi, vmName) =>
+			//{
+			//	const propCount = vmi.propertyCount;
+			//	if(!this._disposed && propCount > 0)
+			//	{
+			//		for(let i = 0; i < propCount; i++)
+			//		{
+			//			const property = vmi.getProperties()[i];
+			//			if (property != undefined)
+			//			{
+			//				// Trigger any subscribed callbacks for this property
+			//				const callbacks = this._triggerCallbacks.get(property.name);
+			//				if(callbacks && callbacks.length > 0)
+			//				{
+			//					callbacks.forEach(callback => callback(property));
+			//				}
+			//			}
+			//		}
+			//	}
+			//});
+
+
+			// DEPRECATED Check for events and do callbacks
 			const eventCount = this._stateMachine.reportedEventCount();
 			if(!this._disposed && eventCount > 0)
 			{
@@ -778,6 +865,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 					}
 				}
 			}
+
 			// Debug: Log state changes
 			if(!this._disposed && this._stateMachine)
 			{

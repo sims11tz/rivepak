@@ -28,6 +28,7 @@ export declare class RiveObjectsSet {
     GetObjectByArtboardName(artboardByName: string): CanvasRiveObj | null;
     GetObjectByFilePath(filePath: string): CanvasRiveObj | null;
 }
+type WasmSource = "local" | "cdn" | "custom";
 export declare class RiveController {
     static myInstance: RiveController;
     static get(): RiveController;
@@ -46,6 +47,18 @@ export declare class RiveController {
     private _initCalled;
     private _cache;
     private _disposed;
+    private _wasmSource;
+    private _wasmLocalBase;
+    private _wasmCdnBase;
+    private _wasmCustomBase;
+    /**
+     * Configure where to load the Rive WASM from.
+     * Call before Init().
+     *  - source: "local" | "cdn" | "custom"
+     *  - customBase: required if source === "custom" (e.g. "https://cdn.example.com/rive/")
+     */
+    ConfigureWasm(source: WasmSource, customBase?: string): void;
+    private _getWasmUrl;
     private fetchAndHash;
     private _debug;
     private _unsubscribeResize;
@@ -74,3 +87,4 @@ export declare class RiveController {
     };
     Dispose(): void;
 }
+export {};

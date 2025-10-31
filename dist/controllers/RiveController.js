@@ -60,6 +60,14 @@ export class RiveController {
         this._initCalled = false;
         this._cache = new Map();
         this._disposed = false;
+        // --- WASM SOURCE TOGGLE (ADDED) ---
+        this._wasmSource = "local";
+        this._wasmLocalBase = "/rive/"; // where you serve rive.wasm locally
+        this._wasmCdnBase = "https://unpkg.com/@rive-app/webgl2-advanced@2.32.0/dist/";
+        //private _wasmCdnBase  = "https://cdn.jsdelivr.net/npm/@rive-app/webgl2-advanced/";
+        //private _wasmCdnBase  = "https://cdn.jsdelivr.net/npm/@rive-app/webgl2@2.32.0/rive.wasm"
+        //private _wasmCdnBase  = "https://unpkg.com/@rive-app/webgl2-advanced";
+        this._wasmCustomBase = null;
         this._debug = false;
         this._unsubscribeResize = null;
         this._mousePos = { x: 0, y: 0 };
@@ -81,6 +89,30 @@ export class RiveController {
     get CanvasBounds() { return this._canvasBounds; }
     get CanvasGlobalBounds() { return this._canvasGlobalBounds; }
     get RiveObjectsSet() { return this._riveObjectsSet; }
+    /**
+     * Configure where to load the Rive WASM from.
+     * Call before Init().
+     *  - source: "local" | "cdn" | "custom"
+     *  - customBase: required if source === "custom" (e.g. "https://cdn.example.com/rive/")
+     */
+    ConfigureWasm(source, customBase) {
+        this._wasmSource = source;
+        if (source === "custom") {
+            if (!customBase)
+                throw new Error("ConfigureWasm('custom', customBase) requires a customBase URL");
+            // ensure trailing slash
+            this._wasmCustomBase = customBase.endsWith("/") ? customBase : `${customBase}/`;
+        }
+    }
+    _getWasmUrl(file) {
+        var _a;
+        switch (this._wasmSource) {
+            case "cdn": return this._wasmCdnBase; //+ file
+            case "custom": return ((_a = this._wasmCustomBase) !== null && _a !== void 0 ? _a : this._wasmLocalBase) + file;
+            default: return this._wasmLocalBase + file; // "local"
+        }
+    }
+    // --- END WASM TOGGLE ---
     fetchAndHash(url) {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield fetch(url, { cache: "no-store" });
@@ -108,13 +140,17 @@ export class RiveController {
                 if (debugLoadingWASM) {
                     console.log('');
                     console.log('..<RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE>..');
+                    console.log('WASM source:', this._wasmSource, 'base:', this._wasmSource === "custom" ? this._wasmCustomBase : (this._wasmSource === "cdn" ? this._wasmCdnBase : this._wasmLocalBase));
                 }
-                this._riveInstance = yield RiveCanvas({ locateFile: (file) => `/rive/${file}` });
+                // *** THE ONLY CHANGE THAT MATTERS FOR WASM SOURCE ***
+                this._riveInstance = yield RiveCanvas({
+                    locateFile: (file) => this._getWasmUrl(file),
+                });
                 this._riveRenderer = this._riveInstance.makeRenderer(canvas, true);
                 const isProbablyWebGL = typeof this._riveRenderer.clear === 'function' && typeof this._riveRenderer.flush === 'function' && true;
                 if (debugLoadingWASM) {
-                    console.log('isProbablyWebGL :', isProbablyWebGL); // true/false is fine
-                    console.log('Rive name (minified):', (_b = (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.name); // "a" is fine
+                    console.log('isProbablyWebGL :', isProbablyWebGL);
+                    console.log('Rive name (minified):', (_b = (_a = this._riveRenderer) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.name);
                 }
                 this._canvas = canvas;
                 this._canvasBounds = this._canvas.getBoundingClientRect();
@@ -140,8 +176,9 @@ export class RiveController {
                 canvas.addEventListener("webglcontextrestored", () => {
                     console.log("🔁 WebGL context restored");
                 });
+                // Optional: verify the bytes we actually fetched (handy when flipping sources)
                 if (debugLoadingWASM) {
-                    const wasmBytes = yield this.fetchAndHash('/rive/rive.wasm');
+                    const wasmBytes = yield this.fetchAndHash(this._getWasmUrl('rive.wasm'));
                     console.log('########## wasmBytes.length :', wasmBytes.length);
                 }
                 window.addEventListener("mousemove", this.SetMouseGlobalPos);
@@ -154,28 +191,21 @@ export class RiveController {
     SetSize(width, height, dprIn = -1) {
         if (!this._canvas || this._disposed)
             return;
-        // CSS size (layout)
         this._canvas.style.width = `${width}px`;
         this._canvas.style.height = `${height}px`;
         let dpr = dprIn > 0 ? dprIn : Math.max(1, window.devicePixelRatio || 1);
-        // Backing store = CSS × DPR for crisp rendering
         let w = Math.max(1, Math.floor(width * dpr));
         let h = Math.max(1, Math.floor(height * dpr));
-        // Always set size if canvas is uninitialized (width/height = 0) or if dimensions changed
         if (this._canvas.width !== w || this._canvas.height !== h || this._canvas.width === 0 || this._canvas.height === 0) {
             this._canvas.width = w;
             this._canvas.height = h;
-            // Don't call setDevicePixelRatio - backing store already has DPR baked in
-            // Rive will auto-detect from canvas.width vs canvas.style.width ratio
-            //console.log('%cRC.resize(*) ', 'color:#dc9d67; font-weight:bold;', 'CSS:', width, height, 'ATTR:', w, h, 'DPR:', dpr, '(no setDevicePixelRatio call)');
         }
         this._canvasBounds = this._canvas.getBoundingClientRect();
     }
     CreateRiveObj(riveObjDefs) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            //const debug = this._debug || false;
-            const debug = true;
+            const debug = false;
             if (debug)
                 console.log('%c RiveController: CreateRiveObj() ', 'color:#00FF88');
             const defs = [];
@@ -215,7 +245,6 @@ export class RiveController {
                     console.error(`Artboard not found in ${def.filePath}`);
                     return null;
                 }
-                // Artboard needs to know actual DPR when renderer auto-detects
                 artboard.devicePixelRatioUsed = window.devicePixelRatio;
                 let canvasRiveObj = null;
                 if (def.classType) {
@@ -240,64 +269,6 @@ export class RiveController {
                     console.log('%c ...... should we do step 1? :', 'color:#00FF88', riveFile.viewModelCount());
                 }
                 if (riveFile.viewModelCount && riveFile.viewModelCount() > 0) {
-                    //console.log('');
-                    //console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-                    //console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-                    //console.warn('....STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1. STEP 1....');
-                    //if(debug) console.log(`🔍 Found ${riveFile.viewModelCount()} ViewModel(s) in Rive file`);
-                    //// STEP 1: Build a map of artboards that have ViewModels
-                    //// This helps us determine which artboard each ViewModel belongs to
-                    //const artboardViewModelMap = new Map<string, any[]>(); // artboardName -> ViewModels[]
-                    //if(debug) console.log('.......riveFile.artboardCount() : ', riveFile.artboardCount());
-                    //for(let artboardIdx = 0; artboardIdx < riveFile.artboardCount(); artboardIdx++)
-                    //{
-                    //	const ab = riveFile.artboardByIndex(artboardIdx);
-                    //	if(debug) console.log('MFing artboard bitch : ',ab);
-                    //	if(!ab)
-                    //	{
-                    //		if(debug) console.log('artboard cock block ');
-                    //		continue;
-                    //	}
-                    //	const abName = ab.name;
-                    //	const abViewModels: any[] = [];
-                    //	if(debug) console.log('artboard name: ', abName);
-                    //	// Check if this artboard has ViewModels defined on it
-                    //	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    //	const abViewModelCount = (ab as any).viewModelCount?.();
-                    //	if(debug) console.log('zzzzz abViewModelCount: ', abViewModelCount);
-                    //	if(abViewModelCount && abViewModelCount > 0)
-                    //	{
-                    //		for(let vmIdx = 0; vmIdx < abViewModelCount; vmIdx++)
-                    //		{
-                    //			 if(debug) console.log('vmIdx........abViewModelCount<'+vmIdx+'> ');
-                    //			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    //			const vmDef = (ab as any).viewModel?.(vmIdx);
-                    //			if(vmDef)
-                    //			{
-                    //				abViewModels.push({vm: vmDef, artboard: ab});
-                    //				if(debug) console.log(`  📍 Found ViewModel "${vmDef.name}" on artboard "${abName}"`);
-                    //			}
-                    //			else
-                    //			{
-                    //				if(debug) console.log('abViewModelCount<'+vmIdx+'> could not find viewmodel ');
-                    //			}
-                    //		}
-                    //	}
-                    //	if(abViewModels.length > 0)
-                    //	{
-                    //		if(debug) console.log('abViewModel FUCK YES');
-                    //		artboardViewModelMap.set(abName, abViewModels);
-                    //	}
-                    //	else
-                    //	{
-                    //		if(debug) console.log('abViewModel FUCK no');
-                    //	}
-                    //}
-                    //console.log('');
-                    //console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
-                    //console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
-                    //console.warn('....STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2. STEP 2....');
-                    // STEP 2: Process ViewModels from the file level and match them to artboards
                     for (let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++) {
                         const vm = riveFile.viewModelByIndex(vmIndex);
                         if (!vm)
@@ -305,7 +276,6 @@ export class RiveController {
                         const vmName = vm.name;
                         if (debug)
                             console.log(`📝 Processing ViewModel[${vmIndex}]: "${vmName}"`);
-                        // Try to get the first instance name if available
                         let instanceName = undefined;
                         try {
                             const instanceNames = RivePakUtils._isFn(vm, "getInstanceNames") ? vm.getInstanceNames() : null;
@@ -316,24 +286,7 @@ export class RiveController {
                             }
                         }
                         catch (_a) { }
-                        // CRITICAL FIX: Find which artboard this ViewModel belongs to
-                        let targetArtboard = artboard; // Default to main artboard
-                        let foundInNestedArtboard = false;
-                        // Search through our artboard->ViewModel map to find where this VM is defined
-                        //for(const [abName, vmList] of artboardViewModelMap.entries())
-                        //{
-                        //	const foundVM = vmList.find(item => item.vm.name === vmName);
-                        //	if(foundVM)
-                        //	{
-                        //		targetArtboard = foundVM.artboard;
-                        //		foundInNestedArtboard = (abName !== artboard.name);
-                        //		if(debug && foundInNestedArtboard)
-                        //		{
-                        //			console.log(`  🎯 ViewModel "${vmName}" belongs to nested artboard "${abName}"`);
-                        //		}
-                        //		break;
-                        //	}
-                        //}
+                        let targetArtboard = artboard;
                         if (debug)
                             console.log('-----------------------------------------------');
                         if (debug)
@@ -342,30 +295,22 @@ export class RiveController {
                             console.log('>>MakeBestVMI... targetArtboard:', targetArtboard);
                         if (debug)
                             console.log('>>MakeBestVMI... instanceName:', instanceName);
-                        // Create VMI with the CORRECT artboard
                         const vmi = RivePakUtils.MakeBestVMI(vm, targetArtboard, instanceName);
                         if (vmi) {
-                            //RivePakUtils.DumpRiveDiagnostics(riveFile, targetArtboard, vm, vmi);
-                            //RivePakUtils.DumpEnums(riveFile);
-                            // Register this ViewModel by name
                             canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.RegisterViewModel(vmName, vmi);
                             if (debug)
                                 console.log(`  ✅ Registered ViewModel: "${vmName}"`);
-                            // Bind this ViewModel to its target artboard
                             if (typeof targetArtboard.bindViewModelInstance === "function") {
                                 targetArtboard.bindViewModelInstance(vmi);
                                 if (debug)
                                     console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
                             }
-                            // Set the primary ViewModel based on def.primaryVMName or use the first one
                             if (debug) {
                                 console.log('def.primaryVMName :', def.primaryVMName);
                                 console.log(' vmName :', vmName);
                                 console.log('vmIndex :', vmIndex);
                             }
                             const isPrimary = (def.primaryVMName && vmName === def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
-                            //const isPrimary = (vmName == def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
-                            //const isPrimary = (vmName == def.primaryVMName)? true : false;
                             if (isPrimary) {
                                 if (debug)
                                     console.error('IS IS IS IS IS IS PRIMARY');
@@ -388,10 +333,7 @@ export class RiveController {
                     if (debug)
                         console.log('%c no view model count... ZERO !', 'color:#C586C0');
                 }
-                // IMPORTANT: InitRiveObject must be called BEFORE binding to State Machine
-                // because the State Machine is created inside InitRiveObject()
                 canvasRiveObj.InitRiveObject();
-                // NOW bind all ViewModels to the State Machine (after it's been created)
                 if (riveFile.viewModelCount && riveFile.viewModelCount() > 0) {
                     const sm = canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj._stateMachine;
                     if (debug) {
@@ -431,7 +373,7 @@ export class RiveController {
                                 catch (e) {
                                     console.error(`  ❌ Failed to bind "${vmName}" to State Machine:`, e);
                                 }
-                                if (vmi.enum("DEBUG_IN_EDITOR")) { //UNSET THE in editor debug FLAG
+                                if (vmi.enum("DEBUG_IN_EDITOR")) {
                                     try {
                                         vmi.enum("DEBUG_IN_EDITOR").value = 'FALSE';
                                     }
@@ -590,27 +532,21 @@ export class RiveController {
     }
     Dispose() {
         this._disposed = true;
-        // Remove window event listener
         window.removeEventListener("mousemove", this.SetMouseGlobalPos);
-        // Remove canvas event listeners
         if (this._canvas) {
             this._canvas.removeEventListener("webglcontextlost", () => { });
             this._canvas.removeEventListener("webglcontextrestored", () => { });
         }
-        // CRITICAL: Destroy the Rive renderer to free WebGL context
         if (this._riveRenderer) {
             try {
-                // Delete the renderer which should free the WebGL context
                 this._riveRenderer.delete();
             }
             catch (error) {
                 console.warn("RiveController - Error destroying Rive renderer:", error);
             }
         }
-        // Clean up Rive instance
         if (this._riveInstance) {
             try {
-                // Check if cleanup method exists before calling
                 if (typeof this._riveInstance.cleanup === 'function') {
                     this._riveInstance.cleanup();
                 }
@@ -619,12 +555,10 @@ export class RiveController {
                 console.warn("RiveController - Error cleaning up Rive instance:", error);
             }
         }
-        // Clean up resize subscription
         if (this._unsubscribeResize !== null) {
             this._unsubscribeResize();
             this._unsubscribeResize = null;
         }
-        // Clear all references
         this._riveObjectsSet = null;
         this._riveRenderer = null;
         this._canvas = null;
