@@ -96,6 +96,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 	// Cache resolved trigger references by eventName for efficient lookup
 	// For wildcards, stores array of {trigger, metadata} objects
 	protected _triggerCache = new Map<string, any>();
+	// Track which triggers need their initial state cleared (to prevent auto-firing on first subscribe)
+	private _triggersNeedingInitialClear = new Set<string>();
 
 	/**
 	 * Subscribe to a Rive event by name
@@ -117,7 +119,9 @@ export class CanvasRiveObj extends BaseCanvasObj
 				if(triggers.length > 0)
 				{
 					this._triggerCache.set(eventName, triggers);
-					console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
+					// Mark this eventName as needing initial clear on next Update
+					this._triggersNeedingInitialClear.add(eventName);
+					//console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
 				}
 				else
 				{
@@ -131,8 +135,10 @@ export class CanvasRiveObj extends BaseCanvasObj
 				const trigger = this._viewModelProperty(eventName, 'trigger') as ViewModelInstanceTrigger | null;
 				if(trigger)
 				{
-					console.log('RESOLVEDSINGLETRIGGER...'+eventName);
+					//if(debug) console.log('RESOLVED SINGLE TRIGGER...'+eventName);
 					this._triggerCache.set(eventName, trigger);
+					// Mark this eventName as needing initial clear on next Update
+					this._triggersNeedingInitialClear.add(eventName);
 				}
 				else
 				{
@@ -361,7 +367,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 	 */
 	protected _viewModelProperty<T = any>(path:string, propertyType:'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'):T | null
 	{
-		const debug = true;
+		const debug = false;
 		if(debug) console.log(`%c [_viewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
 
 		const slashCount = (path.match(/\//g) || []).length;
@@ -752,7 +758,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public SetViewModelInstance(vmi:ViewModelInstance | null)
 	{
-		const debug = true;
+		const debug = false;
 		if(debug)
 		{
 			console.log(`📝 SetViewModelInstance called for "${this._label}"`);
@@ -1369,6 +1375,32 @@ export class CanvasRiveObj extends BaseCanvasObj
 		{
 			this._stateMachine.advance(time);
 
+			// Clear initial state for newly subscribed triggers (after advance, before checking)
+			if(this._triggersNeedingInitialClear.size > 0)
+			{
+				this._triggersNeedingInitialClear.forEach(eventName =>
+				{
+					const cachedValue = this._triggerCache.get(eventName);
+					if(Array.isArray(cachedValue))
+					{
+						// Wildcard case: clear all triggers in the array
+						cachedValue.forEach(({trigger}) =>
+						{
+							if(trigger && 'hasChanged' in trigger && trigger.hasChanged)
+							{
+								trigger.clearChanges();
+							}
+						});
+					}
+					else if(cachedValue && 'hasChanged' in cachedValue && cachedValue.hasChanged)
+					{
+						// Single trigger case
+						cachedValue.clearChanges();
+					}
+				});
+				this._triggersNeedingInitialClear.clear();
+			}
+
 			//Check cached triggers for hasChanged and fire callbacks
 			if(!this._disposed && this._triggerCache.size > 0)
 			{
@@ -1699,7 +1731,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 	{
 		this._disposed = true;
 
-		const debug = true;
+		const debug = false;
 		if(debug)
 		{
 			console.log('');
@@ -1793,6 +1825,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 		// Clear trigger callbacks and cache
 		this._triggerCallbacks.clear();
 		this._triggerCache.clear();
+		this._triggersNeedingInitialClear.clear();
 
 		// Clear ViewModels
 		this._viewModels.clear();

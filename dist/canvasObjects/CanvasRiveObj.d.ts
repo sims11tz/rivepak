@@ -70,6 +70,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _actionQueueProcessedThisFrame;
     _triggerCallbacks: Map<string, ((event: any) => void)[]>;
     protected _triggerCache: Map<string, any>;
+    private _triggersNeedingInitialClear;
     /**
      * Subscribe to a Rive event by name
      * @param eventName The name of the Rive event to listen for

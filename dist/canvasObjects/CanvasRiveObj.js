@@ -48,7 +48,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 const triggers = this._resolveWildcardTriggers(eventName);
                 if (triggers.length > 0) {
                     this._triggerCache.set(eventName, triggers);
-                    console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
+                    // Mark this eventName as needing initial clear on next Update
+                    this._triggersNeedingInitialClear.add(eventName);
+                    //console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
                 }
                 else {
                     console.warn(`%c  [OnRiveTrigger] Could not find any triggers matching wildcard "${eventName}"`, 'color: #ff0000;');
@@ -59,8 +61,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 // Normal single trigger resolution
                 const trigger = this._viewModelProperty(eventName, 'trigger');
                 if (trigger) {
-                    console.log('RESOLVEDSINGLETRIGGER...' + eventName);
+                    //if(debug) console.log('RESOLVED SINGLE TRIGGER...'+eventName);
                     this._triggerCache.set(eventName, trigger);
+                    // Mark this eventName as needing initial clear on next Update
+                    this._triggersNeedingInitialClear.add(eventName);
                 }
                 else {
                     console.warn(`%c  [OnRiveTrigger] Could not find trigger "${eventName}" to subscribe to`, 'color: #ff0000;');
@@ -232,7 +236,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @returns The resolved property or null
      */
     _viewModelProperty(path, propertyType) {
-        const debug = true;
+        const debug = false;
         if (debug)
             console.log(`%c [_viewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
         const slashCount = (path.match(/\//g) || []).length;
@@ -595,7 +599,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     SetViewModelInstance(vmi) {
         var _a;
-        const debug = true;
+        const debug = false;
         if (debug) {
             console.log(`📝 SetViewModelInstance called for "${this._label}"`);
             console.log(`   VMI is null?`, vmi === null);
@@ -774,6 +778,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
         // Cache resolved trigger references by eventName for efficient lookup
         // For wildcards, stores array of {trigger, metadata} objects
         this._triggerCache = new Map();
+        // Track which triggers need their initial state cleared (to prevent auto-firing on first subscribe)
+        this._triggersNeedingInitialClear = new Set();
         // Event subscription syste
         this._eventCallbacks = new Map();
         this._artboardName = "";
@@ -1098,6 +1104,25 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
         if (this._stateMachine) {
             this._stateMachine.advance(time);
+            // Clear initial state for newly subscribed triggers (after advance, before checking)
+            if (this._triggersNeedingInitialClear.size > 0) {
+                this._triggersNeedingInitialClear.forEach(eventName => {
+                    const cachedValue = this._triggerCache.get(eventName);
+                    if (Array.isArray(cachedValue)) {
+                        // Wildcard case: clear all triggers in the array
+                        cachedValue.forEach(({ trigger }) => {
+                            if (trigger && 'hasChanged' in trigger && trigger.hasChanged) {
+                                trigger.clearChanges();
+                            }
+                        });
+                    }
+                    else if (cachedValue && 'hasChanged' in cachedValue && cachedValue.hasChanged) {
+                        // Single trigger case
+                        cachedValue.clearChanges();
+                    }
+                });
+                this._triggersNeedingInitialClear.clear();
+            }
             //Check cached triggers for hasChanged and fire callbacks
             if (!this._disposed && this._triggerCache.size > 0) {
                 this._triggerCache.forEach((cachedValue, eventName) => {
@@ -1336,7 +1361,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     Dispose() {
         this._disposed = true;
-        const debug = true;
+        const debug = false;
         if (debug) {
             console.log('');
             console.log((new Error('stack')).stack);
@@ -1411,6 +1436,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         // Clear trigger callbacks and cache
         this._triggerCallbacks.clear();
         this._triggerCache.clear();
+        this._triggersNeedingInitialClear.clear();
         // Clear ViewModels
         this._viewModels.clear();
         this._viewModelInstance = null;
