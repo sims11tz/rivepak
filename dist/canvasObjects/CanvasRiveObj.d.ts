@@ -3,6 +3,34 @@ import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, Stat
 import { RiveObjectDef } from "../controllers/RiveController";
 import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
+export declare enum RIVEBUS_COMMON_APP_TO_RIVE_EVENTS {
+    BUTTON_CLICK_EVENT = "BUTTON_CLICK_EVENT",
+    REQUEST_TRANSITION_IN = "REQUEST_TRANSITION_IN",
+    REQUEST_TRANSITION_OUT = "REQUEST_TRANSITION_OUT"
+}
+export declare enum RIVE_COMMON_ENUMS {
+    VISIBLE = "VISIBLE",
+    BUTTON_CLICK_FX_COLOR = "BUTTON_CLICK_FX_COLOR",
+    BUTTON_STATE = "BUTTON_STATE"
+}
+export declare enum RIVEBUS_COMMON_RIVE_TO_APP_EVENTS {
+    EVENT_TRANSITION_IN_STARTED = "EVENT_TRANSITION_IN_STARTED",
+    EVENT_TRANSITION_IN_COMPLETED = "EVENT_TRANSITION_IN_COMPLETED",
+    EVENT_TRANSITION_OUT_STARTED = "EVENT_TRANSITION_OUT_STARTED",
+    EVENT_TRANSITION_OUT_COMPLETED = "EVENT_TRANSITION_OUT_COMPLETED"
+}
+export declare enum RIVE_COMMON_VISIBLE {
+    TRUE = "TRUE",
+    FALSE = "FALSE"
+}
+export declare enum RIVE_COMMON_ACTIVE {
+    TRUE = "TRUE",
+    FALSE = "FALSE"
+}
+export declare enum RIVE_COMMON_SELECTED {
+    TRUE = "TRUE",
+    FALSE = "FALSE"
+}
 export declare class AnimationMetadata {
     readonly animation: LinearAnimationInstance;
     readonly artboard: Artboard;
@@ -71,13 +99,14 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     _triggerCallbacks: Map<string, ((event: any) => void)[]>;
     protected _triggerCache: Map<string, any>;
     private _triggersNeedingInitialClear;
+    private _triggerUnsubscribeFunctions;
     /**
      * Subscribe to a Rive event by name
      * @param eventName The name of the Rive event to listen for
      * @param callback Function to call when the event fires
      * @returns Unsubscribe function
      */
-    OnRiveTrigger(eventName: string, callback: (event: any) => void): () => void;
+    OnRiveTrigger(eventName: string, callback: (event: any) => void, required?: boolean): (() => void) | null;
     /**
      * Resolves a wildcard trigger pattern to multiple concrete triggers
      * Example: "/ColorSlot*VM/TRIGGER" → [ColorSlot1VM/TRIGGER, ColorSlot2VM/TRIGGER, ...]
@@ -109,11 +138,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
      * @returns The resolved property or null
      */
-    protected _viewModelProperty<T = any>(path: string, propertyType: 'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel'): T | null;
-    /**
-     * Legacy trigger resolver - now uses the generic resolver
-     * @deprecated Use _viewModelProperty instead
-     */
+    protected _viewModelProperty<T = any>(path: string, propertyType: 'trigger' | 'enum' | 'color' | 'number' | 'string' | 'boolean' | 'list' | 'image' | 'artboard' | 'viewModel', required?: boolean): T | null;
     /**
      * Remove all event listeners for a specific event name
      */
@@ -130,6 +155,7 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * @returns Unsubscribe function
      */
     OnRiveEventDeprecated(eventName: string, callback: (event: any) => void): () => void;
+    TransitionOut(): void;
     /**
      * Remove all event listeners for a specific event name
      */
@@ -201,6 +227,8 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _entityObj;
     private dumpWasmObject;
     InitRiveObject(): void;
+    private _initRiveObjectVisuals;
+    private _initRiveObjectStates;
     updateEntityObj(): void;
     InputByName(name: string): SMIInput | null;
     RandomInput(): SMIInput | null;

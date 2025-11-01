@@ -3,6 +3,42 @@ import { BaseCanvasObj, GlobalUIDGenerator } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
+/* RIVE COMMON ENUMS AND TYPES */
+export var RIVEBUS_COMMON_APP_TO_RIVE_EVENTS;
+(function (RIVEBUS_COMMON_APP_TO_RIVE_EVENTS) {
+    RIVEBUS_COMMON_APP_TO_RIVE_EVENTS["BUTTON_CLICK_EVENT"] = "BUTTON_CLICK_EVENT";
+    RIVEBUS_COMMON_APP_TO_RIVE_EVENTS["REQUEST_TRANSITION_IN"] = "REQUEST_TRANSITION_IN";
+    RIVEBUS_COMMON_APP_TO_RIVE_EVENTS["REQUEST_TRANSITION_OUT"] = "REQUEST_TRANSITION_OUT";
+})(RIVEBUS_COMMON_APP_TO_RIVE_EVENTS || (RIVEBUS_COMMON_APP_TO_RIVE_EVENTS = {}));
+export var RIVE_COMMON_ENUMS;
+(function (RIVE_COMMON_ENUMS) {
+    RIVE_COMMON_ENUMS["VISIBLE"] = "VISIBLE";
+    RIVE_COMMON_ENUMS["BUTTON_CLICK_FX_COLOR"] = "BUTTON_CLICK_FX_COLOR";
+    RIVE_COMMON_ENUMS["BUTTON_STATE"] = "BUTTON_STATE";
+})(RIVE_COMMON_ENUMS || (RIVE_COMMON_ENUMS = {}));
+export var RIVEBUS_COMMON_RIVE_TO_APP_EVENTS;
+(function (RIVEBUS_COMMON_RIVE_TO_APP_EVENTS) {
+    RIVEBUS_COMMON_RIVE_TO_APP_EVENTS["EVENT_TRANSITION_IN_STARTED"] = "EVENT_TRANSITION_IN_STARTED";
+    RIVEBUS_COMMON_RIVE_TO_APP_EVENTS["EVENT_TRANSITION_IN_COMPLETED"] = "EVENT_TRANSITION_IN_COMPLETED";
+    RIVEBUS_COMMON_RIVE_TO_APP_EVENTS["EVENT_TRANSITION_OUT_STARTED"] = "EVENT_TRANSITION_OUT_STARTED";
+    RIVEBUS_COMMON_RIVE_TO_APP_EVENTS["EVENT_TRANSITION_OUT_COMPLETED"] = "EVENT_TRANSITION_OUT_COMPLETED";
+})(RIVEBUS_COMMON_RIVE_TO_APP_EVENTS || (RIVEBUS_COMMON_RIVE_TO_APP_EVENTS = {}));
+export var RIVE_COMMON_VISIBLE;
+(function (RIVE_COMMON_VISIBLE) {
+    RIVE_COMMON_VISIBLE["TRUE"] = "TRUE";
+    RIVE_COMMON_VISIBLE["FALSE"] = "FALSE";
+})(RIVE_COMMON_VISIBLE || (RIVE_COMMON_VISIBLE = {}));
+export var RIVE_COMMON_ACTIVE;
+(function (RIVE_COMMON_ACTIVE) {
+    RIVE_COMMON_ACTIVE["TRUE"] = "TRUE";
+    RIVE_COMMON_ACTIVE["FALSE"] = "FALSE";
+})(RIVE_COMMON_ACTIVE || (RIVE_COMMON_ACTIVE = {}));
+export var RIVE_COMMON_SELECTED;
+(function (RIVE_COMMON_SELECTED) {
+    RIVE_COMMON_SELECTED["TRUE"] = "TRUE";
+    RIVE_COMMON_SELECTED["FALSE"] = "FALSE";
+})(RIVE_COMMON_SELECTED || (RIVE_COMMON_SELECTED = {}));
+/* RIVE COMMON ENUMS AND TYPES */
 export class AnimationMetadata {
     get uuid() { return this._uuid; }
     constructor(artboard, animation, index, name, duration, autoPlay = true) {
@@ -39,7 +75,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @param callback Function to call when the event fires
      * @returns Unsubscribe function
      */
-    OnRiveTrigger(eventName, callback) {
+    OnRiveTrigger(eventName, callback, required = true) {
         // Check if this is a wildcard pattern
         const hasWildcard = eventName.includes('*');
         if (!this._triggerCache.has(eventName)) {
@@ -53,22 +89,23 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     //console.log(`%c  [OnRiveTrigger] Resolved wildcard "${eventName}" to ${triggers.length} trigger(s)`, 'color: #00ffff;');
                 }
                 else {
-                    console.warn(`%c  [OnRiveTrigger] Could not find any triggers matching wildcard "${eventName}"`, 'color: #ff0000;');
-                    return () => { };
+                    if (required)
+                        console.warn(`%c  [OnRiveTrigger] Could not find any triggers matching wildcard "${eventName}"`, 'color: #ff0000;');
+                    return null;
                 }
             }
             else {
                 // Normal single trigger resolution
-                const trigger = this._viewModelProperty(eventName, 'trigger');
+                const trigger = this._viewModelProperty(eventName, 'trigger', required);
                 if (trigger) {
                     //if(debug) console.log('RESOLVED SINGLE TRIGGER...'+eventName);
                     this._triggerCache.set(eventName, trigger);
-                    // Mark this eventName as needing initial clear on next Update
                     this._triggersNeedingInitialClear.add(eventName);
                 }
                 else {
-                    console.warn(`%c  [OnRiveTrigger] Could not find trigger "${eventName}" to subscribe to`, 'color: #ff0000;');
-                    return () => { };
+                    if (required)
+                        console.warn(`%c  [OnRiveTrigger] Could not find trigger "${eventName}" to subscribe to`, 'color: #ff0000;');
+                    return null;
                 }
             }
         }
@@ -78,7 +115,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
         this._triggerCallbacks.get(eventName).push(callback);
         // Return unsubscribe function
-        return () => {
+        const unsubscribe = () => {
             const callbacks = this._triggerCallbacks.get(eventName);
             if (callbacks) {
                 const index = callbacks.indexOf(callback);
@@ -87,6 +124,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 }
             }
         };
+        // Store unsubscribe function for automatic cleanup in Dispose
+        this._triggerUnsubscribeFunctions.push(unsubscribe);
+        return unsubscribe;
     }
     /**
      * Resolves a wildcard trigger pattern to multiple concrete triggers
@@ -235,7 +275,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      * @param propertyType - The type of property to resolve ('trigger', 'enum', 'color', 'number', etc.)
      * @returns The resolved property or null
      */
-    _viewModelProperty(path, propertyType) {
+    _viewModelProperty(path, propertyType, required = true) {
         const debug = false;
         if (debug)
             console.log(`%c [_viewModelProperty] Resolving ${propertyType} at path "${path}"`, 'color: #1ba014ff;');
@@ -411,145 +451,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
             }
         }
         // Case 4: Give up gracefully
-        console.warn(`%c [_viewModelProperty] Could not find ${propertyType} "${path}" in any viewModel`, 'color: #ff0000;');
+        if (required)
+            console.warn(`%c [_viewModelProperty] Could not find ${propertyType} "${path}" in any viewModel`, 'color: #ff0000;');
         return null;
     }
-    /**
-     * Legacy trigger resolver - now uses the generic resolver
-     * @deprecated Use _viewModelProperty instead
-     */
-    //protected _resolveTrigger(eventName:string):ViewModelInstanceTrigger | null
-    //{
-    //	const debug = false;
-    //	if(debug) console.log(`%c RT..1`, 'color: #1ba014ff;');
-    //	const slashCount = (eventName.match(/\//g) || []).length;
-    //	if(debug) console.log(`%c RT..2`, 'color: #1ba014ff;');
-    //	if(slashCount === 0 || (slashCount === 1 && eventName.startsWith('/') && !eventName.endsWith('/')))
-    //	{
-    //		if(debug) console.log(`%c RT..3`, 'color: #1ba014ff;');
-    //		const triggerName = eventName.startsWith('/') ? eventName.substring(1) : eventName;
-    //		if(debug) console.log(`%c RT..4`, 'color: #1ba014ff;');
-    //		if(this._viewModelInstance)
-    //		{
-    //			if(debug) console.log(`%c RT..5`, 'color: #1ba014ff;');
-    //			try
-    //			{
-    //				const trigger = this._viewModelInstance.trigger(triggerName);
-    //				if(debug) console.log(`%c RT..6`, 'color: #1ba014ff;');
-    //				if(trigger)
-    //				{
-    //					if(debug) console.log(`%c RT..7 FROM _viewModelInstance`, 'color: #1ba014ff;');
-    //					return trigger;
-    //				}
-    //			}
-    //			catch(e)
-    //			{
-    //				// Trigger doesn't exist in this viewModel, continue to fallback
-    //			}
-    //		}
-    //	}
-    //	if(debug) console.log(`%c RT..8`, 'color: #1ba014ff;');
-    //	// Case 2: Two slashes - parse viewModel name and trigger name
-    //	if(slashCount >= 2)
-    //	{
-    //		if(debug) console.log(`%c RT..9`, 'color: #1ba014ff;');
-    //		const parts = eventName.split('/').filter(p => p.length > 0);
-    //		if(parts.length === 2)
-    //		{
-    //			const [viewModelName, triggerName] = parts;
-    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', viewModelName);
-    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', this._viewModels);
-    //			const vmi = this._viewModels.get(viewModelName);
-    //			if(debug) console.log(`%c RT..10`, 'color: #1ba014ff;', vmi);
-    //			if(vmi)
-    //			{
-    //				try
-    //				{
-    //					if(debug) console.log(`%c RT..11`, 'color: #1ba014ff;');
-    //					const trigger = vmi.trigger(triggerName);
-    //					if(trigger)
-    //					{
-    //						if(debug) console.log(`%c RT..12`, 'color: #1ba014ff;');
-    //						return trigger;
-    //					}
-    //				}
-    //				catch(e)
-    //				{
-    //					// Trigger doesn't exist in this viewModel, continue to fallback
-    //				}
-    //			}
-    //			else
-    //			{
-    //				// ViewModelName not found in _viewModels, search recursively in _viewModelInstance
-    //				if(debug) console.log(`%c RT..16 Searching for nested VM "${viewModelName}"`, 'color: #1ba014ff;');
-    //				const nestedVMI = this._findNestedViewModel(this._viewModelInstance, viewModelName);
-    //				if(nestedVMI)
-    //				{
-    //					try
-    //					{
-    //						if(debug) console.log(`%c RT..17 Found nested VM "${viewModelName}"`, 'color: #1ba014ff;');
-    //						const trigger = nestedVMI.trigger(triggerName);
-    //						if(trigger)
-    //						{
-    //							if(debug) console.log(`%c RT..18 Found trigger in nested VM`, 'color: #1ba014ff;');
-    //							return trigger;
-    //						}
-    //					}
-    //					catch(e)
-    //					{
-    //						// Trigger doesn't exist in this viewModel, continue to fallback
-    //					}
-    //				}
-    //				// Also search through all registered viewModels recursively
-    //				if(debug) console.log(`%c RT..19 Searching nested VMs in _viewModels`, 'color: #1ba014ff;');
-    //				for(const [vmName, vmi] of this._viewModels)
-    //				{
-    //					const nestedVMI2 = this._findNestedViewModel(vmi, viewModelName);
-    //					if(nestedVMI2)
-    //					{
-    //						try
-    //						{
-    //							if(debug) console.log(`%c RT..20 Found nested VM "${viewModelName}" in "${vmName}"`, 'color: #1ba014ff;');
-    //							const trigger = nestedVMI2.trigger(triggerName);
-    //							if(trigger)
-    //							{
-    //								if(debug) console.log(`%c RT..21 Found trigger in nested VM`, 'color: #1ba014ff;');
-    //								return trigger;
-    //							}
-    //						}
-    //						catch(e)
-    //						{
-    //							// Continue searching
-    //						}
-    //					}
-    //				}
-    //			}
-    //		}
-    //	}
-    //	// Case 3: Fallback - search through all viewModels
-    //	const triggerName = eventName.split('/').filter(p => p.length > 0).pop() || eventName;
-    //	if(debug) console.log(`%c RT..13 --- ${triggerName} `, 'color: #1ba014ff;');
-    //	for(const [vmName, vmi] of this._viewModels)
-    //	{
-    //		try
-    //		{
-    //			if(debug) console.log(`%c RT..14 ${vmName}`, 'color: #1ba014ff;');
-    //			const trigger = vmi.trigger(triggerName);
-    //			if(trigger)
-    //			{
-    //				if(debug) console.log(`%c RT..15`, 'color: #1ba014ff;');
-    //				return trigger;
-    //			}
-    //		}
-    //		catch(e)
-    //		{
-    //			// Continue searching
-    //		}
-    //	}
-    //	// Case 4: Give up gracefully
-    //	console.warn(`%c  [_resolveTrigger] Could not find trigger "${eventName}" in any viewModel`, 'color: #ff0000;');
-    //	return null;
-    //}
     /**
      * Remove all event listeners for a specific event name
      */
@@ -584,6 +489,26 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 }
             }
         };
+    }
+    TransitionOut() {
+        //const boundTrigger = this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () =>
+        //{
+        //	console.log('%c RiveObj Transition In Started -> making visible: '+this._label,'color:#00FFFF');
+        //	this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
+        //	this.visible = true;
+        //},false);
+        //if(boundTrigger != null)
+        //{
+        //	console.log('%c RiveObj bound trigger... start as false: '+this._label,'color:#00FFFF');
+        //	this.visible = false;
+        //	this.ViewModelInstance!.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
+        //}
+        //else
+        //{
+        //	this.visible = true;
+        //}
+        console.log('%c RiveObj Transition Out requested: ' + this._label, 'color:#FF00FF');
+        this.QueueInputTrigger(RIVEBUS_COMMON_APP_TO_RIVE_EVENTS.REQUEST_TRANSITION_OUT);
     }
     /**
      * Remove all event listeners for a specific event name
@@ -780,6 +705,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._triggerCache = new Map();
         // Track which triggers need their initial state cleared (to prevent auto-firing on first subscribe)
         this._triggersNeedingInitialClear = new Set();
+        // Store all unsubscribe functions for automatic cleanup in Dispose
+        this._triggerUnsubscribeFunctions = [];
         // Event subscription syste
         this._eventCallbacks = new Map();
         this._artboardName = "";
@@ -839,7 +766,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     InitRiveObject() {
-        var _a, _b, _c, _d, _e, _f, _g;
         this._debugLogs = false;
         if (this._debugLogs) {
             console.log("");
@@ -850,6 +776,11 @@ export class CanvasRiveObj extends BaseCanvasObj {
             console.log('%c Artboard Width: ' + this.artboard.width, 'color:#00FFFF');
             console.log('%c Artboard Height: ' + this.artboard.height, 'color:#00FFFF');
         }
+        this._initRiveObjectVisuals();
+        this._initRiveObjectStates();
+    }
+    _initRiveObjectVisuals() {
+        var _a, _b, _c, _d, _e, _f, _g;
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
         if (this._debugLogs)
@@ -996,6 +927,26 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
         this._entityObj = { x: this.x, y: this.y, width: this.width, height: this.height, xScale: this.xScale, yScale: this.yScale, riveInteractiveLocalOnly: this.defObj.riveInteractiveLocalOnly };
         this.ApplyResolutionScale(this._resolutionScale, '*');
+    }
+    _initRiveObjectStates() {
+        this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () => {
+            console.log('%c RiveObj Transition Out Completed -> disposing: ' + this._label, 'color:#00FFFF');
+            this.Dispose();
+            CanvasEngine.get().RemoveCanvasObjects(this);
+        }, false);
+        const boundTrigger = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () => {
+            console.log('%c RiveObj Transition In Started -> making visible: ' + this._label, 'color:#00FFFF');
+            this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
+            this.visible = true;
+        }, false);
+        if (boundTrigger != null) {
+            console.log('%c RiveObj bound trigger... start as false: ' + this._label, 'color:#00FFFF');
+            this.visible = false;
+            this.ViewModelInstance.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
+        }
+        else {
+            this.visible = true;
+        }
     }
     updateEntityObj() {
         this._entityObj.x = this.x;
@@ -1433,6 +1384,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._onHoverOutCallback = undefined;
         // Clear event callbacks
         this._eventCallbacks.clear();
+        // Automatically unsubscribe all trigger listeners
+        this._triggerUnsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+        this._triggerUnsubscribeFunctions = [];
         // Clear trigger callbacks and cache
         this._triggerCallbacks.clear();
         this._triggerCache.clear();
