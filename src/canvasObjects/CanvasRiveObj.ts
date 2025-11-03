@@ -957,7 +957,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public InitRiveObject():void
 	{
-		this._debugLogs = false;
+		this._debugLogs = true;
 
 		if(this._debugLogs)
 		{

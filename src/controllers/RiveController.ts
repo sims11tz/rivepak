@@ -236,7 +236,7 @@ export class RiveController
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
-		const debug = false;
+		const debug = true;
 		if(debug) console.log('%c RiveController: CreateRiveObj() ','color:#00FF88');
 
 		const defs:RiveObjectDef[] = [];

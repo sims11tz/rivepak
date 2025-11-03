@@ -766,7 +766,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     InitRiveObject() {
-        this._debugLogs = false;
+        this._debugLogs = true;
         if (this._debugLogs) {
             console.log("");
             console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
