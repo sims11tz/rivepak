@@ -1156,29 +1156,32 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	private _initRiveObjectStates():void
 	{
+		console.log('>>>2>');
 		this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () =>
 		{
-			console.log('%c RiveObj Transition Out Completed -> disposing: '+this._label,'color:#00FFFF');
+			console.warn('%c RiveObj Transition Out Completed -> disposing: '+this._label,'color:#00FFFF');
 			this.Dispose();
 			CanvasEngine.get().RemoveCanvasObjects(this);
 		},false);
 
-
+		console.log('>>>3>');
 		const boundTrigger = this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () =>
 		{
-			console.log('%c RiveObj Transition In Started -> making visible: '+this._label,'color:#00FFFF');
+			console.warn('%c RiveObj Transition In Started -> making visible: '+this._label,'color:#00FFFF');
 			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
 			this.visible = true;
 		},false);
 
+		console.log('>>>4>');
 		if(boundTrigger != null)
 		{
-			console.log('%c RiveObj bound trigger... start as false: '+this._label,'color:#00FFFF');
-			this.visible = false;
-			this.ViewModelInstance!.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
+			console.warn('%c RiveObj bound trigger... start as false: '+this._label,'color:#00FFFF');
+			//this.visible = false;
+			//this.ViewModelInstance!.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
 		}
 		else
 		{
+			console.log('>>>5> true');
 			this.visible = true;
 		}
 	}
@@ -1438,21 +1441,21 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//}
 
 // Debug: Log state changes
-			//if(!this._disposed && this._stateMachine)
-			//{
-			//	const stateChangeCount = this._stateMachine.stateChangedCount();
-			//	if(stateChangeCount > 0)
-			//	{
-			//		for(let x = 0; x < stateChangeCount; x++)
-			//		{
-			//			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-			//			if (stateChange != undefined)
-			//			{
-			//				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-			//			}
-			//		}
-			//	}
-			//}
+			if(!this._disposed && this._stateMachine)
+			{
+				const stateChangeCount = this._stateMachine.stateChangedCount();
+				if(stateChangeCount > 0)
+				{
+					for(let x = 0; x < stateChangeCount; x++)
+					{
+						const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+						if (stateChange != undefined)
+						{
+							console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
+						}
+					}
+				}
+			}
 
 			if(!this._disposed && this.defObj.riveInteractive)
 			{
