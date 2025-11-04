@@ -958,7 +958,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	public InitRiveObject():void
 	{
-		this._debugLogs = false;
+//>>DEBUG TARGETTED
+		//this._debugLogs = (this.defObj.label == "SpaceTugOfWarBG") ? true : false;;
 
 		if(this._debugLogs)
 		{
@@ -975,7 +976,6 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 		this._initRiveObjectStates();
 	}
-
 
 	private _initRiveObjectVisuals():void
 	{

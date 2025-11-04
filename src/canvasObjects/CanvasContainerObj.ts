@@ -16,13 +16,22 @@ export class CanvasContainerObj extends BaseCanvasObj
 		yScale: number;
 	}> = new Map();
 
-	// Container visibility affects children
-	private _visible: boolean = true;
-	public get visible(): boolean { return this._visible; }
-	public set visible(value: boolean)
+	// Override visible property to propagate to children
+	public override get visible(): boolean
 	{
-		this._visible = value;
-		// Could propagate to children if needed
+		return super.visible;
+	}
+	public override set visible(value: boolean)
+	{
+		console.warn(' ...VISIBLE... visible.... VISIBLE... visible....');
+		console.log('  ,,,>>.. OMG... visible... wow ow owo wo wo wo wo wo. owo wo w');
+		super.visible = value;
+		// Propagate visibility to all children
+		for(const child of this.children)
+		{
+			console.log('set child visible '+child.label+' to '+value);
+			child.visible = value;
+		}
 	}
 
 	constructor(canvasDef:CanvasObjectDef)
@@ -367,7 +376,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	 */
 	public Update(time: number, frameCount: number, onceSecond: boolean):void
 	{
-		if (!this.enabled || !this._visible) return;
+		if (!this.enabled || !this.visible) return;
 
 		// Update all child transforms relative to container
 

@@ -4,18 +4,25 @@ import { CanvasEngine } from "../useCanvasEngine";
 import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 export class CanvasContainerObj extends BaseCanvasObj {
-    get visible() { return this._visible; }
+    // Override visible property to propagate to children
+    get visible() {
+        return super.visible;
+    }
     set visible(value) {
-        this._visible = value;
-        // Could propagate to children if needed
+        console.warn(' ...VISIBLE... visible.... VISIBLE... visible....');
+        console.log('  ,,,>>.. OMG... visible... wow ow owo wo wo wo wo wo. owo wo w');
+        super.visible = value;
+        // Propagate visibility to all children
+        for (const child of this.children) {
+            console.log('set child visible ' + child.label + ' to ' + value);
+            child.visible = value;
+        }
     }
     constructor(canvasDef) {
         super(canvasDef);
         this.children = [];
         // Store original child transforms for relative positioning
         this._childOriginalTransforms = new Map();
-        // Container visibility affects children
-        this._visible = true;
         this._debugGraphics = null;
         this.InitContainer();
     }
@@ -284,7 +291,7 @@ export class CanvasContainerObj extends BaseCanvasObj {
      */
     Update(time, frameCount, onceSecond) {
         var _a;
-        if (!this.enabled || !this._visible)
+        if (!this.enabled || !this.visible)
             return;
         // Update all child transforms relative to container
         // Handle autoscale if needed

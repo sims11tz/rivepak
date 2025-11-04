@@ -3,7 +3,6 @@ import * as PIXI from "pixi.js";
 export declare class CanvasContainerObj extends BaseCanvasObj {
     children: BaseCanvasObj[];
     private _childOriginalTransforms;
-    private _visible;
     get visible(): boolean;
     set visible(value: boolean);
     constructor(canvasDef: CanvasObjectDef);

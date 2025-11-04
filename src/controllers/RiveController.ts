@@ -236,7 +236,7 @@ export class RiveController
 
 	public async CreateRiveObj(riveObjDefs:RiveObjectDef | RiveObjectDef[]):Promise<RiveObjectsSet>
 	{
-		const debug = false;
+		let debug = false;
 		if(debug) console.log('%c RiveController: CreateRiveObj() ','color:#00FF88');
 
 		const defs:RiveObjectDef[] = [];
@@ -260,6 +260,9 @@ export class RiveController
 		const riveObjects = defs.map((def) =>
 		{
 			const riveFile = riveFileMap.get(def.filePath);
+//>>DEBUG TARGETTED
+			//debug = (def.label == "SpaceTugOfWarBG") ? true : false;
+
 			if(!riveFile)
 			{
 				console.error(`Failed to create Rive object for ${def.filePath}`);
@@ -557,7 +560,9 @@ export class RiveController
 							}
 
 							// After binding the root viewModel, also bind any nested viewModels
-							if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
+							if(debug) console.log(`🔗 NESTED VIEW MODELS ARE DISABLED!!!! "${vmName}"`);
+//BREAKS THE COLOR THING
+							//if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
 							//bindNestedViewModels(vmi, vmName);
 //TODO:::::::::::::::::::::: FUCK
 							//WOWOWOWOOWOWOWOWOW WTF.. hah it breaks one with a library.
