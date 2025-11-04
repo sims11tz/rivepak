@@ -164,11 +164,14 @@ export class CanvasContainerObj extends BaseCanvasObj {
     }
     /**
      * Updates z-order of all children based on their position in the array
+     * Uses fractional offsets to avoid polluting the global z-index space
      */
     updateChildrenZOrder() {
         const baseZ = this.z || 0;
         this.children.forEach((child, index) => {
-            child.z = baseZ + index + 1;
+            // Use fractional offsets (0.001 per child) to maintain order within container
+            // This allows up to 999 children before hitting the next integer z-level
+            child.z = baseZ + (index * 0.001);
         });
     }
     /**

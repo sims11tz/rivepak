@@ -342,7 +342,14 @@ export class CanvasEngine
 		if (!this._canvasObjects.has(group)) this._canvasObjects.set(group, []);
 		const dest = this._canvasObjects.get(group)!;
 
-		let maxZ = dest.reduce((m, o) => Math.max(m, o.z ?? 0), 0);
+		// Find max z from objects that were auto-assigned (have _autoAssignedZ flag)
+		// This prevents explicitly-set high z values from polluting the auto-assignment counter
+		let maxAutoZ = 0;
+		for (const o of dest) {
+			if ((o as any)._autoAssignedZ && (o.z ?? 0) > maxAutoZ) {
+				maxAutoZ = o.z ?? 0;
+			}
+		}
 
 		for (const obj of add)
 		{
@@ -376,7 +383,9 @@ export class CanvasEngine
 
 					// Only auto-assign z if no explicit z was defined in defObj
 					if (!hasExplicitZ) {
-						obj.z = ++maxZ;
+						obj.z = ++maxAutoZ;
+						// Mark that this z was auto-assigned so we can track it
+						(obj as any)._autoAssignedZ = true;
 					}
 				}
 			}

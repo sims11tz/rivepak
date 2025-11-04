@@ -784,8 +784,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
         this.z = (_c = this.defObj.z) !== null && _c !== void 0 ? _c : 1;
-        //if(this._debugLogs)
-        console.log('%c InitRiveObject<' + this.id + ':' + this.artboard.name + '> x:' + this.x + ', y:' + this.y + ', z:' + this.z, 'color:#00FFFF');
+        if (this._debugLogs)
+            console.log('%c InitRiveObject<' + this.id + ':' + this.artboard.name + '> x:' + this.x + ', y:' + this.y + ', z:' + this.z, 'color:#00FFFF');
         const artboardWidth = this.artboard.width;
         const artboardHeight = this.artboard.height;
         const aspectRatio = artboardWidth / artboardHeight;
@@ -930,30 +930,19 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this.ApplyResolutionScale(this._resolutionScale, '*');
     }
     _initRiveObjectStates() {
-        console.warn(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!----');
         const bT = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () => {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- dispose ');
             this.Dispose();
             CanvasEngine.get().RemoveCanvasObjects(this);
         }, false);
-        if (bT != null) {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- transition_out_complete FIRST FOUND!!!');
-        }
-        else {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- transition_out_complete FIRST NOT FOUND');
-        }
         const boundTrigger = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () => {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- TRAINSITION IN STARTED ');
             this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
             this.visible = true;
         }, false);
         if (boundTrigger != null) {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- found dat shit go invisible bruh. ');
             this.visible = false;
             this.ViewModelInstance.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
         }
         else {
-            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- did not find. ');
             this.visible = true;
         }
     }

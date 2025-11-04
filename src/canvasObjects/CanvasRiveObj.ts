@@ -983,8 +983,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
 		this.z = this.defObj.z ?? 1;
 
-		//if(this._debugLogs)
-		console.log('%c InitRiveObject<'+this.id+':'+this.artboard.name+'> x:'+this.x+', y:'+this.y+', z:'+this.z,'color:#00FFFF');
+		if(this._debugLogs) console.log('%c InitRiveObject<'+this.id+':'+this.artboard.name+'> x:'+this.x+', y:'+this.y+', z:'+this.z,'color:#00FFFF');
 
 		const artboardWidth = this.artboard.width;
 		const artboardHeight = this.artboard.height;
@@ -1159,39 +1158,25 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	private _initRiveObjectStates():void
 	{
-		console.warn(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!----');
 		const bT = this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () =>
 		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- dispose ');
 			this.Dispose();
 			CanvasEngine.get().RemoveCanvasObjects(this);
 		},false);
 
-		if(bT != null)
-		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- transition_out_complete FIRST FOUND!!!');
-		}
-		else
-		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- transition_out_complete FIRST NOT FOUND');
-		}
-
 		const boundTrigger = this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () =>
 		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- TRAINSITION IN STARTED ');
 			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
 			this.visible = true;
 		},false);
 
 		if(boundTrigger != null)
 		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- found dat shit go invisible bruh. ');
 			this.visible = false;
 			this.ViewModelInstance!.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
 		}
 		else
 		{
-			console.log(' ---->>>>_initRiveObjectStates(*)<'+this.id+'> <<<<<<!!!!!---- did not find. ');
 			this.visible = true;
 		}
 	}

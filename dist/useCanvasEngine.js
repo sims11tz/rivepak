@@ -289,8 +289,8 @@ export class CanvasEngine {
         }
     }
     AddCanvasObjects(objs, group = "main") {
-        var _a, _b;
-        var _c;
+        var _a, _b, _c, _d;
+        var _e;
         let add = [];
         if (objs instanceof RiveObjectsSet)
             add = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
@@ -301,7 +301,14 @@ export class CanvasEngine {
         if (!this._canvasObjects.has(group))
             this._canvasObjects.set(group, []);
         const dest = this._canvasObjects.get(group);
-        let maxZ = dest.reduce((m, o) => { var _a; return Math.max(m, (_a = o.z) !== null && _a !== void 0 ? _a : 0); }, 0);
+        // Find max z from objects that were auto-assigned (have _autoAssignedZ flag)
+        // This prevents explicitly-set high z values from polluting the auto-assignment counter
+        let maxAutoZ = 0;
+        for (const o of dest) {
+            if (o._autoAssignedZ && ((_b = o.z) !== null && _b !== void 0 ? _b : 0) > maxAutoZ) {
+                maxAutoZ = (_c = o.z) !== null && _c !== void 0 ? _c : 0;
+            }
+        }
         for (const obj of add) {
             obj.OnZIndexChanged = this.updateZIndex.bind(this);
             obj.OnDispose = this.removeObjectFromTracking.bind(this);
@@ -319,7 +326,7 @@ export class CanvasEngine {
                 dest.splice(idx, 1);
             }
             else {
-                (_b = (_c = obj)._inited) !== null && _b !== void 0 ? _b : (_c._inited = false);
+                (_d = (_e = obj)._inited) !== null && _d !== void 0 ? _d : (_e._inited = false);
                 if (!obj._inited) {
                     // Check if the object has a specific z value in its defObj
                     const hasExplicitZ = obj.defObj.z !== undefined && obj.defObj.z !== null;
@@ -327,7 +334,9 @@ export class CanvasEngine {
                     obj._inited = true;
                     // Only auto-assign z if no explicit z was defined in defObj
                     if (!hasExplicitZ) {
-                        obj.z = ++maxZ;
+                        obj.z = ++maxAutoZ;
+                        // Mark that this z was auto-assigned so we can track it
+                        obj._autoAssignedZ = true;
                     }
                 }
             }

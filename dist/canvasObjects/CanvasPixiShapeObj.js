@@ -280,7 +280,7 @@ export class CanvasPixiShapeObj extends BaseCanvasObj {
         if (this._graphics === null)
             return;
         if (this._debugRive && this._debugGraphics) {
-            console.log('%c CanvasPixiShapeOBJ.DrawVectors3', 'color:#ee661c; font-weight:bold;');
+            //console.log('%c CanvasPixiShapeOBJ.DrawVectors3', 'color:#ee661c; font-weight:bold;');
             this._debugGraphics.clear();
             this._debugGraphics.rect(0, 0, this.width, this.height);
             this._debugGraphics.fill({ color: 0x650a5a, alpha: 0.75 });

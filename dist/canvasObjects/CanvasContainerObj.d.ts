@@ -41,6 +41,7 @@ export declare class CanvasContainerObj extends BaseCanvasObj {
     SendChildToBack(child: BaseCanvasObj): void;
     /**
      * Updates z-order of all children based on their position in the array
+     * Uses fractional offsets to avoid polluting the global z-index space
      */
     private updateChildrenZOrder;
     /**
