@@ -313,6 +313,9 @@ export class RiveController
 				console.log('%c ...... should we do step 1? :','color:#00FF88', riveFile.viewModelCount());
 			}
 
+			// Track bound ViewModel instances to prevent duplicate binding
+			const boundVMIs = new Set<string>();
+
 			if (riveFile.viewModelCount && riveFile.viewModelCount() > 0)
 			{
 				for(let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++)
@@ -349,8 +352,12 @@ export class RiveController
 
 						if(typeof (targetArtboard as any).bindViewModelInstance === "function")
 						{
+							boundVMIs.add(instanceName!);
 							(targetArtboard as any).bindViewModelInstance(vmi);
-							if(debug) console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
+							if(debug)
+							{
+								console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
+							}
 						}
 
 						if(debug)
@@ -431,25 +438,40 @@ export class RiveController
 								try
 								{
 									if(debug) console.log('props--<1>--prop.name:'+prop.name);
-									const nestedVMI = parentVMI.viewModel(prop.name);
+									const nestedVMI:ViewModelInstance = parentVMI.viewModel(prop.name);
 									if(nestedVMI)
 									{
 										if(debug) console.log('props--<2>--');
 										const nestedPath = parentPath ? `${parentPath}/${prop.name}` : prop.name;
 										if(debug) console.log(`  🔗 Binding nested ViewModel: "${nestedPath}"`);
 										if(debug) console.log('props--<3>--');
-										try
+
+										// Check if already bound (prevents duplicate binding)
+										console.log(' 🔗 CHECK THE BINDING 2 : <'+prop.name+'> ',boundVMIs);
+										if(!boundVMIs.has(prop.name))
 										{
-											if(debug) console.log('props--<4 !!! ! ! ! ! ! ! >--');
-											if(debug) console.log('props--<4 !!! ! ! ! ! ! ! >--');
-											sm.bindViewModelInstance(nestedVMI);
-											if(debug) console.log('props--<4 !!! ! ! ! ! ! ! >--');
-											if(debug) console.log('props--<4 !!! ! ! ! ! ! ! >--');
-											if(debug) console.log(`  ✅ Bound nested "${nestedPath}" to State Machine successfully`);
+											try
+											{
+
+												console.log('propname:'+prop.name);
+												console.log('viewModel.name:'+nestedVMI.viewModel.name);
+												console.log('artboard.name:'+nestedVMI.artboard.name);
+												console.log('viewModel:',nestedVMI);
+												sm.bindViewModelInstance(nestedVMI);
+												boundVMIs.add(prop.name);
+												//if(debug)
+
+												console.warn(`  ✅ Bound nested "${nestedPath}" to State Machine successfully`);
+											}
+											catch(e)
+											{
+												console.error(`  ❌ Failed to bind nested "${nestedPath}" to State Machine:`, e);
+											}
 										}
-										catch(e)
+										else
 										{
-											console.error(`  ❌ Failed to bind nested "${nestedPath}" to State Machine:`, e);
+											//if(debug)
+												console.log(`  ⏭️  Skipped nested "${nestedPath}" - already bound to State Machine`);
 										}
 
 										if(debug) console.log('props--<5...> RECURSE?--');
@@ -488,14 +510,38 @@ export class RiveController
 						if(vmi)
 						{
 							if(debug) console.log(`🔗 Binding 6`);
-							try
+
+							// Check if already bound (prevents duplicate binding for library components)
+
+							if(debug) console.log(' 🔗 CHECK THE BINDING : <'+vmName+'> ',boundVMIs);
+							if(!boundVMIs.has(vmName))
 							{
-								sm.bindViewModelInstance(vmi);
-								if(debug) console.log(`  ✅ Bound "${vmName}" to State Machine successfully`);
+								try
+								{
+									sm.bindViewModelInstance(vmi);
+									boundVMIs.add(vmName);
+									if(debug)
+									{
+										console.log(`  ✅ Bound "${vmName}" to State Machine successfully`);
+										console.log('viewModel:',vmi);
+										console.log('viewModel.name:'+vmi.viewModel.name);
+										console.log('artboard.name:'+vmi.artboard.name);
+									}
+								}
+								catch(e)
+								{
+									console.error(`  ❌ Failed to bind "${vmName}" to State Machine:`, e);
+								}
 							}
-							catch(e)
+							else
 							{
-								console.error(`  ❌ Failed to bind "${vmName}" to State Machine:`, e);
+								if(debug)
+								{
+									console.log(`  ⏭️  Skipped "${vmName}" - already bound to State Machine`);
+									console.log('viewModel:',vmi);
+									console.log('viewModel.name:'+vmi.viewModel.name);
+									console.log('artboard.name:'+vmi.artboard.name);
+								}
 							}
 
 							if(vmi!.enum("DEBUG_IN_EDITOR"))
@@ -512,7 +558,7 @@ export class RiveController
 
 							// After binding the root viewModel, also bind any nested viewModels
 							if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
-							bindNestedViewModels(vmi, vmName);
+							//bindNestedViewModels(vmi, vmName);
 //TODO:::::::::::::::::::::: FUCK
 							//WOWOWOWOOWOWOWOWOW WTF.. hah it breaks one with a library.
 						}

@@ -507,7 +507,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         //{
         //	this.visible = true;
         //}
-        console.log('%c RiveObj Transition Out requested: ' + this._label, 'color:#FF00FF');
+        //console.log('%c RiveObj Transition Out requested: '+this._label,'color:#FF00FF');
         this.QueueInputTrigger(RIVEBUS_COMMON_APP_TO_RIVE_EVENTS.REQUEST_TRANSITION_OUT);
     }
     /**
@@ -766,7 +766,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     InitRiveObject() {
-        this._debugLogs = true;
+        this._debugLogs = false;
         if (this._debugLogs) {
             console.log("");
             console.log('%c ___________________ INIT RIVE OBJECT ________________________', 'color:#00FFFF');
@@ -929,26 +929,30 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this.ApplyResolutionScale(this._resolutionScale, '*');
     }
     _initRiveObjectStates() {
-        console.log('>>>2>');
-        this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () => {
-            console.warn('%c RiveObj Transition Out Completed -> disposing: ' + this._label, 'color:#00FFFF');
+        console.warn(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!----');
+        const bT = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () => {
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- dispose ');
             this.Dispose();
             CanvasEngine.get().RemoveCanvasObjects(this);
         }, false);
-        console.log('>>>3>');
+        if (bT != null) {
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- transition_out_complete FIRST FOUND!!!');
+        }
+        else {
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- transition_out_complete FIRST NOT FOUND');
+        }
         const boundTrigger = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () => {
-            console.warn('%c RiveObj Transition In Started -> making visible: ' + this._label, 'color:#00FFFF');
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- TRAINSITION IN STARTED ');
             this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
             this.visible = true;
         }, false);
-        console.log('>>>4>');
         if (boundTrigger != null) {
-            console.warn('%c RiveObj bound trigger... start as false: ' + this._label, 'color:#00FFFF');
-            //this.visible = false;
-            //this.ViewModelInstance!.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- found dat shit go invisible bruh. ');
+            this.visible = false;
+            this.ViewModelInstance.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
         }
         else {
-            console.log('>>>5> true');
+            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- did not find. ');
             this.visible = true;
         }
     }
@@ -1138,17 +1142,21 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //	}
             //}
             // Debug: Log state changes
-            if (!this._disposed && this._stateMachine) {
-                const stateChangeCount = this._stateMachine.stateChangedCount();
-                if (stateChangeCount > 0) {
-                    for (let x = 0; x < stateChangeCount; x++) {
-                        const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-                        if (stateChange != undefined) {
-                            console.log(this.id + '> RIVE STATE CHANGE<' + x + '>: ', stateChange);
-                        }
-                    }
-                }
-            }
+            //if(!this._disposed && this._stateMachine)
+            //{
+            //	const stateChangeCount = this._stateMachine.stateChangedCount();
+            //	if(stateChangeCount > 0)
+            //	{
+            //		for(let x = 0; x < stateChangeCount; x++)
+            //		{
+            //			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+            //			if (stateChange != undefined)
+            //			{
+            //				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
+            //			}
+            //		}
+            //	}
+            //}
             if (!this._disposed && this.defObj.riveInteractive) {
                 this.updateEntityObj();
                 const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj);
