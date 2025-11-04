@@ -780,11 +780,12 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._initRiveObjectStates();
     }
     _initRiveObjectVisuals() {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         this.x = (_a = this.defObj.x) !== null && _a !== void 0 ? _a : Math.random() * RiveController.get().Canvas.width;
         this.y = (_b = this.defObj.y) !== null && _b !== void 0 ? _b : Math.random() * RiveController.get().Canvas.height;
-        if (this._debugLogs)
-            console.log('%c InitRiveObject x:' + this.x + ', y:' + this.y, 'color:#00FFFF');
+        this.z = (_c = this.defObj.z) !== null && _c !== void 0 ? _c : 1;
+        //if(this._debugLogs)
+        console.log('%c InitRiveObject<' + this.id + ':' + this.artboard.name + '> x:' + this.x + ', y:' + this.y + ', z:' + this.z, 'color:#00FFFF');
         const artboardWidth = this.artboard.width;
         const artboardHeight = this.artboard.height;
         const aspectRatio = artboardWidth / artboardHeight;
@@ -813,10 +814,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
             // CASE 4: fallback to xScale/yScale or defaults
             this.width = artboardWidth;
             this.height = artboardHeight;
-            this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
+            this.xScale = (_d = this.defObj.xScale) !== null && _d !== void 0 ? _d : 1;
             if (this.xScale > 0)
                 this.width = artboardWidth * this.xScale;
-            this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
+            this.yScale = (_e = this.defObj.yScale) !== null && _e !== void 0 ? _e : 1;
             if (this.yScale > 0)
                 this.height = artboardHeight * this.yScale;
         }
@@ -871,8 +872,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 //console.log(`  - animDef.fps: ${animDef.fps ?? 60}`);
             }
             // Check if we're getting frames instead of seconds
-            let duration = (_f = (_e = animDef.durationSeconds) !== null && _e !== void 0 ? _e : animDef.duration) !== null && _f !== void 0 ? _f : 0;
-            const fps = (_g = animDef.fps) !== null && _g !== void 0 ? _g : 60;
+            let duration = (_g = (_f = animDef.durationSeconds) !== null && _f !== void 0 ? _f : animDef.duration) !== null && _g !== void 0 ? _g : 0;
+            const fps = (_h = animDef.fps) !== null && _h !== void 0 ? _h : 60;
             // If duration seems to be in frames (e.g., 600 frames for 10 seconds at 60fps)
             // Check if the duration value is suspiciously large (likely frames)
             if (animDef.workEnd && animDef.workEnd > 100) {
@@ -929,30 +930,30 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this.ApplyResolutionScale(this._resolutionScale, '*');
     }
     _initRiveObjectStates() {
-        console.warn(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!----');
+        console.warn(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!----');
         const bT = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_OUT_COMPLETED, () => {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- dispose ');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- dispose ');
             this.Dispose();
             CanvasEngine.get().RemoveCanvasObjects(this);
         }, false);
         if (bT != null) {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- transition_out_complete FIRST FOUND!!!');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- transition_out_complete FIRST FOUND!!!');
         }
         else {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- transition_out_complete FIRST NOT FOUND');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- transition_out_complete FIRST NOT FOUND');
         }
         const boundTrigger = this.OnRiveTrigger("/" + RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () => {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- TRAINSITION IN STARTED ');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- TRAINSITION IN STARTED ');
             this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
             this.visible = true;
         }, false);
         if (boundTrigger != null) {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- found dat shit go invisible bruh. ');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- found dat shit go invisible bruh. ');
             this.visible = false;
             this.ViewModelInstance.enum(RIVE_COMMON_ENUMS.VISIBLE).value = RIVE_COMMON_VISIBLE.FALSE;
         }
         else {
-            console.log(' ---->>>>_initRiveObjectStates(*) <<<<<<!!!!!---- did not find. ');
+            console.log(' ---->>>>_initRiveObjectStates(*)<' + this.id + '> <<<<<<!!!!!---- did not find. ');
             this.visible = true;
         }
     }

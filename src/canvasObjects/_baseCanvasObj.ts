@@ -326,7 +326,6 @@ export abstract class BaseCanvasObj
 			const oldZ = this._state.z;
 			this._state.z = value;
 			this._OnZIndexChanged?.(this, oldZ, this._state.z);
-
 		}
 	}
 
