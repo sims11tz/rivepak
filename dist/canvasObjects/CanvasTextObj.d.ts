@@ -3,6 +3,7 @@ import { CanvasPixiShapeObj } from "./CanvasPixiShapeObj";
 import { CanvasObjectDef } from "./_baseCanvasObj";
 export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private _textField;
+    private _underlineGraphics;
     private _typewriterIndex;
     private _typewriterTimer;
     private _fullText;
@@ -11,6 +12,7 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private _alignmentOffsetX;
     private _alignmentOffsetY;
     private _isHovered;
+    private _lastUnderlineState;
     constructor(canvasDef: CanvasObjectDef);
     get z(): number;
     set z(value: number);
@@ -21,6 +23,11 @@ export declare class CanvasTextObject extends CanvasPixiShapeObj {
     private migrateStrokeStyle;
     private createTextStyle;
     private calculateAlignmentOffsets;
+    /**
+     * Draws an underline beneath the text
+     * Only redraws if text content, position, or scale has changed
+     */
+    private drawUnderline;
     get visible(): boolean;
     set visible(value: boolean);
     DrawVectors(): void;

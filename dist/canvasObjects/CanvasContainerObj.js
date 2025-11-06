@@ -9,13 +9,17 @@ export class CanvasContainerObj extends BaseCanvasObj {
         return super.visible;
     }
     set visible(value) {
-        console.warn(' ...VISIBLE... visible.... VISIBLE... visible....');
-        console.log('  ,,,>>.. OMG... visible... wow ow owo wo wo wo wo wo. owo wo w');
+        //console.log('%c <CanvasContainerObj> setting visible for '+this.label+' to '+value,'color:#FF8800; font-weight:bold;');
         super.visible = value;
-        // Propagate visibility to all children
+        // Propagate visibility to all children (unless they have independent visibility)
         for (const child of this.children) {
-            console.log('set child visible ' + child.label + ' to ' + value);
-            child.visible = value;
+            if (!child.independentVisibility) {
+                //console.log('%c <CanvasContainerObj> setting visible for '+this.label+' to child: '+child.label+',  '+value,'color:#FF8800; font-weight:bold;');
+                child.visible = value;
+            }
+            else {
+                //console.log('%c <CanvasContainerObj> SKIPPING visible for '+this.label+' to child: '+child.label+' (independent visibility)','color:#FFA500; font-weight:bold;');
+            }
         }
     }
     constructor(canvasDef) {
@@ -51,7 +55,6 @@ export class CanvasContainerObj extends BaseCanvasObj {
             this._debugGraphics.y = this.y;
             this._debugGraphics.scale.set(this.xScale, this.yScale);
             this._debugGraphics.eventMode = "static";
-            console.log('CANVAS CONTAINER... ' + this._debugGraphics.x + ',' + this._debugGraphics.y + ',' + this._debugGraphics.scale.x + ',' + this._debugGraphics.scale.y);
         }
         //this.UpdateBaseProps();
         if (this._debugRive)

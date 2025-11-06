@@ -116,6 +116,13 @@ export interface CanvasObjectDef
 	padding?:number;
 	trimText?:boolean;
 	resolution?:number;
+
+	// Text decoration
+	textUnderline?:boolean;
+	underlineColor?:string | number;
+	underlineThickness?:number;
+	underlineOffset?:number;
+	underlineAlpha?:number;
 /*TEXT END*/
 
 	count?:number;
@@ -171,6 +178,12 @@ export abstract class BaseCanvasObj
 
 	public centerLocally:boolean=false;
 	public centerGlobally:boolean=false;
+
+	/**
+	 * When true, this object manages its own visibility independently from its parent.
+	 * Parent visibility changes will not affect this object's visibility.
+	 */
+	public independentVisibility:boolean = false;
 
 	public group:string = "main";
 	public width:number = 0;

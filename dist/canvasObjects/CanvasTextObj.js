@@ -6,6 +6,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
     constructor(canvasDef) {
         super(canvasDef);
         this._isHovered = false;
+        // Track state for underline drawing optimization
+        this._lastUnderlineState = null;
         this._styleDirty = false;
         if (this.defObj.typewriterEffect && this.defObj.text) {
             this._fullText = this.defObj.text;
@@ -144,6 +146,74 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
                 break;
         }
     }
+    /**
+     * Draws an underline beneath the text
+     * Only redraws if text content, position, or scale has changed
+     */
+    drawUnderline() {
+        var _a, _b, _c, _d;
+        if (!this._textField)
+            return;
+        // If underline is disabled, clear any existing underline graphics
+        if (!this.defObj.textUnderline) {
+            if (this._underlineGraphics) {
+                this._underlineGraphics.clear();
+                this._lastUnderlineState = null;
+            }
+            return;
+        }
+        const textBounds = this._textField.getLocalBounds();
+        const currentX = this._textField.x;
+        const currentY = this._textField.y;
+        const currentText = this._textField.text;
+        const currentXScale = this._textField.scale.x;
+        const currentYScale = this._textField.scale.y;
+        // Check if we need to redraw
+        const needsRedraw = !this._lastUnderlineState ||
+            this._lastUnderlineState.x !== currentX ||
+            this._lastUnderlineState.y !== currentY ||
+            this._lastUnderlineState.width !== textBounds.width ||
+            this._lastUnderlineState.text !== currentText ||
+            this._lastUnderlineState.xScale !== currentXScale ||
+            this._lastUnderlineState.yScale !== currentYScale;
+        if (!needsRedraw)
+            return;
+        // Create or clear the underline graphics
+        if (!this._underlineGraphics) {
+            this._underlineGraphics = new PIXI.Graphics();
+            this._underlineGraphics.zIndex = this.z + 0.0001; // Just above the text
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._underlineGraphics);
+        }
+        else {
+            this._underlineGraphics.clear();
+        }
+        // Calculate underline properties
+        const thickness = (_a = this.defObj.underlineThickness) !== null && _a !== void 0 ? _a : 2;
+        const offset = (_b = this.defObj.underlineOffset) !== null && _b !== void 0 ? _b : -2;
+        const color = (_c = this.defObj.underlineColor) !== null && _c !== void 0 ? _c : 0xffffff;
+        const alpha = (_d = this.defObj.underlineAlpha) !== null && _d !== void 0 ? _d : 1;
+        // Calculate underline position and size
+        const underlineY = currentY + (textBounds.height * currentYScale) + (offset * currentYScale);
+        const underlineWidth = textBounds.width * currentXScale;
+        // Draw the underline
+        this._underlineGraphics.moveTo(currentX, underlineY);
+        this._underlineGraphics.lineTo(currentX + underlineWidth, underlineY);
+        this._underlineGraphics.stroke({
+            width: thickness * currentYScale,
+            color: color,
+            alpha: alpha
+        });
+        // Update last state
+        this._lastUnderlineState = {
+            x: currentX,
+            y: currentY,
+            width: textBounds.width,
+            text: currentText,
+            xScale: currentXScale,
+            yScale: currentYScale
+        };
+        this._underlineGraphics.visible = this.visible;
+    }
     get visible() {
         return super.visible;
     }
@@ -151,10 +221,15 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
         if (value) {
             if (this._textField)
                 this._textField.visible = true;
+            if (this._underlineGraphics) {
+                this._underlineGraphics.visible = true;
+            }
         }
         else {
             if (this._textField)
                 this._textField.visible = false;
+            if (this._underlineGraphics)
+                this._underlineGraphics.visible = false;
         }
         super.visible = value;
     }
@@ -438,6 +513,8 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
                     this._textField.scale.set(this.renderXScale, this.renderYScale);
                 }
             }
+            // Draw underline if enabled (only redraws when necessary)
+            this.drawUnderline();
         }
         super.Update(time, frameCount, onceSecond);
     }
@@ -452,6 +529,12 @@ export class CanvasTextObject extends CanvasPixiShapeObj {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
             this._textField.destroy();
             this._textField = null;
+        }
+        // Clean up underline graphics
+        if (this._underlineGraphics) {
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._underlineGraphics);
+            this._underlineGraphics.destroy();
+            this._underlineGraphics = null;
         }
         super.Dispose();
     }

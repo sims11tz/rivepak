@@ -8,6 +8,7 @@ import { PixiController } from "../controllers/PixiController";
 export class CanvasTextObject extends CanvasPixiShapeObj
 {
 	private _textField!:PIXI.Text | null;
+	private _underlineGraphics!:PIXI.Graphics | null;
 
 	private _typewriterIndex!:number;
 	private _typewriterTimer!:number;
@@ -19,6 +20,16 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 	private _alignmentOffsetY!:number;
 
 	private _isHovered = false;
+
+	// Track state for underline drawing optimization
+	private _lastUnderlineState:{
+		x:number;
+		y:number;
+		width:number;
+		text:string;
+		xScale:number;
+		yScale:number;
+	} | null = null;
 
 	constructor(canvasDef:CanvasObjectDef)
 	{
@@ -186,6 +197,87 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		}
 	}
 
+	/**
+	 * Draws an underline beneath the text
+	 * Only redraws if text content, position, or scale has changed
+	 */
+	private drawUnderline(): void
+	{
+		if(!this._textField) return;
+
+		// If underline is disabled, clear any existing underline graphics
+		if(!this.defObj.textUnderline)
+		{
+			if(this._underlineGraphics)
+			{
+				this._underlineGraphics.clear();
+				this._lastUnderlineState = null;
+			}
+			return;
+		}
+
+		const textBounds = this._textField.getLocalBounds();
+		const currentX = this._textField.x;
+		const currentY = this._textField.y;
+		const currentText = this._textField.text;
+		const currentXScale = this._textField.scale.x;
+		const currentYScale = this._textField.scale.y;
+
+		// Check if we need to redraw
+		const needsRedraw = !this._lastUnderlineState ||
+			this._lastUnderlineState.x !== currentX ||
+			this._lastUnderlineState.y !== currentY ||
+			this._lastUnderlineState.width !== textBounds.width ||
+			this._lastUnderlineState.text !== currentText ||
+			this._lastUnderlineState.xScale !== currentXScale ||
+			this._lastUnderlineState.yScale !== currentYScale;
+
+		if(!needsRedraw) return;
+
+		// Create or clear the underline graphics
+		if(!this._underlineGraphics)
+		{
+			this._underlineGraphics = new PIXI.Graphics();
+			this._underlineGraphics.zIndex = this.z + 0.0001; // Just above the text
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._underlineGraphics);
+		}
+		else
+		{
+			this._underlineGraphics.clear();
+		}
+
+		// Calculate underline properties
+		const thickness = this.defObj.underlineThickness ?? 2;
+		const offset = this.defObj.underlineOffset ?? -2;
+		const color = this.defObj.underlineColor ?? 0xffffff;
+		const alpha = this.defObj.underlineAlpha ?? 1;
+
+		// Calculate underline position and size
+		const underlineY = currentY + (textBounds.height * currentYScale) + (offset * currentYScale);
+		const underlineWidth = textBounds.width * currentXScale;
+
+		// Draw the underline
+		this._underlineGraphics.moveTo(currentX, underlineY);
+		this._underlineGraphics.lineTo(currentX + underlineWidth, underlineY);
+		this._underlineGraphics.stroke({
+			width: thickness * currentYScale,
+			color: color,
+			alpha: alpha
+		});
+
+		// Update last state
+		this._lastUnderlineState = {
+			x: currentX,
+			y: currentY,
+			width: textBounds.width,
+			text: currentText,
+			xScale: currentXScale,
+			yScale: currentYScale
+		};
+
+		this._underlineGraphics.visible = this.visible;
+	}
+
 	public override get visible():boolean
 	{
 		return super.visible;
@@ -195,12 +287,16 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 		if(value)
 		{
 			if(this._textField) this._textField.visible = true;
+			if(this._underlineGraphics)
+			{
+				this._underlineGraphics.visible = true;
+			}
 		}
 		else
 		{
 			if(this._textField) this._textField.visible = false;
+			if(this._underlineGraphics) this._underlineGraphics.visible = false;
 		}
-
 		super.visible = value;
 	}
 
@@ -577,6 +673,9 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 					this._textField.scale.set(this.renderXScale, this.renderYScale);
 				}
 			}
+
+			// Draw underline if enabled (only redraws when necessary)
+			this.drawUnderline();
 		}
 
 		super.Update(time, frameCount, onceSecond);
@@ -597,6 +696,14 @@ export class CanvasTextObject extends CanvasPixiShapeObj
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._textField);
 			this._textField.destroy();
 			this._textField = null;
+		}
+
+		// Clean up underline graphics
+		if(this._underlineGraphics)
+		{
+			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._underlineGraphics);
+			this._underlineGraphics.destroy();
+			this._underlineGraphics = null;
 		}
 
 		super.Dispose();
