@@ -116,7 +116,7 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully got instance by name: "${instanceName}"`);
 					return vmi;
 				}
-				console.log(`❌ instanceByName("${instanceName}") returned empty/invalid VMI`);
+				//console.log(`❌ instanceByName("${instanceName}") returned empty/invalid VMI`);
 			}
 
 			// Try defaultInstance
@@ -129,7 +129,7 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully got defaultInstance()`);
 					return vmi;
 				}
-				//console.log("❌ defaultInstance() returned empty/invalid VMI");
+				if(debug) console.log("❌ defaultInstance() returned empty/invalid VMI");
 			}
 
 			// Try instance()
@@ -142,7 +142,7 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully got instance()`);
 					return vmi;
 				}
-				//console.log("❌ instance() returned empty/invalid VMI");
+				if(debug) console.log("❌ instance() returned empty/invalid VMI");
 			}
 
 			// Last resort: try creating a new instance
@@ -155,10 +155,10 @@ export default class RivePakUtils
 					if(debug) console.log(`✅ Successfully created new instance`);
 					return vmi;
 				}
-				//console.log("❌ createInstance() returned empty/invalid VMI");
+				if(debug) console.log("❌ createInstance() returned empty/invalid VMI");
 			}
 
-			//console.log("❌ All VMI creation methods failed to return valid VMI");
+			if(debug) console.log("❌ All VMI creation methods failed to return valid VMI");
 
 		}
 		catch(e)

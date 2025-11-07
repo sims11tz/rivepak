@@ -153,6 +153,8 @@ export class PixiController
 		this._canvasContainer && (this._canvasContainer.style.width = `${width}px`);
 		this._canvasContainer && (this._canvasContainer.style.height = `${height}px`);
 
+		console.warn('%c PixiController SetSize -- width:'+width+', height:'+height,'color:#00FF88; font-weight:bold;');
+
 		if(this._pixiInstanceAbove)
 		{
 			(this._pixiInstanceAbove.renderer as any).resolution = dpr;

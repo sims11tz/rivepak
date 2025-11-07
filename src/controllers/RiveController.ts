@@ -231,6 +231,9 @@ export class RiveController
 			this._canvas.width = w;
 			this._canvas.height = h;
 		}
+
+		console.warn('%c RiveController SetSize -- width:'+this._canvas.width+', height:'+this._canvas.height,'color:#00FF88; font-weight:bold;');
+
 		this._canvasBounds = this._canvas.getBoundingClientRect();
 	}
 
@@ -764,6 +767,7 @@ export class RiveController
 
 	public Dispose()
 	{
+		console.warn('%c RiveController Dispose -- CLEAN UP TIME!','color:#FF4444; font-weight:bold;');
 		this._disposed = true;
 
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);

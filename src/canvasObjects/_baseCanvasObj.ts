@@ -464,7 +464,7 @@ export abstract class BaseCanvasObj
 
 	public Dispose():void
 	{
-		//console.log("Disposing CanvasObj: "+this._uuid+" / "+this._label);
+		console.log("Disposing CanvasObj: "+this._uuid+" / "+this._label);
 		this._disposed = true;
 
 		if(this._OnDispose)

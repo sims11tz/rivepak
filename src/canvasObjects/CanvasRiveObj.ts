@@ -764,7 +764,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			return;
 		}
 		this._actionQueue.push({type:'enum', path, value});
-		//console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
+		console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
 	}
 
 	/**
@@ -775,7 +775,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 	public QueueInputTrigger(inputName:string):void
 	{
 		this._actionQueue.push({type:'trigger', inputName});
-		//console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
+		console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
 	}
 
 	/**
@@ -1436,21 +1436,21 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//}
 
 // Debug: Log state changes
-			//if(!this._disposed && this._stateMachine)
-			//{
-			//	const stateChangeCount = this._stateMachine.stateChangedCount();
-			//	if(stateChangeCount > 0)
-			//	{
-			//		for(let x = 0; x < stateChangeCount; x++)
-			//		{
-			//			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-			//			if (stateChange != undefined)
-			//			{
-			//				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-			//			}
-			//		}
-			//	}
-			//}
+			if(!this._disposed && this._stateMachine)
+			{
+				const stateChangeCount = this._stateMachine.stateChangedCount();
+				if(stateChangeCount > 0)
+				{
+					for(let x = 0; x < stateChangeCount; x++)
+					{
+						const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+						if (stateChange != undefined)
+						{
+							console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
+						}
+					}
+				}
+			}
 
 			if(!this._disposed && this.defObj.riveInteractive)
 			{
@@ -1692,6 +1692,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 	public Dispose(): void
 	{
 		this._disposed = true;
+
+		console.log('Disposing CanvasRiveObj: ' + this._uuid + ' / ' + this._label);
 
 		const debug = false;
 		if(debug)

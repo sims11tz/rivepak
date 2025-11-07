@@ -85,6 +85,7 @@ export class CanvasEngine {
         this.ResizeCanvasToWindow = () => {
             if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height)
                 return;
+            const debug = true;
             const el = document.getElementById("routesContainer");
             const newBounds = el.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
@@ -96,16 +97,22 @@ export class CanvasEngine {
             if (vertMargin < 10) {
                 vertMargin = 0;
             }
-            if (newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height) {
-                //console.log("SNAP DEEEzzzz nuts");
-                //vertMargin = 0;
-                //newWidth = this._canvasSettings.width-10;
-                //newHeight = this._canvasSettings.height-10;
-            }
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin newWidth=' + newWidth + ', newHeight=' + newHeight, 'color:#483ac0; font-weight:bold;');
+            //if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
+            //
+            //console.log("SNAP DEEEzzzz nuts");
+            //vertMargin = 0;
+            //newWidth = this._canvasSettings.width-10;
+            //newHeight = this._canvasSettings.height-10;
+            //}
             this.canvasContainerRef.style.width = `${newWidth}px`;
             this.canvasContainerRef.style.height = `${newHeight}px`;
             this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
-            //console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin this.canvasContainerRef!.style.w=' + this.canvasContainerRef.style.width + ',.h=' + this.canvasContainerRef.style.height + ', this.canvasContainerRef!.style.h=' + this.canvasContainerRef.style.height, 'color:#483ac0; font-weight:bold;');
+            if (debug)
+                console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
             // Notify Rive of resize
             RiveController.get().SetSize(newWidth, newHeight, dpr);
             PixiController.get().SetSize(newWidth, newHeight, dpr);
@@ -139,9 +146,14 @@ export class CanvasEngine {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
+            const debug = true;
             if (this._animationFrameId && this._riveInstance) {
                 this._riveInstance.cancelAnimationFrame(this._animationFrameId);
                 this._animationFrameId = null;
+            }
+            if (debug) {
+                console.log('%c ', 'color:#483ac0; font-weight:bold;');
+                console.log('%c __ UseCanvasEngine.init() ___________________', 'color:#483ac0; font-weight:bold;');
             }
             GlobalUIDGenerator.clear();
             this._canvasSettings = canvasSettings;
@@ -155,6 +167,8 @@ export class CanvasEngine {
             //this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
             this._canvasWidth = (_a = canvasSettings.width) !== null && _a !== void 0 ? _a : 800;
             this._canvasHeight = (_b = canvasSettings.height) !== null && _b !== void 0 ? _b : 500;
+            if (debug)
+                console.log('%c UCE>> w=' + this._canvasWidth + ', h=' + this._canvasHeight, 'color:#483ac0; font-weight:bold;');
             PixiController.get().Init(this._canvasWidth, this._canvasHeight);
             yield RiveController.get().Init(canvas);
             const riveInstance = RiveController.get().Rive;
@@ -710,7 +724,7 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const RunState = () => CanvasEngine.get().RunState;
     const canvasJSXRef = useRef(null);
     if (!canvasJSXRef.current) {
-        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ ref: canvasContainerRef, style: { position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" } }, { children: [_jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black", position: "absolute", zIndex: 2 } }), _jsxs("div", Object.assign({ id: "pixiCanvasContainer" /*style={{ position: "absolute", top: 0, left: 0 }}*/ }, { children: [_jsx("canvas", { id: "pixiCanvasAbove", ref: pixiCanvasRefAbove, style: { position: "absolute", top: 0, left: 0, zIndex: 3 } }), _jsx("canvas", { id: "pixiCanvasBelow", ref: pixiCanvasRefBelow, style: { position: "absolute", top: 0, left: 0, zIndex: 1 } })] })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
+        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ id: "canvasContainer", ref: canvasContainerRef, style: { position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" } }, { children: [_jsxs("div", Object.assign({ id: "pixiCanvasContainer" /*style={{ position: "absolute", top: 0, left: 0 }}*/ }, { children: [_jsx("canvas", { id: "pixiCanvasAbove", ref: pixiCanvasRefAbove, style: { position: "absolute", top: 0, left: 0, zIndex: 3 } }), _jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black", position: "absolute", zIndex: 2 } }), _jsx("canvas", { id: "pixiCanvasBelow", ref: pixiCanvasRefBelow, style: { position: "absolute", top: 0, left: 0, zIndex: 1 } })] })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
     }
     const hasEngineInitialized = useRef(false);
     useEffect(() => {

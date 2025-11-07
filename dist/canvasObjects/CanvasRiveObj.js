@@ -592,7 +592,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
             return;
         }
         this._actionQueue.push({ type: 'enum', path, value });
-        //console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
+        console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
     }
     /**
      * Queue an input trigger to be fired in the next available frame.
@@ -601,7 +601,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      */
     QueueInputTrigger(inputName) {
         this._actionQueue.push({ type: 'trigger', inputName });
-        //console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
+        console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
     }
     /**
      * Queue an input boolean change to be applied in the next available frame.
@@ -1133,21 +1133,17 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //	}
             //}
             // Debug: Log state changes
-            //if(!this._disposed && this._stateMachine)
-            //{
-            //	const stateChangeCount = this._stateMachine.stateChangedCount();
-            //	if(stateChangeCount > 0)
-            //	{
-            //		for(let x = 0; x < stateChangeCount; x++)
-            //		{
-            //			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-            //			if (stateChange != undefined)
-            //			{
-            //				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-            //			}
-            //		}
-            //	}
-            //}
+            if (!this._disposed && this._stateMachine) {
+                const stateChangeCount = this._stateMachine.stateChangedCount();
+                if (stateChangeCount > 0) {
+                    for (let x = 0; x < stateChangeCount; x++) {
+                        const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+                        if (stateChange != undefined) {
+                            console.log(this.id + '> RIVE STATE CHANGE<' + x + '>: ', stateChange);
+                        }
+                    }
+                }
+            }
             if (!this._disposed && this.defObj.riveInteractive) {
                 this.updateEntityObj();
                 const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj);
@@ -1311,6 +1307,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     Dispose() {
         this._disposed = true;
+        console.log('Disposing CanvasRiveObj: ' + this._uuid + ' / ' + this._label);
         const debug = false;
         if (debug) {
             console.log('');

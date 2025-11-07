@@ -118,10 +118,18 @@ export class CanvasEngine
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
+		const debug = true;
+
 		if (this._animationFrameId && this._riveInstance)
 		{
 			this._riveInstance.cancelAnimationFrame(this._animationFrameId);
 			this._animationFrameId = null;
+		}
+
+		if(debug)
+		{
+			console.log('%c ', 'color:#483ac0; font-weight:bold;');
+			console.log('%c __ UseCanvasEngine.init() ___________________', 'color:#483ac0; font-weight:bold;');
 		}
 
 		GlobalUIDGenerator.clear();
@@ -137,6 +145,8 @@ export class CanvasEngine
 		//this._canvasHeight = canvas.height = canvasSettings.height ?? 500;
 		this._canvasWidth = canvasSettings.width ?? 800;
 		this._canvasHeight = canvasSettings.height ?? 500;
+
+		if(debug) console.log('%c UCE>> w='+this._canvasWidth+', h='+this._canvasHeight, 'color:#483ac0; font-weight:bold;');
 
 		PixiController.get().Init(this._canvasWidth, this._canvasHeight);
 
@@ -506,6 +516,7 @@ export class CanvasEngine
 	public ResizeCanvasToWindow = (): void =>
 	{
 		if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height) return;
+		const debug = true;
 
 		const el = document.getElementById("routesContainer") as HTMLDivElement;
 		const newBounds = el.getBoundingClientRect();
@@ -522,22 +533,25 @@ export class CanvasEngine
 		if(vertMargin < 10)
 		{
 			vertMargin = 0;
-
 		}
 
-		if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
-		{
+		if(debug) console.log('%c UCE>>ResizeCanToWin newWidth='+newWidth+', newHeight='+newHeight, 'color:#483ac0; font-weight:bold;');
+
+		//if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
+		//
 			//console.log("SNAP DEEEzzzz nuts");
 			//vertMargin = 0;
 			//newWidth = this._canvasSettings.width-10;
 			//newHeight = this._canvasSettings.height-10;
-		}
+		//}
 
 		this.canvasContainerRef!.style.width = `${newWidth}px`;
 		this.canvasContainerRef!.style.height = `${newHeight}px`;
 		this.canvasContainerRef!.style.margin = `${vertMargin}px ${horizMargin}px`;
 
-		//console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+		if(debug) console.log('%c UCE>>ResizeCanToWin this.canvasContainerRef!.style.w='+this.canvasContainerRef!.style.width+',.h='+this.canvasContainerRef!.style.height+', this.canvasContainerRef!.style.h='+this.canvasContainerRef!.style.height, 'color:#483ac0; font-weight:bold;');
+
+		if(debug) console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
 
 		// Notify Rive of resize
 		RiveController.get().SetSize(newWidth, newHeight, dpr);
@@ -951,10 +965,10 @@ export function UseCanvasEngineHook(
 						<span className="fpsSpinner" style={{display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px"}} ref={fpsSpinner}></span><span ref={fpsRef}></span>
 					</div>
 				</div>
-				<div ref={canvasContainerRef} style={{ position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" }}>
-					<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black", position:"absolute", zIndex: 2}} />
+				<div id="canvasContainer" ref={canvasContainerRef} style={{ position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" }}>
 					<div id="pixiCanvasContainer"  /*style={{ position: "absolute", top: 0, left: 0 }}*/ >
 						<canvas id="pixiCanvasAbove" ref={pixiCanvasRefAbove} style={{ position: "absolute", top: 0, left: 0, zIndex:3 }} />
+						<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black", position:"absolute", zIndex: 2}} />
 						<canvas id="pixiCanvasBelow" ref={pixiCanvasRefBelow} style={{ position: "absolute", top: 0, left: 0, zIndex:1 }} />
 					</div>
 					{ canvasSettings.debugMode && <div ref={debugContainerRef} style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, }} /> }
