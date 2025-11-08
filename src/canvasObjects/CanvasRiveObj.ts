@@ -1418,7 +1418,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 				});
 			}
 
-			// DEPRECATED Check for events and do callbacks
+// DEPRECATED Check for events and do callbacks
 			//const eventCount = this._stateMachine.reportedEventCount();
 			//if(!this._disposed && eventCount > 0)
 			//{
@@ -1438,21 +1438,21 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//}
 
 // Debug: Log state changes
-			if(!this._disposed && this._stateMachine)
-			{
-				const stateChangeCount = this._stateMachine.stateChangedCount();
-				if(stateChangeCount > 0)
-				{
-					for(let x = 0; x < stateChangeCount; x++)
-					{
-						const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-						if (stateChange != undefined)
-						{
-							console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-						}
-					}
-				}
-			}
+			//if(!this._disposed && this._stateMachine)
+			//{
+			//	const stateChangeCount = this._stateMachine.stateChangedCount();
+			//	if(stateChangeCount > 0)
+			//	{
+			//		for(let x = 0; x < stateChangeCount; x++)
+			//		{
+			//			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+			//			if (stateChange != undefined)
+			//			{
+			//				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
+			//			}
+			//		}
+			//	}
+			//}
 
 			if(!this._disposed && this.defObj.riveInteractive)
 			{
