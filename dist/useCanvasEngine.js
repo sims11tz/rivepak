@@ -146,7 +146,7 @@ export class CanvasEngine {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
-            const debug = true;
+            const debug = false;
             if (this._animationFrameId && this._riveInstance) {
                 this._riveInstance.cancelAnimationFrame(this._animationFrameId);
                 this._animationFrameId = null;

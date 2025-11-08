@@ -3,7 +3,7 @@ import { RiveObjectDef } from "../controllers/RiveController";
 import { RiveAnimationObject } from "./RiveAnimationObj";
 import * as PIXI from "pixi.js";
 import RivePakUtils from "../RivePakUtils";
-import { RIVE_CURSOR_TYPES } from "./CanvasRiveObj";
+import { RIVE_COMMON_ENUMS, RIVE_CURSOR_TYPES } from "./CanvasRiveObj";
 
 export enum RIVE_BUTTON_STATES
 {
@@ -122,8 +122,8 @@ export class RiveButtonObject extends RiveAnimationObject
 			this.CurrentCursor = RIVE_CURSOR_TYPES.NOT_ALLOWED;
 
 			this._riveButtonEnabled = false;
-			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.UP);
-			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.DISABLED);
+			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.BUTTON_STATE, RIVE_BUTTON_STATES.UP);
+			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.BUTTON_STATE, RIVE_BUTTON_STATES.DISABLED);
 		}
 	}
 
@@ -136,15 +136,15 @@ export class RiveButtonObject extends RiveAnimationObject
 		if(!this._riveButtonEnabled)
 		{
 			this._riveButtonEnabled = true;
-			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.DISABLED);
-			this.QueueViewModelEnumChange('BUTTON_STATE', RIVE_BUTTON_STATES.UP);
+			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.BUTTON_STATE, RIVE_BUTTON_STATES.DISABLED);
+			this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.BUTTON_STATE, RIVE_BUTTON_STATES.UP);
 		}
 	}
 
 	private setButtonState(state:RIVE_BUTTON_STATES)
 	{
 		if(this._debugButton) console.log(' setButtonState('+this._buttonMode+'):', state);
-		this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value = state;
+		this.ViewModelInstance!.enum(`${this.baseRiveVMPath}${RIVE_COMMON_ENUMS.BUTTON_STATE}`).value = state;
 	}
 
 	protected onClick(event:MouseEvent | PointerEvent | PIXI.PixiTouch)
@@ -162,7 +162,7 @@ export class RiveButtonObject extends RiveAnimationObject
 			}
 			else if(this._buttonMode === RIVE_BUTTON_MODES.TOGGLE)
 			{
-				if(this.ViewModelInstance.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value === RIVE_BUTTON_STATES.SELECTED)
+				if(this.ViewModelInstance.enum(`${this.baseRiveVMPath}${RIVE_COMMON_ENUMS.BUTTON_STATE}`).value === RIVE_BUTTON_STATES.SELECTED)
 				{
 					if(this._debugButton) console.log('%c onClick('+this._buttonMode+') - UnSelect!', 'color: red;');
 					this.setButtonState(RIVE_BUTTON_STATES.UNSELECTED);
@@ -182,7 +182,7 @@ export class RiveButtonObject extends RiveAnimationObject
 	{
 		if(!this._buttonInitialized) return;
 
-		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value !== RIVE_BUTTON_STATES.SELECTED)
+		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}${RIVE_COMMON_ENUMS.BUTTON_STATE}`).value !== RIVE_BUTTON_STATES.SELECTED)
 		{
 			if(this._riveButtonEnabled)
 			{
@@ -203,7 +203,7 @@ export class RiveButtonObject extends RiveAnimationObject
 	{
 		if(!this._buttonInitialized) return;
 
-		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}BUTTON_STATE`).value === RIVE_BUTTON_STATES.SELECTED)
+		if(this.ViewModelInstance!.enum(`${this.baseRiveVMPath}${RIVE_COMMON_ENUMS.BUTTON_STATE}`).value === RIVE_BUTTON_STATES.SELECTED)
 		{
 			this.setButtonState(RIVE_BUTTON_STATES.SELECTED);
 		}

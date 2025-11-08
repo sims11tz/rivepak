@@ -118,7 +118,7 @@ export class CanvasEngine
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
-		const debug = true;
+		const debug = false;
 
 		if (this._animationFrameId && this._riveInstance)
 		{

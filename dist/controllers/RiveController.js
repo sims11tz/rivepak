@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import RiveCanvas from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
+import { RIVE_COMMON_ENUMS } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasEngine } from "../useCanvasEngine";
 import RivePakUtils from "../RivePakUtils";
@@ -200,7 +201,7 @@ export class RiveController {
             this._canvas.width = w;
             this._canvas.height = h;
         }
-        console.warn('%c RiveController SetSize -- width:' + this._canvas.width + ', height:' + this._canvas.height, 'color:#00FF88; font-weight:bold;');
+        console.log('%c RiveController SetSize -- width:' + this._canvas.width + ', height:' + this._canvas.height, 'color:#00FF88; font-weight:bold;');
         this._canvasBounds = this._canvas.getBoundingClientRect();
     }
     CreateRiveObj(riveObjDefs) {
@@ -478,9 +479,9 @@ export class RiveController {
                                         console.log('artboard.name:' + vmi.artboard.name);
                                     }
                                 }
-                                if (vmi.enum("DEBUG_IN_EDITOR")) {
+                                if (vmi.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR)) {
                                     try {
-                                        vmi.enum("DEBUG_IN_EDITOR").value = 'FALSE';
+                                        vmi.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_COMMON;
                                     }
                                     catch (e) {
                                         console.error('ERR setting DEBUG_IN_EDITOR ', e);
@@ -644,7 +645,7 @@ export class RiveController {
         return { x: artboardX, y: artboardY };
     }
     Dispose() {
-        console.warn('%c RiveController Dispose -- CLEAN UP TIME!', 'color:#FF4444; font-weight:bold;');
+        //console.warn('%c RiveController Dispose -- CLEAN UP TIME!','color:#FF4444; font-weight:bold;');
         this._disposed = true;
         window.removeEventListener("mousemove", this.SetMouseGlobalPos);
         if (this._canvas) {

@@ -12,9 +12,11 @@ export var RIVEBUS_COMMON_APP_TO_RIVE_EVENTS;
 })(RIVEBUS_COMMON_APP_TO_RIVE_EVENTS || (RIVEBUS_COMMON_APP_TO_RIVE_EVENTS = {}));
 export var RIVE_COMMON_ENUMS;
 (function (RIVE_COMMON_ENUMS) {
+    RIVE_COMMON_ENUMS["DEBUG_IN_EDITOR"] = "DEBUG_IN_EDITOR";
     RIVE_COMMON_ENUMS["VISIBLE"] = "VISIBLE";
     RIVE_COMMON_ENUMS["BUTTON_CLICK_FX_COLOR"] = "BUTTON_CLICK_FX_COLOR";
     RIVE_COMMON_ENUMS["BUTTON_STATE"] = "BUTTON_STATE";
+    RIVE_COMMON_ENUMS["SIZE"] = "SIZE";
 })(RIVE_COMMON_ENUMS || (RIVE_COMMON_ENUMS = {}));
 export var RIVEBUS_COMMON_RIVE_TO_APP_EVENTS;
 (function (RIVEBUS_COMMON_RIVE_TO_APP_EVENTS) {
@@ -494,7 +496,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         //const boundTrigger = this.OnRiveTrigger("/"+RIVEBUS_COMMON_RIVE_TO_APP_EVENTS.EVENT_TRANSITION_IN_STARTED, () =>
         //{
         //	console.log('%c RiveObj Transition In Started -> making visible: '+this._label,'color:#00FFFF');
-        //	this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
+        this.QueueViewModelEnumChange(RIVE_COMMON_ENUMS.VISIBLE, RIVE_COMMON_VISIBLE.TRUE);
         //	this.visible = true;
         //},false);
         //if(boundTrigger != null)
@@ -592,7 +594,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
             return;
         }
         this._actionQueue.push({ type: 'enum', path, value });
-        console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
+        //console.log(`📋 Queued enum change: ${path} = ${value} (queue length: ${this._actionQueue.length})`);
     }
     /**
      * Queue an input trigger to be fired in the next available frame.
@@ -601,7 +603,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
      */
     QueueInputTrigger(inputName) {
         this._actionQueue.push({ type: 'trigger', inputName });
-        console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
+        //console.log(`📋 Queued trigger: ${inputName} (queue length: ${this._actionQueue.length})`);
     }
     /**
      * Queue an input boolean change to be applied in the next available frame.
@@ -1307,7 +1309,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     Dispose() {
         this._disposed = true;
-        console.log('Disposing CanvasRiveObj: ' + this._uuid + ' / ' + this._label);
+        //console.log('Disposing CanvasRiveObj: ' + this._uuid + ' / ' + this._label);
         const debug = false;
         if (debug) {
             console.log('');

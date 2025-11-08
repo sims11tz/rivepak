@@ -1,6 +1,6 @@
 import RiveCanvas, { File as RiveFile, Artboard, Renderer, ViewModel, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
-import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
+import { CanvasRiveObj, RIVE_COMMON_ENUMS } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import { CanvasEngine, ResizeCanvasObj } from "../useCanvasEngine";
@@ -232,7 +232,7 @@ export class RiveController
 			this._canvas.height = h;
 		}
 
-		console.warn('%c RiveController SetSize -- width:'+this._canvas.width+', height:'+this._canvas.height,'color:#00FF88; font-weight:bold;');
+		console.log('%c RiveController SetSize -- width:'+this._canvas.width+', height:'+this._canvas.height,'color:#00FF88; font-weight:bold;');
 
 		this._canvasBounds = this._canvas.getBoundingClientRect();
 	}
@@ -550,11 +550,11 @@ export class RiveController
 								}
 							}
 
-							if(vmi!.enum("DEBUG_IN_EDITOR"))
+							if(vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR))
 							{
 								try
 								{
-									vmi!.enum("DEBUG_IN_EDITOR").value = 'FALSE';
+									vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_COMMON;
 								}
 								catch(e)
 								{
@@ -767,7 +767,7 @@ export class RiveController
 
 	public Dispose()
 	{
-		console.warn('%c RiveController Dispose -- CLEAN UP TIME!','color:#FF4444; font-weight:bold;');
+		//console.warn('%c RiveController Dispose -- CLEAN UP TIME!','color:#FF4444; font-weight:bold;');
 		this._disposed = true;
 
 		window.removeEventListener("mousemove", this.SetMouseGlobalPos);
