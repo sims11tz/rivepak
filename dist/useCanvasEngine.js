@@ -28,13 +28,15 @@ export class ResizeCanvasObj {
         this.canvasRef = null;
         this.width = width;
         this.height = height;
+        this.fullWidth = width;
+        this.fullHeight = height;
         this.scale = scale;
         this.margin = margin;
         this.canvasRef = canvasRef;
     }
 }
 export class CanvasSettingsDef {
-    constructor({ physicsEnabled = false, physicsWalls = false, width = 800, height = 500, autoScale = false, debugMode = false, borderWidth = 1, borderColor = "black", }) {
+    constructor({ physicsEnabled = false, physicsWalls = false, width = 800, height = 500, autoScale = false, debugMode = false, borderWidth = 1, borderColor = "black", targetScaleElementId = "routesContainer" }) {
         this.physicsEnabled = physicsEnabled;
         this.physicsWalls = physicsWalls;
         this.width = width;
@@ -43,6 +45,7 @@ export class CanvasSettingsDef {
         this.debugMode = debugMode;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
+        this.targetScaleElementId = targetScaleElementId;
     }
 }
 export class CanvasEngine {
@@ -82,23 +85,65 @@ export class CanvasEngine {
             }, 250);
         };
         this._currentCanvasScale = -1;
+        this._currentFullCanvasScale = -1;
         this.ResizeCanvasToWindow = () => {
             if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height)
                 return;
-            const debug = true;
-            const el = document.getElementById("routesContainer");
-            const newBounds = el.getBoundingClientRect();
+            const debug = false;
+            if (debug)
+                console.log('%c ');
+            if (debug)
+                console.log('%c ___________________________________________________');
+            if (debug)
+                console.log('%c _ResizeCanvasToWindow _____________________________');
+            const targetEl = document.getElementById(this._canvasSettings.targetScaleElementId || 'routesContainer');
+            //const targetEl = document.getElementById('routesContainer') as HTMLDivElement;
+            const newTargetBounds = targetEl.getBoundingClientRect();
+            const fullEl = document.getElementById('routesContainer');
+            const newFullBounds = fullEl.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
-            this._currentCanvasScale = Math.min(newBounds.width / this._canvasSettings.width, newBounds.height / this._canvasSettings.height);
-            let newWidth = Math.floor(this._canvasSettings.width * this._currentCanvasScale) - 4;
-            let newHeight = Math.floor(this._canvasSettings.height * this._currentCanvasScale) - 4;
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin  this._canvasSettings.width = ' + this._canvasSettings.width);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin this._canvasSettings.height = ' + this._canvasSettings.height);
+            if (debug)
+                console.log('%c ');
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin  newTargetBounds.width = ' + newTargetBounds.width);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin newTargetBounds.height = ' + newTargetBounds.height);
+            if (debug)
+                console.log('%c ');
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin  newFullBounds.width = ' + newFullBounds.width);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin newFullBounds.height = ' + newFullBounds.height);
+            if (debug)
+                console.log('%c ');
+            this._currentCanvasScale = Math.min(newTargetBounds.width / this._canvasSettings.width, newTargetBounds.height / this._canvasSettings.height);
+            this._currentFullCanvasScale = Math.min(newFullBounds.width / this._canvasSettings.width, newFullBounds.height / this._canvasSettings.height);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin  newFullBounds.width = ' + newFullBounds.width);
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin newFullBounds.height = ' + newFullBounds.height);
+            if (debug)
+                console.log('%c ');
+            //LOL wtf is minus 4? was it fixing a bug?
+            //let newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale)-4;
+            //let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
+            let newTargetWidth = Math.floor(this._canvasSettings.width * this._currentCanvasScale);
+            let newTargetHeight = Math.floor(this._canvasSettings.height * this._currentCanvasScale);
+            let newFullWidth = Math.floor(newFullBounds.width * this._currentCanvasScale);
+            let newFullHeight = Math.floor(newFullBounds.height * this._currentCanvasScale);
             let horizMargin = 0;
-            let vertMargin = (newBounds.height - newHeight) / 2;
+            let vertMargin = (newTargetBounds.height - newTargetHeight) / 2;
             if (vertMargin < 10) {
                 vertMargin = 0;
             }
             if (debug)
-                console.log('%c UCE>>ResizeCanToWin newWidth=' + newWidth + ', newHeight=' + newHeight, 'color:#483ac0; font-weight:bold;');
+                console.log('%c UCE>>ResizeCanToWin newTargetWidth=' + newTargetWidth + ', newTargetHeight=' + newTargetHeight, 'color:#e84542; font-weight:bold;');
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin newFullWidth=' + newFullWidth + ', newFullHeight=' + newFullHeight, 'color:#e84542; font-weight:bold;');
             //if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
             //
             //console.log("SNAP DEEEzzzz nuts");
@@ -106,24 +151,26 @@ export class CanvasEngine {
             //newWidth = this._canvasSettings.width-10;
             //newHeight = this._canvasSettings.height-10;
             //}
-            this.canvasContainerRef.style.width = `${newWidth}px`;
-            this.canvasContainerRef.style.height = `${newHeight}px`;
+            this.canvasContainerRef.style.width = `${newTargetWidth}px`;
+            this.canvasContainerRef.style.height = `${newTargetHeight}px`;
             this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
             if (debug)
                 console.log('%c UCE>>ResizeCanToWin this.canvasContainerRef!.style.w=' + this.canvasContainerRef.style.width + ',.h=' + this.canvasContainerRef.style.height + ', this.canvasContainerRef!.style.h=' + this.canvasContainerRef.style.height, 'color:#483ac0; font-weight:bold;');
             if (debug)
-                console.log('%cCE.resize() ', 'color:#00FF00; font-weight:bold;', newWidth, newHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+                console.log('%cCE.resize() FULL>>>>>>', 'color:#00FF00; font-weight:bold;', newTargetWidth, newTargetHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
+            if (debug)
+                console.log('%cCE.resize() TARGET>>>>', 'color:#00FF00; font-weight:bold;', newTargetWidth, newTargetHeight, 'scale:', this._currentCanvasScale.toFixed(3), 'dpr:', dpr);
             // Notify Rive of resize
-            RiveController.get().SetSize(newWidth, newHeight, dpr);
-            PixiController.get().SetSize(newWidth, newHeight, dpr);
-            PhysicsController.get().SetSize(newWidth, newHeight, dpr);
+            RiveController.get().SetSize(newTargetWidth, newTargetHeight, dpr);
+            PixiController.get().SetSize(newTargetWidth, newTargetHeight, dpr);
+            PhysicsController.get().SetSize(newTargetWidth, newTargetHeight, dpr);
             // Apply canvas scale to all objects
             this._canvasObjects.forEach((group) => {
                 group.forEach((obj) => {
                     obj.ApplyResolutionScale(this._currentCanvasScale);
                 });
             });
-            CanvasEngineResizePubSub.Publish({ width: newWidth, height: newHeight, scale: this._currentCanvasScale, margin: `${vertMargin}px ${horizMargin}px`, canvasRef: this.canvasRef });
+            CanvasEngineResizePubSub.Publish({ width: newTargetWidth, height: newTargetHeight, fullWidth: newFullWidth, fullHeight: newFullHeight, scale: this._currentCanvasScale, margin: `${vertMargin}px ${horizMargin}px`, canvasRef: this.canvasRef });
         };
     }
     static get() { if (!CanvasEngine._instance)

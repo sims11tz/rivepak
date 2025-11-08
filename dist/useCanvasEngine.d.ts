@@ -15,6 +15,8 @@ export declare class ResizeCanvasObj {
     scale: number;
     margin: string;
     canvasRef: HTMLCanvasElement | null;
+    fullWidth: number;
+    fullHeight: number;
     constructor(width: number, height: number, scale: number, margin: string, canvasRef?: HTMLCanvasElement | null);
 }
 export declare class CanvasSettingsDef {
@@ -26,7 +28,8 @@ export declare class CanvasSettingsDef {
     debugMode?: boolean;
     borderWidth?: number;
     borderColor?: string;
-    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, borderWidth, borderColor, }: {
+    targetScaleElementId?: string;
+    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, borderWidth, borderColor, targetScaleElementId }: {
         physicsEnabled?: boolean | undefined;
         physicsWalls?: boolean | undefined;
         width?: number | undefined;
@@ -35,6 +38,7 @@ export declare class CanvasSettingsDef {
         debugMode?: boolean | undefined;
         borderWidth?: number | undefined;
         borderColor?: string | undefined;
+        targetScaleElementId?: string | undefined;
     });
 }
 export declare class CanvasEngine {
@@ -91,6 +95,7 @@ export declare class CanvasEngine {
     private _resizeDebounceTimeout;
     ResizeWindowEvent: () => void;
     private _currentCanvasScale;
+    private _currentFullCanvasScale;
     get CurrentCanvasScale(): number;
     ResizeCanvasToWindow: () => void;
     DebugLogLayering(): void;
