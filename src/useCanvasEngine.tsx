@@ -125,6 +125,7 @@ export class CanvasEngine
 	{
 		if (!this.canvasRef) throw new Error("canvasRef not set");
 
+		this._disposed = false;
 		const debug = false;
 
 		if (this._animationFrameId && this._riveInstance)
@@ -207,7 +208,7 @@ export class CanvasEngine
 			{
 				lastTime = time;
 				inFrame = false;
-				this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+				if(!this._disposed) this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 				return;
 			}
 
@@ -223,7 +224,7 @@ export class CanvasEngine
 			{
 				skipsPerSecond++;
 				inFrame = false;
-				this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+				if(!this._disposed) this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 				//console.log(`Skipping frame ${numSkips}/${numNoSkips} - elapsedTime=${elapsedTimeSec.toFixed(4)}, accumulatedTime=${accumulatedTime.toFixed(4)}`);
 				return;
 			}
@@ -269,11 +270,11 @@ export class CanvasEngine
 			PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
 
 			inFrame = false;
-			this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+			if(!this._disposed) this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 		};
 
 		inFrame = false;
-		this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+		if(!this._disposed) this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
 		//if (onInitComplete) onInitComplete();
 
 		window.removeEventListener("resize", this.ResizeWindowEvent);
@@ -526,12 +527,13 @@ export class CanvasEngine
 		if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height) return;
 		const debug = false;
 
+		if(this._disposed) return;
+
 		if(debug) console.log('%c ');
 		if(debug) console.log('%c ___________________________________________________');
 		if(debug) console.log('%c _ResizeCanvasToWindow _____________________________');
 
 		const targetEl = document.getElementById(this._canvasSettings.targetScaleElementId || 'routesContainer') as HTMLDivElement;
-		//const targetEl = document.getElementById('routesContainer') as HTMLDivElement;
 		const newTargetBounds = targetEl.getBoundingClientRect();
 
 		const fullEl = document.getElementById('routesContainer') as HTMLDivElement;
@@ -890,8 +892,11 @@ export class CanvasEngine
 		console.log('%c', 'color:#7050a8; font-weight:bold;');
 	}
 
+	private _disposed:boolean = false;
 	public Dispose()
 	{
+		this._disposed = true;
+
 		this._runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
 		if (this._engine)
 		{

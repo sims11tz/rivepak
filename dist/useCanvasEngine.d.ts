@@ -100,6 +100,7 @@ export declare class CanvasEngine {
     ResizeCanvasToWindow: () => void;
     DebugLogLayering(): void;
     DebugLog(summaryOnly?: boolean): void;
+    private _disposed;
     Dispose(): void;
     SetRefs({ canvasContainerRef, canvasAreaRef, canvasRef, pixiCanvasRefAbove, pixiCanvasRefBelow, debugContainerRef, runStateLabel, fpsLabel, fpsSpinner, }: {
         canvasContainerRef: HTMLDivElement;

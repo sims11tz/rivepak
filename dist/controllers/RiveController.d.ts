@@ -27,6 +27,7 @@ export declare class RiveObjectsSet {
     GetObjectById(id: string): CanvasRiveObj | null;
     GetObjectByArtboardName(artboardByName: string): CanvasRiveObj | null;
     GetObjectByFilePath(filePath: string): CanvasRiveObj | null;
+    GetObjectByLabel(label: string): CanvasRiveObj | null;
 }
 type WasmSource = "local" | "cdn" | "custom";
 export declare class RiveController {

@@ -49,6 +49,13 @@ export class RiveObjectsSet {
         const objs = this.objects.find((o) => o.filePath === filePath);
         return objs || null;
     }
+    GetObjectByLabel(label) {
+        if (!this.objects) {
+            return null;
+        }
+        const objs = this.objects.find((o) => o.label === label);
+        return objs || null;
+    }
 }
 export class RiveController {
     constructor() {

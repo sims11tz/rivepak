@@ -90,6 +90,8 @@ export class CanvasEngine {
             if (!this._canvasSettings || !this._canvasSettings.width || !this._canvasSettings.height)
                 return;
             const debug = false;
+            if (this._disposed)
+                return;
             if (debug)
                 console.log('%c ');
             if (debug)
@@ -97,7 +99,6 @@ export class CanvasEngine {
             if (debug)
                 console.log('%c _ResizeCanvasToWindow _____________________________');
             const targetEl = document.getElementById(this._canvasSettings.targetScaleElementId || 'routesContainer');
-            //const targetEl = document.getElementById('routesContainer') as HTMLDivElement;
             const newTargetBounds = targetEl.getBoundingClientRect();
             const fullEl = document.getElementById('routesContainer');
             const newFullBounds = fullEl.getBoundingClientRect();
@@ -172,6 +173,7 @@ export class CanvasEngine {
             });
             CanvasEngineResizePubSub.Publish({ width: newTargetWidth, height: newTargetHeight, fullWidth: newFullWidth, fullHeight: newFullHeight, scale: this._currentCanvasScale, margin: `${vertMargin}px ${horizMargin}px`, canvasRef: this.canvasRef });
         };
+        this._disposed = false;
     }
     static get() { if (!CanvasEngine._instance)
         CanvasEngine._instance = new CanvasEngine(); return CanvasEngine._instance; }
@@ -193,6 +195,7 @@ export class CanvasEngine {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.canvasRef)
                 throw new Error("canvasRef not set");
+            this._disposed = false;
             const debug = false;
             if (this._animationFrameId && this._riveInstance) {
                 this._riveInstance.cancelAnimationFrame(this._animationFrameId);
@@ -256,7 +259,8 @@ export class CanvasEngine {
                 if (this._runState !== CANVAS_ENGINE_RUN_STATE.RUNNING) {
                     lastTime = time;
                     inFrame = false;
-                    this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+                    if (!this._disposed)
+                        this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
                     return;
                 }
                 iterationCount++;
@@ -269,7 +273,8 @@ export class CanvasEngine {
                 if (accumulatedTime < MIN_TIME_STEP) {
                     skipsPerSecond++;
                     inFrame = false;
-                    this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+                    if (!this._disposed)
+                        this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
                     //console.log(`Skipping frame ${numSkips}/${numNoSkips} - elapsedTime=${elapsedTimeSec.toFixed(4)}, accumulatedTime=${accumulatedTime.toFixed(4)}`);
                     return;
                 }
@@ -301,10 +306,12 @@ export class CanvasEngine {
                 riveRenderer.flush();
                 PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
                 inFrame = false;
-                this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+                if (!this._disposed)
+                    this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             };
             inFrame = false;
-            this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
+            if (!this._disposed)
+                this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);
             //if (onInitComplete) onInitComplete();
             window.removeEventListener("resize", this.ResizeWindowEvent);
             if (canvasSettings.autoScale) {
@@ -717,6 +724,7 @@ export class CanvasEngine {
         console.log('%c', 'color:#7050a8; font-weight:bold;');
     }
     Dispose() {
+        this._disposed = true;
         this._runState = CANVAS_ENGINE_RUN_STATE.STOPPED;
         if (this._engine) {
             Matter.Events.off(this._engine, "collisionStart");

@@ -66,6 +66,13 @@ export class RiveObjectsSet
 		const objs = this.objects.find((o) => o.filePath === filePath);
 		return objs || null;
 	}
+
+	public GetObjectByLabel(label:string):CanvasRiveObj | null
+	{
+		if (!this.objects) { return null; }
+		const objs = this.objects.find((o) => o.label === label);
+		return objs || null;
+	}
 }
 
 type WasmSource = "local" | "cdn" | "custom";
@@ -322,7 +329,7 @@ export class RiveController
 			// Track bound ViewModel instances to prevent duplicate binding
 			const boundVMIs = new Set<string>();
 
-			if (riveFile.viewModelCount && riveFile.viewModelCount() > 0)
+			if(riveFile.viewModelCount && riveFile.viewModelCount() > 0)
 			{
 				for(let vmIndex = 0; vmIndex < riveFile.viewModelCount(); vmIndex++)
 				{
