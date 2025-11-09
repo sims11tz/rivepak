@@ -16,6 +16,12 @@ export enum CANVAS_ENGINE_RUN_STATE
 	PAUSED = "PAUSED",
 }
 
+export enum CANVAS_SCALE_MODE
+{
+	LETTERBOX = "LETTERBOX", // Maintains aspect ratio with margins (default)
+	FILL = "FILL" // Fills parent container completely
+}
+
 export class ResizeCanvasObj
 {
 	private _disposed = false;
@@ -46,6 +52,7 @@ export class CanvasSettingsDef
 	public width?:number;
 	public height?:number;
 	public autoScale?:boolean;
+	public scaleMode?:CANVAS_SCALE_MODE;
 	public debugMode?:boolean;
 	public borderWidth?:number;
 	public borderColor?:string;
@@ -57,6 +64,7 @@ export class CanvasSettingsDef
 		width=800,
 		height=500,
 		autoScale=false,
+		scaleMode=CANVAS_SCALE_MODE.LETTERBOX,
 		debugMode=false,
 		borderWidth=1,
 		borderColor="black",
@@ -67,6 +75,7 @@ export class CanvasSettingsDef
 		this.width = width;
 		this.height = height;
 		this.autoScale = autoScale;
+		this.scaleMode = scaleMode;
 		this.debugMode = debugMode;
 		this.borderWidth = borderWidth;
 		this.borderColor = borderColor;
@@ -551,38 +560,53 @@ export class CanvasEngine
 		if(debug) console.log('%c UCE>>ResizeCanToWin newFullBounds.height = '+newFullBounds.height);
 		if(debug) console.log('%c ');
 
-		this._currentCanvasScale = Math.min(newTargetBounds.width / this._canvasSettings.width!, newTargetBounds.height / this._canvasSettings.height!);
-		this._currentFullCanvasScale = Math.min(newFullBounds.width / this._canvasSettings.width!, newFullBounds.height / this._canvasSettings.height!);
-		if(debug) console.log('%c UCE>>ResizeCanToWin  newFullBounds.width = '+newFullBounds.width);
-		if(debug) console.log('%c UCE>>ResizeCanToWin newFullBounds.height = '+newFullBounds.height);
-		if(debug) console.log('%c ');
+		const scaleMode = this._canvasSettings.scaleMode || CANVAS_SCALE_MODE.LETTERBOX;
 
-//LOL wtf is minus 4? was it fixing a bug?
-		//let newWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale)-4;
-		//let newHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale)-4;
-		let newTargetWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale);
-		let newTargetHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale);
+		let newTargetWidth:number;
+		let newTargetHeight:number;
+		let newFullWidth:number;
+		let newFullHeight:number;
+		let horizMargin:number;
+		let vertMargin:number;
 
-		let newFullWidth = Math.floor(newFullBounds.width! * this._currentCanvasScale);
-		let newFullHeight = Math.floor(newFullBounds.height! * this._currentCanvasScale);
-
-		let horizMargin = 0;
-		let vertMargin = (newTargetBounds.height - newTargetHeight) / 2;
-		if(vertMargin < 10)
+		if(scaleMode === CANVAS_SCALE_MODE.FILL)
 		{
+			// FILL mode - fill the entire parent container
+			newTargetWidth = Math.floor(newTargetBounds.width);
+			newTargetHeight = Math.floor(newTargetBounds.height);
+			newFullWidth = Math.floor(newFullBounds.width);
+			newFullHeight = Math.floor(newFullBounds.height);
+
+			// Calculate scale based on container size
+			this._currentCanvasScale = Math.min(newTargetWidth / this._canvasSettings.width!, newTargetHeight / this._canvasSettings.height!);
+			this._currentFullCanvasScale = Math.min(newFullWidth / this._canvasSettings.width!, newFullHeight / this._canvasSettings.height!);
+
+			// No margins in fill mode
+			horizMargin = 0;
 			vertMargin = 0;
 		}
+		else
+		{
+			// LETTERBOX mode - maintain aspect ratio with margins (default behavior)
+			this._currentCanvasScale = Math.min(newTargetBounds.width / this._canvasSettings.width!, newTargetBounds.height / this._canvasSettings.height!);
+			this._currentFullCanvasScale = Math.min(newFullBounds.width / this._canvasSettings.width!, newFullBounds.height / this._canvasSettings.height!);
 
+			newTargetWidth = Math.floor(this._canvasSettings.width! * this._currentCanvasScale);
+			newTargetHeight = Math.floor(this._canvasSettings.height! * this._currentCanvasScale);
+			newFullWidth = Math.floor(newFullBounds.width! * this._currentCanvasScale);
+			newFullHeight = Math.floor(newFullBounds.height! * this._currentCanvasScale);
+
+			horizMargin = 0;
+			vertMargin = (newTargetBounds.height - newTargetHeight) / 2;
+			if(vertMargin < 10)
+			{
+				vertMargin = 0;
+			}
+		}
+
+		if(debug) console.log('%c UCE>>ResizeCanToWin scaleMode='+scaleMode, 'color:#e84542; font-weight:bold;');
 		if(debug) console.log('%c UCE>>ResizeCanToWin newTargetWidth='+newTargetWidth+', newTargetHeight='+newTargetHeight, 'color:#e84542; font-weight:bold;');
 		if(debug) console.log('%c UCE>>ResizeCanToWin newFullWidth='+newFullWidth+', newFullHeight='+newFullHeight, 'color:#e84542; font-weight:bold;');
-
-		//if(newWidth > this._canvasSettings.width || newHeight > this._canvasSettings.height)
-		//
-			//console.log("SNAP DEEEzzzz nuts");
-			//vertMargin = 0;
-			//newWidth = this._canvasSettings.width-10;
-			//newHeight = this._canvasSettings.height-10;
-		//}
 
 		this.canvasContainerRef!.style.width = `${newTargetWidth}px`;
 		this.canvasContainerRef!.style.height = `${newTargetHeight}px`;

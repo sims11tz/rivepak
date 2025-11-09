@@ -8,6 +8,10 @@ export declare enum CANVAS_ENGINE_RUN_STATE {
     RUNNING = "RUNNING",
     PAUSED = "PAUSED"
 }
+export declare enum CANVAS_SCALE_MODE {
+    LETTERBOX = "LETTERBOX",
+    FILL = "FILL"
+}
 export declare class ResizeCanvasObj {
     private _disposed;
     width: number;
@@ -25,16 +29,18 @@ export declare class CanvasSettingsDef {
     width?: number;
     height?: number;
     autoScale?: boolean;
+    scaleMode?: CANVAS_SCALE_MODE;
     debugMode?: boolean;
     borderWidth?: number;
     borderColor?: string;
     targetScaleElementId?: string;
-    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, debugMode, borderWidth, borderColor, targetScaleElementId }: {
+    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, scaleMode, debugMode, borderWidth, borderColor, targetScaleElementId }: {
         physicsEnabled?: boolean | undefined;
         physicsWalls?: boolean | undefined;
         width?: number | undefined;
         height?: number | undefined;
         autoScale?: boolean | undefined;
+        scaleMode?: CANVAS_SCALE_MODE | undefined;
         debugMode?: boolean | undefined;
         borderWidth?: number | undefined;
         borderColor?: string | undefined;
