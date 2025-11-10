@@ -54,11 +54,11 @@ export class RiveButtonObject extends RiveAnimationObject
 		super(riveDef,artboard);
 	}
 
-	public Update(time:number,frameCount:number,onceSecond:boolean)
+	public Update(time:number,frameCount:number,onceSecond:boolean,onceMinute:boolean)
 	{
 		if(this.enabled === false) return;
 
-		super.Update(time,frameCount,onceSecond);
+		super.Update(time,frameCount,onceSecond,onceMinute);
 	}
 
 	public InitRiveObject()

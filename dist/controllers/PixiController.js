@@ -120,7 +120,7 @@ export class PixiController {
             this._initialized = true;
         });
     }
-    Update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond, onceMinute) {
         if (!this._initialized)
             return;
         if (this._pixiInstanceAbove && this._pixiInstanceAbove.render) {

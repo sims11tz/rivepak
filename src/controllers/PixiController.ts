@@ -130,7 +130,7 @@ export class PixiController
 		this._initialized = true;
 	}
 
-	public Update(time:number, frameCount:number, onceSecond:boolean)
+	public Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean): void
 	{
 		if(!this._initialized) return;
 

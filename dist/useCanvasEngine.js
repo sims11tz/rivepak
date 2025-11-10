@@ -248,12 +248,14 @@ export class CanvasEngine {
             });
             if (canvasSettings.physicsEnabled)
                 PhysicsController.get().Init(canvas, canvasSettings.physicsWalls, this.debugContainerRef, canvasSettings.debugMode);
+            let oncePerLogged = false;
             let lastTime = 0;
             let accumulatedTime = 0;
             let skipsPerSecond = 0;
             let iterationCount = 0;
             let frameCount = 0;
             let lastLogTime = performance.now();
+            let lastLogTimeLong = performance.now();
             const spinnerFrames = [' -- ', ' \\', ' | ', ' / ', ' -- ', ' \\', ' | ', ' / '];
             let spinnerIdx = 0;
             const MIN_TIME_STEP = 0.010;
@@ -296,7 +298,7 @@ export class CanvasEngine {
                 }
                 elapsedTimeSec = accumulatedTime;
                 accumulatedTime = 0;
-                const onceSecond = time - lastLogTime > 1000;
+                let onceSecond = (time - lastLogTime > 1000);
                 if (onceSecond) {
                     if (this.fpsCallback) {
                         spinnerIdx = (spinnerIdx + 1) % spinnerFrames.length;
@@ -306,21 +308,29 @@ export class CanvasEngine {
                     iterationCount = 0;
                     lastLogTime = time;
                 }
+                let onceMinute = (time - lastLogTimeLong > 10000); //60000
+                if (onceMinute) {
+                    lastLogTimeLong = time;
+                }
+                if (!oncePerLogged) {
+                    oncePerLogged = true;
+                    onceSecond = onceMinute = true;
+                }
                 this.updateListeners.forEach((listener) => {
-                    listener(time, elapsedTimeSec, frameCount, onceSecond);
+                    listener(time, elapsedTimeSec, frameCount, onceSecond, onceMinute);
                 });
                 if (canvasSettings.physicsEnabled)
-                    PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+                    PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
                 riveRenderer.clear();
                 this._canvasObjects.forEach((objects) => {
                     objects.forEach((obj) => {
                         if (obj.render) {
-                            obj.Update(elapsedTimeSec, frameCount, onceSecond);
+                            obj.Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
                         }
                     });
                 });
                 riveRenderer.flush();
-                PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+                PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
                 inFrame = false;
                 if (!this._disposed)
                     this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);

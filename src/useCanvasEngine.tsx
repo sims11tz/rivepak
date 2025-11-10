@@ -122,13 +122,13 @@ export class CanvasEngine
 	private _canvasHeight:number = 0;
 	public get height():number { return this._canvasHeight; }
 
-	private updateListeners:Set<(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void> = new Set();
-	public AddUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	private updateListeners:Set<(t:number, dt:number, frameCount:number, oncePerSecond:boolean, oncePerMinute:boolean) => void> = new Set();
+	public AddUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean, oncePerMinute:boolean) => void)
 	{
 		this.updateListeners.add(listener);
 	}
 
-	public RemoveUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean) => void)
+	public RemoveUpdateListener(listener:(t:number, dt:number, frameCount:number, oncePerSecond:boolean, oncePerMinute:boolean) => void)
 	{
 		this.updateListeners.delete(listener);
 	}
@@ -185,12 +185,14 @@ export class CanvasEngine
 
 		if(canvasSettings.physicsEnabled) PhysicsController.get().Init(canvas, canvasSettings.physicsWalls, this.debugContainerRef!, canvasSettings.debugMode);
 
+		let oncePerLogged = false;
 		let lastTime = 0;
 		let accumulatedTime = 0;
 		let skipsPerSecond = 0;
 		let iterationCount = 0;
 		let frameCount = 0;
 		let lastLogTime = performance.now();
+		let lastLogTimeLong = performance.now();
 		const spinnerFrames = [' -- ', ' \\', ' | ', ' / ', ' -- ', ' \\', ' | ', ' / '];
 		let spinnerIdx = 0;
 		const MIN_TIME_STEP = 0.010;
@@ -244,7 +246,7 @@ export class CanvasEngine
 			elapsedTimeSec = accumulatedTime;
 			accumulatedTime = 0;
 
-			const onceSecond = time - lastLogTime > 1000;
+			let onceSecond = (time - lastLogTime > 1000);
 			if(onceSecond)
 			{
 				if (this.fpsCallback)
@@ -256,13 +258,23 @@ export class CanvasEngine
 				iterationCount = 0;
 				lastLogTime = time;
 			}
+			let onceMinute = (time - lastLogTimeLong > 10000);//60000
+			if(onceMinute)
+			{
+				lastLogTimeLong = time;
+			}
+			if(!oncePerLogged)
+			{
+				oncePerLogged = true;
+				onceSecond = onceMinute = true;
+			}
 
 			this.updateListeners.forEach((listener) =>
 			{
-				listener(time, elapsedTimeSec, frameCount, onceSecond);
+				listener(time, elapsedTimeSec, frameCount, onceSecond , onceMinute);
 			});
 
-			if (canvasSettings.physicsEnabled) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+			if (canvasSettings.physicsEnabled) PhysicsController.get().Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
 
 			riveRenderer.clear();
 
@@ -272,14 +284,14 @@ export class CanvasEngine
 				{
 					if(obj.render)
 					{
-						obj.Update(elapsedTimeSec, frameCount, onceSecond);
+						obj.Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
 					}
 				});
 			});
 
 			riveRenderer.flush();
 
-			PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond);
+			PixiController.get().Update(elapsedTimeSec, frameCount, onceSecond, onceMinute);
 
 			inFrame = false;
 			if(!this._disposed) this._animationFrameId = riveInstance.requestAnimationFrame(updateLoop);

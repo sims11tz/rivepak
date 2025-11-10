@@ -79,8 +79,8 @@ export declare class CanvasEngine {
     private _canvasHeight;
     get height(): number;
     private updateListeners;
-    AddUpdateListener(listener: (t: number, dt: number, frameCount: number, oncePerSecond: boolean) => void): void;
-    RemoveUpdateListener(listener: (t: number, dt: number, frameCount: number, oncePerSecond: boolean) => void): void;
+    AddUpdateListener(listener: (t: number, dt: number, frameCount: number, oncePerSecond: boolean, oncePerMinute: boolean) => void): void;
+    RemoveUpdateListener(listener: (t: number, dt: number, frameCount: number, oncePerSecond: boolean, oncePerMinute: boolean) => void): void;
     Init(canvasSettings: CanvasSettingsDef, onInitComplete?: () => void): Promise<void>;
     get RunState(): CANVAS_ENGINE_RUN_STATE;
     ToggleRunState(): void;

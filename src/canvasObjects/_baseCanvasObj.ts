@@ -443,7 +443,7 @@ export abstract class BaseCanvasObj
 		}
 	}
 
-	public abstract Update(time: number, frameCount: number, onceSecond: boolean): void;
+	public abstract Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean): void;
 
 	public SwapDepths(other:BaseCanvasObj)
 	{

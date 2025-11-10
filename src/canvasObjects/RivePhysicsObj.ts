@@ -24,12 +24,12 @@ export class RivePhysicsObject extends BaseRivePhysicsObject
 		super.ApplyResolutionScale(scale, property);
 	}
 
-	public Update(time: number, frameCount: number, onceSecond: boolean)
+	public Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean)
 	{
 		if (this.enabled === false) return;
 
-		CanvasRiveObj.prototype.Update.call(this, time, frameCount, onceSecond);
-		super.Update(time, frameCount, onceSecond);
+		CanvasRiveObj.prototype.Update.call(this, time, frameCount, onceSecond, onceMinute);
+		super.Update(time, frameCount, onceSecond, onceMinute);
 	}
 
 	public Dispose(): void

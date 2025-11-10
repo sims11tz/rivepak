@@ -9,7 +9,7 @@ interface iCollisionMixin
 {
 	InitPhysics(): void;
 	OnCollision(other: BaseCanvasObj, impactForce: number): void;
-	UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
+	UpdatePhysics(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
 	Dispose(): void;
 }
 
@@ -220,15 +220,15 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 			}
 		}
 
-		public UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void
+		public UpdatePhysics(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void
 		{
 			//console.log("MIXIN UpdatePhysics "+this.label+"<"+frameCount+"> "+time, frameCount, onceSecond);
 		}
 
-		public Update(time: number, frameCount: number, onceSecond: boolean): void
+		public Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void
 		{
 			//if(onceSecond) console.log("MIXIN update "+this.label+"<"+frameCount+"> "+this.x+"/"+this.y+"");
-			this.UpdatePhysics(time, frameCount, onceSecond);
+			this.UpdatePhysics(time, frameCount, onceSecond, onceMinute);
 
 			if (this._body)
 			{

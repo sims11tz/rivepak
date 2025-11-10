@@ -90,7 +90,7 @@ export class PhysicsController {
             Matter.World.add(this._engine.world, body);
         }
     }
-    Update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond, onceMinute) {
         if (this._engine) {
             const fixedTimeStep = Math.min(time * 1000, 16.667);
             Matter.Engine.update(this._engine, fixedTimeStep);

@@ -166,6 +166,10 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * Remove all event listeners
      */
     ClearAllRiveEventListeners(): void;
+    /**
+     * Override SetParent to manage interactive graphics lifecycle
+     */
+    SetParent(parent: BaseCanvasObj | null): void;
     SetViewModelInstance(vmi: ViewModelInstance | null): void;
     get ViewModelInstance(): ViewModelInstance | null;
     /**
@@ -228,6 +232,10 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _lastMouseDown;
     private _entityObj;
     private dumpWasmObject;
+    /**
+     * Override InitVisuals to create interactive graphics when object is added to engine
+     */
+    InitVisuals(): void;
     InitRiveObject(): void;
     private _initRiveObjectVisuals;
     private _initRiveObjectStates;
@@ -243,7 +251,9 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     SetAnimationAutoPlay(name: string, autoPlay: boolean): boolean;
     SetAllAnimationsAutoPlay(autoPlay: boolean): void;
     DisableAutoPlayForAnimations(names: string[]): void;
-    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    private _customOncePerCheck;
+    private _ranOncePerCheck;
+    Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
     SetText(text: string): void;
     /**
      * Change the scale mode at runtime
@@ -257,7 +267,9 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     private _textLabel;
     private drawTextLabel;
     private _interactiveGraphics;
+    private _needsInteractive;
     private initInteractive;
+    private destroyInteractive;
     private _currentRiveCursor;
     get CurrentCursor(): RIVE_CURSOR_TYPES;
     set CurrentCursor(cursor: RIVE_CURSOR_TYPES);

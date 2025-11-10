@@ -101,7 +101,7 @@ export class PhysicsController
 		}
 	}
 
-	public Update(time: number, frameCount: number, onceSecond: boolean): void
+	public Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean): void
 	{
 		if (this._engine)
 		{

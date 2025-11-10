@@ -524,6 +524,30 @@ export class CanvasRiveObj extends BaseCanvasObj {
     ClearAllRiveEventListeners() {
         this._eventCallbacks.clear();
     }
+    /**
+     * Override SetParent to manage interactive graphics lifecycle
+     */
+    SetParent(parent) {
+        console.warn('setparent');
+        console.log(`.SetParent called for "${this._label}"`);
+        const hadParent = this._parent !== null;
+        const willHaveParent = parent !== null;
+        super.SetParent(parent);
+        // Handle interactive graphics based on parent state
+        if (this.defObj.interactive) {
+            if (willHaveParent && !hadParent) {
+                // Just got added to engine - create interactive if needed
+                if (this._needsInteractive) {
+                    this.initInteractive();
+                    this._needsInteractive = false;
+                }
+            }
+            else if (!willHaveParent && hadParent) {
+                // Just removed from engine - destroy interactive
+                this.destroyInteractive();
+            }
+        }
+    }
     SetViewModelInstance(vmi) {
         var _a;
         const debug = false;
@@ -717,8 +741,11 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._lastMousePos = { x: -1, y: -1 };
         this._lastMouseDown = false;
         this._entityObj = null;
+        this._customOncePerCheck = false;
+        this._ranOncePerCheck = false;
         this._textLabel = null;
         this._interactiveGraphics = null;
+        this._needsInteractive = false; // Flag to track if interactive should be created when parent is set
         this._currentRiveCursor = RIVE_CURSOR_TYPES.DEFAULT;
         this._riveObjDef = riveDef;
         if (this._riveObjDef.id != undefined && this._riveObjDef.id != "") {
@@ -765,6 +792,17 @@ export class CanvasRiveObj extends BaseCanvasObj {
             console.groupEnd();
             proto = Object.getPrototypeOf(proto);
             level++;
+        }
+    }
+    /**
+     * Override InitVisuals to create interactive graphics when object is added to engine
+     */
+    InitVisuals() {
+        super.InitVisuals();
+        // Create interactive graphics now that object is being added to engine
+        if (this.defObj.interactive && this._needsInteractive) {
+            this.initInteractive(true); // forceCreate=true since we're being added to engine
+            this._needsInteractive = false;
         }
     }
     InitRiveObject() {
@@ -1082,9 +1120,13 @@ export class CanvasRiveObj extends BaseCanvasObj {
             this.SetAnimationAutoPlay(name, false);
         });
     }
-    Update(time, frameCount, onceSecond) {
+    Update(time, frameCount, onceSecond, onceMinute) {
         if (this.enabled === false || this._disposed)
             return;
+        if (!this._ranOncePerCheck) {
+            this._ranOncePerCheck = true;
+            onceSecond = onceMinute = true;
+        }
         this._actionQueueProcessedThisFrame = false;
         this._processActionQueue();
         if (!this._disposed) {
@@ -1260,18 +1302,22 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, this._objBoundsReuse, this.artboard.bounds);
             }
             if (this._interactiveGraphics) {
+                if (this._customOncePerCheck === false) {
+                    this._customOncePerCheck = true;
+                    onceMinute = true;
+                }
                 // Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
                 // So divide by DPR to convert back to CSS coordinates for Pixi
                 const dpr = Math.max(1, window.devicePixelRatio || 1);
-                if (onceSecond)
+                if (onceMinute)
                     console.log('>>igraph>1>' + this.id + ':' + this._label + '>  dpr=' + dpr);
                 this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
                 this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
-                if (onceSecond)
+                if (onceMinute)
                     console.log('>>igraph>2>  x=' + this._interactiveGraphics.x + ', y=' + this._interactiveGraphics.y);
                 this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
                 this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
-                if (onceSecond)
+                if (onceMinute)
                     console.log('>>igraph>3>  w=' + this._interactiveGraphics.width + ', h=' + this._interactiveGraphics.height);
             }
             if (this._textLabel) {
@@ -1388,13 +1434,29 @@ export class CanvasRiveObj extends BaseCanvasObj {
             PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._textLabel);
         }
     }
-    initInteractive() {
+    initInteractive(forceCreate = false) {
+        // Only create interactive graphics if we have a parent (are added to engine)
+        // OR if forceCreate is true (called from InitVisuals which means we're being added to engine)
+        if (!forceCreate && this._parent === null) {
+            console.log('initInteractive cock block');
+            this._needsInteractive = true;
+            return;
+        }
+        console.log('initInteractive 1> go');
+        // Prevent double-initialization
+        if (this._interactiveGraphics) {
+            console.log('initInteractive cock block 2');
+            return;
+        }
+        console.warn('');
         console.log("   INIT INTERACTIVE RIVE OBJECT -- <" + this.id + ":" + this._label + ">");
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._interactiveGraphics);
+        console.log("interactiveGraphics rect: w:" + this.width + " h:" + this.height);
         this._interactiveGraphics.rect(0, 0, this.width, this.height);
         this._interactiveGraphics.fill({ color: 0x650a5a, alpha: 0.05 });
         this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 1 });
+        console.log("interactiveGraphics : w:" + this._interactiveGraphics.width + " h:" + this._interactiveGraphics.height);
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";
@@ -1402,6 +1464,19 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._interactiveGraphics.on("pointerdown", this.onClick, this);
         this._interactiveGraphics.on("pointerover", this.onHover, this);
         this._interactiveGraphics.on("pointerout", this.onHoverOut, this);
+    }
+    destroyInteractive() {
+        if (this._interactiveGraphics) {
+            // Remove specific event listeners
+            this._interactiveGraphics.off("pointerdown", this.onClick, this);
+            this._interactiveGraphics.off("pointerover", this.onHover, this);
+            this._interactiveGraphics.off("pointerout", this.onHoverOut, this);
+            // Remove all listeners just in case
+            this._interactiveGraphics.removeAllListeners();
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._interactiveGraphics);
+            this._interactiveGraphics.destroy();
+            this._interactiveGraphics = null;
+        }
     }
     get CurrentCursor() {
         return this._currentRiveCursor;
@@ -1422,6 +1497,10 @@ export class CanvasRiveObj extends BaseCanvasObj {
     onClick(event) {
         var _a;
         console.log('CLICK Rive Object: ' + this._label);
+        console.log('CLICK Rive Object: x:' + this.x + ', y:' + this.y + ' ---  w:' + this.width + ', h:' + this.height);
+        console.log('CLICK Rive Object: artboard w:' + this.artboard.width + ', h:' + this.artboard.height);
+        console.log('CLICK Rive Object: scaleMode:', this.defObj.scaleMode);
+        console.log('CLICK Rive Object: xScale:' + this.xScale + ', yScale:' + this.yScale);
         if (this._onClickCallback) {
             (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
         }
@@ -1496,17 +1575,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._artboard = null;
         this._riveInstance = null;
         // Clean up interactive graphics with proper event removal
-        if (this._interactiveGraphics) {
-            // Remove specific event listeners
-            this._interactiveGraphics.off("pointerdown", this.onClick, this);
-            this._interactiveGraphics.off("pointerover", this.onHover, this);
-            this._interactiveGraphics.off("pointerout", this.onHoverOut, this);
-            // Remove all listeners just in case
-            this._interactiveGraphics.removeAllListeners();
-            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._interactiveGraphics);
-            this._interactiveGraphics.destroy();
-            this._interactiveGraphics = null;
-        }
+        this.destroyInteractive();
         // Clean up text label
         if (this._textLabel) {
             this._textLabel.removeAllListeners();

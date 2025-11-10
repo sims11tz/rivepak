@@ -157,12 +157,12 @@ export function CanvasPhysicsMixin(Base) {
                 }
             }
         }
-        UpdatePhysics(time, frameCount, onceSecond) {
+        UpdatePhysics(time, frameCount, onceSecond, onceMinute) {
             //console.log("MIXIN UpdatePhysics "+this.label+"<"+frameCount+"> "+time, frameCount, onceSecond);
         }
-        Update(time, frameCount, onceSecond) {
+        Update(time, frameCount, onceSecond, onceMinute) {
             //if(onceSecond) console.log("MIXIN update "+this.label+"<"+frameCount+"> "+this.x+"/"+this.y+"");
-            this.UpdatePhysics(time, frameCount, onceSecond);
+            this.UpdatePhysics(time, frameCount, onceSecond, onceMinute);
             if (this._body) {
                 if (this._resolutionScale !== -1) {
                     if (onceSecond) {

@@ -17,8 +17,8 @@ declare const BaseRivePhysicsObject_base: {
         readonly _EPSILON: 0.0001;
         shouldScale(scaleDelta: number): boolean;
         ApplyResolutionScale(scale: number, property?: string): void;
-        UpdatePhysics(time: number, frameCount: number, onceSecond: boolean): void;
-        Update(time: number, frameCount: number, onceSecond: boolean): void;
+        UpdatePhysics(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
+        Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
         OnCollision(other: import("./_baseCanvasObj").BaseCanvasObj, impactForce: number): void;
         Dispose(): void;
         _uuid: string;
@@ -76,7 +76,7 @@ declare const BaseRivePhysicsObject_base: {
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "visible" | "z" | "xScale" | "yScale" | "render", (oldValue: number | boolean, newValue: number | boolean) => void>;
         visible: boolean;
         render: boolean;
         z: number;
@@ -88,8 +88,8 @@ declare const BaseRivePhysicsObject_base: {
         readonly renderYScale: number;
         InitVisuals(): void;
         SwapDepths(other: import("./_baseCanvasObj").BaseCanvasObj): void;
-        BindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
-        UnbindPropertyChange(property: "x" | "y" | "z" | "xScale" | "yScale" | "visible"): void;
+        BindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale", callback: (oldValue: number | boolean, newValue: number | boolean) => void): void;
+        UnbindPropertyChange(property: "x" | "y" | "visible" | "z" | "xScale" | "yScale"): void;
         OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         _OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         OnDispose: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj) => void) | null;
@@ -102,7 +102,7 @@ export declare class RivePhysicsObject extends BaseRivePhysicsObject {
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     InitRiveObject(): void;
     ApplyResolutionScale(scale: number, property?: string): void;
-    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
     Dispose(): void;
 }
 export {};
