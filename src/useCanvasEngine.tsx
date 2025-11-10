@@ -56,6 +56,7 @@ export class CanvasSettingsDef
 	public debugMode?:boolean;
 	public borderWidth?:number;
 	public borderColor?:string;
+	public backgroundColor?:string;
 	public targetScaleElementId?:string;
 
 	constructor({
@@ -68,6 +69,7 @@ export class CanvasSettingsDef
 		debugMode=false,
 		borderWidth=1,
 		borderColor="black",
+		backgroundColor="transparent",
 		targetScaleElementId="routesContainer"
 	}) {
 		this.physicsEnabled = physicsEnabled;
@@ -79,6 +81,7 @@ export class CanvasSettingsDef
 		this.debugMode = debugMode;
 		this.borderWidth = borderWidth;
 		this.borderColor = borderColor;
+		this.backgroundColor = backgroundColor;
 		this.targetScaleElementId = targetScaleElementId;
 	}
 }
@@ -1031,7 +1034,7 @@ export function UseCanvasEngineHook(
 						<span className="fpsSpinner" style={{display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px"}} ref={fpsSpinner}></span><span ref={fpsRef}></span>
 					</div>
 				</div>
-				<div id="canvasContainer" ref={canvasContainerRef} style={{ position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" }}>
+				<div id="canvasContainer" ref={canvasContainerRef} style={{ position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, backgroundColor: canvasSettings.backgroundColor, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" }}>
 					<div id="pixiCanvasContainer"  /*style={{ position: "absolute", top: 0, left: 0 }}*/ >
 						<canvas id="pixiCanvasAbove" ref={pixiCanvasRefAbove} style={{ position: "absolute", top: 0, left: 0, zIndex:3 }} />
 						<canvas id="riveCanvas" ref={canvasRef} style={{ border: "1px solid black", position:"absolute", zIndex: 2}} />

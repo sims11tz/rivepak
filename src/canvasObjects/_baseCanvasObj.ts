@@ -3,6 +3,14 @@ import Matter from "matter-js";
 import { PIXI_LAYER } from "../controllers/PixiController";
 import type { TextStyleOptions } from "pixi.js";
 
+export enum OBJECT_SCALE_MODE
+{
+	MANUAL = "MANUAL",       // Explicit xScale/yScale values (current default behavior)
+	FIT = "FIT",            // Scale to fit inside bounds, maintain aspect ratio
+	FILL = "FILL",          // Scale to fill bounds completely, maintain aspect ratio (may crop)
+	STRETCH = "STRETCH"      // Scale to fill bounds exactly, break aspect ratio if needed
+}
+
 export class GlobalUIDGenerator
 {
 	private static currentId = 0;
@@ -133,6 +141,10 @@ export interface CanvasObjectDef
 
 	xScale?:number;
 	yScale?:number;
+
+	// Object scaling mode configuration
+	scaleMode?:OBJECT_SCALE_MODE;
+	scaleBounds?:{width:number; height:number}; // Bounds to scale relative to (canvas, container, etc.)
 
 	x?:number;
 	y?:number;

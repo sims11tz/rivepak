@@ -41,7 +41,7 @@ export class ResizeCanvasObj {
     }
 }
 export class CanvasSettingsDef {
-    constructor({ physicsEnabled = false, physicsWalls = false, width = 800, height = 500, autoScale = false, scaleMode = CANVAS_SCALE_MODE.LETTERBOX, debugMode = false, borderWidth = 1, borderColor = "black", targetScaleElementId = "routesContainer" }) {
+    constructor({ physicsEnabled = false, physicsWalls = false, width = 800, height = 500, autoScale = false, scaleMode = CANVAS_SCALE_MODE.LETTERBOX, debugMode = false, borderWidth = 1, borderColor = "black", backgroundColor = "transparent", targetScaleElementId = "routesContainer" }) {
         this.physicsEnabled = physicsEnabled;
         this.physicsWalls = physicsWalls;
         this.width = width;
@@ -51,6 +51,7 @@ export class CanvasSettingsDef {
         this.debugMode = debugMode;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
+        this.backgroundColor = backgroundColor;
         this.targetScaleElementId = targetScaleElementId;
     }
 }
@@ -794,7 +795,7 @@ export function UseCanvasEngineHook(settings = {}, onInit) {
     const RunState = () => CanvasEngine.get().RunState;
     const canvasJSXRef = useRef(null);
     if (!canvasJSXRef.current) {
-        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ id: "canvasContainer", ref: canvasContainerRef, style: { position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" } }, { children: [_jsxs("div", Object.assign({ id: "pixiCanvasContainer" /*style={{ position: "absolute", top: 0, left: 0 }}*/ }, { children: [_jsx("canvas", { id: "pixiCanvasAbove", ref: pixiCanvasRefAbove, style: { position: "absolute", top: 0, left: 0, zIndex: 3 } }), _jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black", position: "absolute", zIndex: 2 } }), _jsx("canvas", { id: "pixiCanvasBelow", ref: pixiCanvasRefBelow, style: { position: "absolute", top: 0, left: 0, zIndex: 1 } })] })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
+        canvasJSXRef.current = (_jsxs("div", Object.assign({ id: "canvasArea", ref: canvasAreaRef }, { children: [_jsxs("div", Object.assign({ id: "debugTools", className: "debugTools", style: { display: canvasSettings.debugMode ? "flex" : "none", position: "absolute", zIndex: "99999", bottom: "2px", left: "10px", gap: "10px", marginBottom: "10px", alignItems: "center", justifyContent: "center" } }, { children: [_jsx("button", Object.assign({ onClick: ToggleRunState }, { children: _jsx("span", { ref: runStateLabel }) })), _jsxs("div", Object.assign({ className: "fpsContainer", style: { display: "flex", flexDirection: "row", justifyContent: "space-around" } }, { children: [_jsx("span", { className: "fpsSpinner", style: { display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px" }, ref: fpsSpinner }), _jsx("span", { ref: fpsRef })] }))] })), _jsxs("div", Object.assign({ id: "canvasContainer", ref: canvasContainerRef, style: { position: "relative", borderTop: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, borderBottom: `${canvasSettings.borderWidth}px solid ${canvasSettings.borderColor}`, backgroundColor: canvasSettings.backgroundColor, width: "100%", height: "100%", margin: "0 auto", overflow: "hidden" } }, { children: [_jsxs("div", Object.assign({ id: "pixiCanvasContainer" /*style={{ position: "absolute", top: 0, left: 0 }}*/ }, { children: [_jsx("canvas", { id: "pixiCanvasAbove", ref: pixiCanvasRefAbove, style: { position: "absolute", top: 0, left: 0, zIndex: 3 } }), _jsx("canvas", { id: "riveCanvas", ref: canvasRef, style: { border: "1px solid black", position: "absolute", zIndex: 2 } }), _jsx("canvas", { id: "pixiCanvasBelow", ref: pixiCanvasRefBelow, style: { position: "absolute", top: 0, left: 0, zIndex: 1 } })] })), canvasSettings.debugMode && _jsx("div", { ref: debugContainerRef, style: { position: "absolute", top: 0, left: 0, pointerEvents: "none", opacity: 0.25, } })] }))] })));
     }
     const hasEngineInitialized = useRef(false);
     useEffect(() => {

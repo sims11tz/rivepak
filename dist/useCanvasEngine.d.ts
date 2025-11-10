@@ -33,8 +33,9 @@ export declare class CanvasSettingsDef {
     debugMode?: boolean;
     borderWidth?: number;
     borderColor?: string;
+    backgroundColor?: string;
     targetScaleElementId?: string;
-    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, scaleMode, debugMode, borderWidth, borderColor, targetScaleElementId }: {
+    constructor({ physicsEnabled, physicsWalls, width, height, autoScale, scaleMode, debugMode, borderWidth, borderColor, backgroundColor, targetScaleElementId }: {
         physicsEnabled?: boolean | undefined;
         physicsWalls?: boolean | undefined;
         width?: number | undefined;
@@ -44,6 +45,7 @@ export declare class CanvasSettingsDef {
         debugMode?: boolean | undefined;
         borderWidth?: number | undefined;
         borderColor?: string | undefined;
+        backgroundColor?: string | undefined;
         targetScaleElementId?: string | undefined;
     });
 }

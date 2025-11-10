@@ -1,7 +1,7 @@
 /// <reference types="matter-js" />
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
-import { BaseCanvasObj } from "./_baseCanvasObj";
+import { BaseCanvasObj, OBJECT_SCALE_MODE } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 export declare enum RIVEBUS_COMMON_APP_TO_RIVE_EVENTS {
     BUTTON_CLICK_EVENT = "BUTTON_CLICK_EVENT",
@@ -245,6 +245,15 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     DisableAutoPlayForAnimations(names: string[]): void;
     Update(time: number, frameCount: number, onceSecond: boolean): void;
     SetText(text: string): void;
+    /**
+     * Change the scale mode at runtime
+     * @param scaleMode - The new scale mode to apply
+     * @param scaleBounds - Optional new bounds (if not provided, uses existing scaleBounds from defObj)
+     */
+    SetScaleMode(scaleMode: OBJECT_SCALE_MODE, scaleBounds?: {
+        width: number;
+        height: number;
+    }): void;
     private _textLabel;
     private drawTextLabel;
     private _interactiveGraphics;
