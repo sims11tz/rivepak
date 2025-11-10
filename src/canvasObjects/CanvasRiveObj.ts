@@ -1611,12 +1611,15 @@ export class CanvasRiveObj extends BaseCanvasObj
 				// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
 				// So divide by DPR to convert back to CSS coordinates for Pixi
 				const dpr = Math.max(1, window.devicePixelRatio || 1);
+				if(onceSecond) console.log('>>igraph>1>'+this.id+':'+this._label+'>  dpr='+dpr);
 
 				this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
 				this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
+				if(onceSecond) console.log('>>igraph>2>  x='+this._interactiveGraphics.x+', y='+this._interactiveGraphics.y);
 
 				this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
 				this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+				if(onceSecond) console.log('>>igraph>3>  w='+this._interactiveGraphics.width+', h='+this._interactiveGraphics.height);
 			}
 
 			if(this._textLabel)
@@ -1771,13 +1774,13 @@ export class CanvasRiveObj extends BaseCanvasObj
 	private _interactiveGraphics: PIXI.Graphics | null = null;
 	private initInteractive()
 	{
-		//console.log("   INIT INTERACTIVE RIVE OBJECT -- "+this._label);
+		console.log("   INIT INTERACTIVE RIVE OBJECT -- <"+this.id+":"+this._label+">");
 		this._interactiveGraphics = new PIXI.Graphics();
 		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._interactiveGraphics);
 
 		this._interactiveGraphics.rect(0, 0, this.width, this.height);
-		this._interactiveGraphics.fill({color:0x650a5a, alpha:0});
-		this._interactiveGraphics.stroke({ width: 1, color: 0xfeeb77, alpha: 0 });
+		this._interactiveGraphics.fill({color:0x650a5a, alpha: 0.05});
+		this._interactiveGraphics.stroke({ width: 1, color:0xfeeb77, alpha: 1 });
 
 		this._interactiveGraphics.x = this.x;
 		this._interactiveGraphics.y = this.y;
@@ -1827,6 +1830,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected onClick(event:MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
+		console.log('CLICK Rive Object: '+this._label);
 		if(this._onClickCallback)
 		{
 			this._onClickCallback?.(event,this);

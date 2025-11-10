@@ -7,16 +7,8 @@ import * as PIXI from "pixi.js";
 export class CanvasContainerObj extends BaseCanvasObj
 {
 	public children: BaseCanvasObj[] = [];
+	private _childOriginalTransforms: Map<string, { x: number; y: number; xScale: number; yScale: number; }> = new Map();
 
-	// Store original child transforms for relative positioning
-	private _childOriginalTransforms: Map<string, {
-		x: number;
-		y: number;
-		xScale: number;
-		yScale: number;
-	}> = new Map();
-
-	// Override visible property to propagate to children
 	public override get visible(): boolean
 	{
 		return super.visible;
@@ -25,7 +17,6 @@ export class CanvasContainerObj extends BaseCanvasObj
 	{
 		//console.log('%c <CanvasContainerObj> setting visible for '+this.label+' to '+value,'color:#FF8800; font-weight:bold;');
 		super.visible = value;
-		// Propagate visibility to all children (unless they have independent visibility)
 		for(const child of this.children)
 		{
 			if(!child.independentVisibility)
@@ -43,6 +34,9 @@ export class CanvasContainerObj extends BaseCanvasObj
 	constructor(canvasDef:CanvasObjectDef)
 	{
 		super(canvasDef);
+
+		this._debugRive = true;
+
 		this.InitContainer();
 	}
 
@@ -76,8 +70,11 @@ export class CanvasContainerObj extends BaseCanvasObj
 			this._debugGraphics = new PIXI.Graphics();
 			PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
 
-			this._debugGraphics.x = this.x;
-			this._debugGraphics.y = this.y;
+			// Pixi uses logical pixels, but container coordinates might be in Rive's high-DPI space
+			// Scale the debug graphics by devicePixelRatio to match Rive coordinates
+			const dpr = window.devicePixelRatio || 1;
+			this._debugGraphics.x = this.x / dpr;
+			this._debugGraphics.y = this.y / dpr;
 			this._debugGraphics.scale.set(this.xScale, this.yScale);
 			this._debugGraphics.eventMode = "static";
 		}
@@ -91,10 +88,12 @@ export class CanvasContainerObj extends BaseCanvasObj
 	{
 		if(this._debugRive && this._debugGraphics)
 		{
+			// Draw in Rive coordinate space (high-DPI)
+			const dpr = window.devicePixelRatio || 1;
 			this._debugGraphics.clear();
-			this._debugGraphics.rect(0, 0, this.width, this.height);
-			this._debugGraphics.fill({color: 0x66CCFF, alpha: 0.45});
-			this._debugGraphics.stroke({ width: 2, color: 0xfeeb77, alpha: 0.35 });
+			this._debugGraphics.rect(0, 0, this.width / dpr, this.height / dpr);
+			this._debugGraphics.fill({color: 0x66CCFF, alpha: 0.15});
+			this._debugGraphics.stroke({ width: 2 / dpr, color: 0xfeeb77, alpha: 0.5 });
 		}
 	}
 
@@ -399,20 +398,37 @@ export class CanvasContainerObj extends BaseCanvasObj
 		let transformedY = 0;
 		let yScale = 0;
 
+		const dpr = window.devicePixelRatio || 1;
+
 		if(CanvasEngine.get().EngineSettings?.autoScale && (this._debugRive && this._debugGraphics))
 		{
-			transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-			transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+			transformedX = (this.x * CanvasEngine.get().CurrentCanvasScale) / dpr;
+			transformedY = (this.y * CanvasEngine.get().CurrentCanvasScale) / dpr;
 			xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
 			yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
 		}
 		else
 		{
-			transformedX = this.x;
-			transformedY = this.y;
+			transformedX = this.x / dpr;
+			transformedY = this.y / dpr;
 			xScale = this.xScale;
 			yScale = this.yScale;
 		}
+
+		//if(CanvasEngine.get().EngineSettings?.autoScale && (this._debugRive && this._debugGraphics))
+		//{
+		//	transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
+		//	transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
+		//	xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
+		//	yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
+		//}
+		//else
+		//{
+		//	transformedX = this.x;
+		//	transformedY = this.y;
+		//	xScale = this.xScale;
+		//	yScale = this.yScale;
+		//}
 
 		//if(this._graphics)
 		//{

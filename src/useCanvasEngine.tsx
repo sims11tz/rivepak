@@ -773,6 +773,8 @@ export class CanvasEngine
 		console.log(`%c │ ├─ State Machines: ${totalStateMachines}`, 'color:#b19cd9;');
 		console.log(`%c │ └─ Physics Bodies: ${totalPhysicsBodies}`, 'color:#b19cd9;');
 		console.log('%c', 'color:#7050a8;');
+		console.log('%c', 'color:#7050a8;', this._canvasObjects);
+		console.log('%c', 'color:#7050a8;');
 
 		// If summary only, skip detailed output
 		if(summaryOnly)
