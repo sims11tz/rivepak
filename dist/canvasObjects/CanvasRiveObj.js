@@ -1397,15 +1397,52 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     maxX: this._objBoundsReuse.maxX,
                     maxY: this._objBoundsReuse.maxY
                 };
-                if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER) {
+                if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.TOP_CENTER) {
                     // The artboard is stretched to fit canvas height, so its rendered width is in test1.maxX
                     // Calculate how much wider the canvas is than the rendered artboard, then shift by half
                     const offsetNumber = (PixiController.get().PixiAbove.view.width - test1.maxX) / 2;
                     if (onceSecond)
-                        console.log('>>stretch>center>' + this.id + ':' + this._label + '>  canvasWidth=' + PixiController.get().PixiAbove.view.width + ', test1.maxX=' + test1.maxX + ', offsetNumber=' + offsetNumber);
+                        console.log(' !--!(' + this.label + ') scaleAlign === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!   offsetNumber=' + offsetNumber);
+                    //if(onceSecond) console.log('>>stretch>TOP_CENTER>'+this.id+':'+this._label+'>  canvasWidth='+PixiController.get().PixiAbove.view.width+', test1.maxX='+test1.maxX+', offsetNumber='+offsetNumber);
                     // Shift both edges by the same amount to move the entire artboard
                     test1.minX = test1.minX + offsetNumber;
                     test1.maxX = test1.maxX + offsetNumber;
+                }
+                else if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER) {
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  RiveController.width=' + RiveController.get().Canvas.width);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  PixiController.width=' + PixiController.get().PixiAbove.view.width);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  RiveController.height=' + RiveController.get().Canvas.height);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  PixiController.height=' + PixiController.get().PixiAbove.view.height);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    const offsetWNumber = (RiveController.get().Canvas.width - test1.maxX) / 2;
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W=' + offsetWNumber);
+                    test1.minX = test1.minX + offsetWNumber;
+                    test1.maxX = test1.maxX + offsetWNumber;
+                    const offsetHNumber = (RiveController.get().Canvas.height - test1.maxY);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset H=' + offsetHNumber);
+                    //const offsetHNumber = 400;
+                    test1.minY = test1.minY + offsetHNumber;
+                    test1.maxY = test1.maxY + offsetHNumber;
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! AFTER offSET test1.minY=' + test1.minY);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! AFTER offSET test1.maxY=' + test1.maxY);
+                    if (onceSecond)
+                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset H=' + offsetHNumber);
+                }
+                else {
+                    console.log(' else <> ');
                 }
                 const test = {
                     minX: this.artboard.bounds.minX,
@@ -1413,12 +1450,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     maxX: this.artboard.bounds.maxX,
                     maxY: this.artboard.bounds.maxY
                 };
-                //const test:AABB = {
-                //	minX: 0,
-                //	minY: 0,
-                //	maxX: 0,
-                //	maxY: 0
-                //};
                 // Try using Fit.none to skip automatic scaling, then manually scale
                 this.Renderer.align(this.Rive.Fit.none, this.Rive.Alignment.topCenter, test1, test);
             }
@@ -1544,7 +1575,6 @@ export class CanvasRiveObj extends BaseCanvasObj {
             console.log('initInteractive cock block 2');
             return;
         }
-        console.warn('');
         console.log("   INIT INTERACTIVE RIVE OBJECT -- <" + this.id + ":" + this._label + ">");
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._interactiveGraphics);
