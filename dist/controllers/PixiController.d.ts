@@ -27,4 +27,16 @@ export declare class PixiController {
     Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
     SetSize(width: number, height: number, dprIn?: number): void;
     Dispose(): void;
+    Debug(opts?: {
+        layer?: PIXI_LAYER | "BOTH";
+        maxDepth?: number;
+        includeBounds?: boolean;
+        includeWorldTransform?: boolean;
+        includeEventMode?: boolean;
+        includeHitArea?: boolean;
+        includeVisibility?: boolean;
+        includeZIndex?: boolean;
+        includeTextureInfo?: boolean;
+        filter?: (d: any) => boolean;
+    }): void;
 }

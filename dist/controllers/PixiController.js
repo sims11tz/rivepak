@@ -56,6 +56,7 @@ export class PixiController {
             this._CanvasAbove = document.createElement('canvas');
             this._CanvasAbove.id = 'pixiCanvasAbove';
             this._CanvasAbove.style.position = 'absolute';
+            this._CanvasAbove.style.border = '0';
             this._CanvasAbove.style.top = '0';
             this._CanvasAbove.style.left = '0';
             this._CanvasAbove.style.zIndex = '3';
@@ -204,6 +205,184 @@ export class PixiController {
         }
         catch (error) {
             console.error("PixiController - Error cleaning up Pixi Renderer:", error);
+        }
+    }
+    Debug(opts) {
+        const { layer = "BOTH", maxDepth = 6, includeBounds = true, includeWorldTransform = true, includeEventMode = true, includeHitArea = false, includeVisibility = true, includeZIndex = true, includeTextureInfo = true, filter, } = opts !== null && opts !== void 0 ? opts : {};
+        const dumpApp = (app, tag) => {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+            if (!app) {
+                console.warn(`[Pixi.Debug] No app for ${tag}`);
+                return;
+            }
+            const r = app.renderer;
+            const cssW = (_d = (_b = (_a = app.canvas) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : (_c = app.view) === null || _c === void 0 ? void 0 : _c.width) !== null && _d !== void 0 ? _d : 0; // v8: canvas (view is deprecated)
+            const cssH = (_h = (_f = (_e = app.canvas) === null || _e === void 0 ? void 0 : _e.height) !== null && _f !== void 0 ? _f : (_g = app.view) === null || _g === void 0 ? void 0 : _g.height) !== null && _h !== void 0 ? _h : 0;
+            const info = {
+                tag,
+                view: { cssW, cssH },
+                canvas: { pxW: (_k = (_j = app.canvas) === null || _j === void 0 ? void 0 : _j.width) !== null && _k !== void 0 ? _k : 0, pxH: (_m = (_l = app.canvas) === null || _l === void 0 ? void 0 : _l.height) !== null && _m !== void 0 ? _m : 0 },
+                resolution: (_o = r.resolution) !== null && _o !== void 0 ? _o : (window.devicePixelRatio || 1),
+                type: ((_p = r.context) === null || _p === void 0 ? void 0 : _p.webGLVersion) ? `WebGL${r.context.webGLVersion}` : "Canvas",
+                autoDensity: (_r = (_q = r.options) === null || _q === void 0 ? void 0 : _q.autoDensity) !== null && _r !== void 0 ? _r : r.autoDensity,
+                stageChildren: (_u = (_t = (_s = app.stage) === null || _s === void 0 ? void 0 : _s.children) === null || _t === void 0 ? void 0 : _t.length) !== null && _u !== void 0 ? _u : 0,
+            };
+            console.groupCollapsed(`%c[Pixi.Debug] ${tag} — ${info.type} @${info.resolution} ` +
+                `(css ${info.view.cssW}×${info.view.cssH}, canvas ${info.canvas.pxW}×${info.canvas.pxH}) — children:${info.stageChildren}`, "color:#00E0A4;font-weight:600;");
+            console.log("Renderer:", info);
+            const seen = new WeakSet();
+            const typeOf = (d) => {
+                var _a, _b;
+                if (PIXI.Text && d instanceof PIXI.Text)
+                    return "Text";
+                if (PIXI.Sprite && d instanceof PIXI.Sprite)
+                    return "Sprite";
+                if (PIXI.Graphics && d instanceof PIXI.Graphics)
+                    return "Graphics";
+                if (PIXI.Container && d instanceof PIXI.Container)
+                    return "Container";
+                return (_b = (_a = d.constructor) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "DisplayObject";
+            };
+            const texInfo = (d) => {
+                var _a, _b, _c, _d;
+                try {
+                    if (d.texture && d.texture.baseTexture) {
+                        const bt = d.texture.baseTexture;
+                        const src = (bt.resource && (bt.resource.url || bt.resource.src)) ||
+                            ((_b = (_a = bt.resource) === null || _a === void 0 ? void 0 : _a.orig) === null || _b === void 0 ? void 0 : _b.src) ||
+                            ((_d = (_c = bt.resource) === null || _c === void 0 ? void 0 : _c.image) === null || _d === void 0 ? void 0 : _d.currentSrc) ||
+                            undefined;
+                        return {
+                            texW: d.texture.width, texH: d.texture.height,
+                            baseW: bt.width, baseH: bt.height,
+                            src,
+                        };
+                    }
+                }
+                catch (_e) { }
+                return undefined;
+            };
+            const hitInfo = (d) => {
+                var _a, _b;
+                if (!includeHitArea)
+                    return undefined;
+                try {
+                    const ha = d.hitArea;
+                    if (!ha)
+                        return undefined;
+                    const ctor = (_b = (_a = ha === null || ha === void 0 ? void 0 : ha.constructor) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "HitArea";
+                    const parts = [ctor];
+                    if ("x" in ha && "y" in ha)
+                        parts.push(`x=${ha.x},y=${ha.y}`);
+                    if ("width" in ha && "height" in ha)
+                        parts.push(`w=${ha.width},h=${ha.height}`);
+                    if ("radius" in ha)
+                        parts.push(`r=${ha.radius}`);
+                    return parts.join(" ");
+                }
+                catch (_c) {
+                    return undefined;
+                }
+            };
+            const boundsInfo = (d) => {
+                if (!includeBounds)
+                    return undefined;
+                try {
+                    const b = d.getBounds(true);
+                    return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) };
+                }
+                catch (_a) {
+                    return undefined;
+                }
+            };
+            const wtInfo = (d) => {
+                if (!includeWorldTransform)
+                    return undefined;
+                try {
+                    const wt = d.worldTransform;
+                    if (!wt)
+                        return undefined;
+                    const { a, b, c, d: matrixD, tx, ty } = wt;
+                    return { a: +a.toFixed(3), b: +b.toFixed(3), c: +c.toFixed(3), d: +matrixD.toFixed(3), tx: +tx.toFixed(1), ty: +ty.toFixed(1) };
+                }
+                catch (_a) {
+                    return undefined;
+                }
+            };
+            const line = (prefix, d) => {
+                var _a;
+                const t = typeOf(d);
+                const parts = [];
+                // v8: use label (not name)
+                const label = (_a = d.label) !== null && _a !== void 0 ? _a : "";
+                parts.push(`${prefix}${t}${label ? `("${label}")` : ""}`);
+                if (includeVisibility)
+                    parts.push(`vis=${d.visible !== false}`);
+                if (includeZIndex && d.zIndex != null)
+                    parts.push(`z=${d.zIndex}`);
+                if (d.alpha != null && d.alpha !== 1)
+                    parts.push(`alpha=${d.alpha}`);
+                if (d.renderable === false)
+                    parts.push(`renderable=false`);
+                if (includeEventMode && d.eventMode)
+                    parts.push(`evt=${d.eventMode}`);
+                if (d.width != null && d.height != null) {
+                    parts.push(`w×h=${Math.round(d.width)}×${Math.round(d.height)}`);
+                }
+                const b = boundsInfo(d);
+                if (b)
+                    parts.push(`bounds=[${b.x},${b.y},${b.w},${b.h}]`);
+                const wt = wtInfo(d);
+                if (wt)
+                    parts.push(`WT=[a:${wt.a},b:${wt.b},c:${wt.c},d:${wt.d},tx:${wt.tx},ty:${wt.ty}]`);
+                const hi = hitInfo(d);
+                if (hi)
+                    parts.push(`hit:${hi}`);
+                const ti = includeTextureInfo ? texInfo(d) : undefined;
+                if (ti)
+                    parts.push(`tex=${ti.texW}×${ti.texH} base=${ti.baseW}×${ti.baseH}${ti.src ? ` src:${ti.src}` : ""}`);
+                return parts.join("  •  ");
+            };
+            const traverse = (node, depth, prefix) => {
+                if (!node || seen.has(node) || depth > maxDepth)
+                    return;
+                seen.add(node);
+                if (!filter || filter(node)) {
+                    const kids = Array.isArray(node.children) ? node.children : [];
+                    const hasKids = kids.length > 0;
+                    if (hasKids) {
+                        console.groupCollapsed(`%c${line(prefix, node)}  •  children:${kids.length}`, "color:#9EE8FF");
+                        for (let i = 0; i < kids.length; i++) {
+                            traverse(kids[i], depth + 1, prefix + (depth === 0 ? "" : "  "));
+                        }
+                        console.groupEnd();
+                    }
+                    else {
+                        // don’t collapse leaves; easier to see lone nodes
+                        console.log(`%c${line(prefix, node)}  •  children:0`, "color:#9EE8FF");
+                    }
+                }
+            };
+            traverse(app.stage, 0, "");
+            // extra explicit heads-up when there are no children
+            if (info.stageChildren === 0) {
+                console.warn(`[Pixi.Debug] ${tag} stage has 0 children. Are you adding to this layer’s stage?`);
+            }
+            console.groupEnd();
+        };
+        try {
+            if (layer === "BOTH") {
+                if (this._pixiInstanceBelow)
+                    dumpApp(this._pixiInstanceBelow, "BELOW");
+                if (this._pixiInstanceAbove)
+                    dumpApp(this._pixiInstanceAbove, "ABOVE");
+            }
+            else {
+                dumpApp(this.GetPixiInstance(layer), layer);
+            }
+        }
+        catch (e) {
+            console.warn("[Pixi.Debug] error:", e);
         }
     }
 }
