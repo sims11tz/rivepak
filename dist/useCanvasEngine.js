@@ -383,8 +383,8 @@ export class CanvasEngine {
         }
     }
     AddCanvasObjects(objs, group = "main") {
-        var _a, _b, _c, _d;
-        var _e;
+        var _a, _b, _c, _d, _e, _f;
+        var _g;
         let add = [];
         if (objs instanceof RiveObjectsSet)
             add = (_a = objs.objects) !== null && _a !== void 0 ? _a : [];
@@ -420,7 +420,7 @@ export class CanvasEngine {
                 dest.splice(idx, 1);
             }
             else {
-                (_d = (_e = obj)._inited) !== null && _d !== void 0 ? _d : (_e._inited = false);
+                (_d = (_g = obj)._inited) !== null && _d !== void 0 ? _d : (_g._inited = false);
                 if (!obj._inited) {
                     // Check if the object has a specific z value in its defObj
                     const hasExplicitZ = obj.defObj.z !== undefined && obj.defObj.z !== null;
@@ -431,6 +431,11 @@ export class CanvasEngine {
                         obj.z = ++maxAutoZ;
                         // Mark that this z was auto-assigned so we can track it
                         obj._autoAssignedZ = true;
+                    }
+                    // Trigger OnParentAdded hook for objects added directly to engine (without a parent container)
+                    // This allows objects to initialize Pixi graphics and other resources that require being in the engine
+                    if (obj.parent === null) {
+                        (_f = (_e = obj).OnParentAdded) === null || _f === void 0 ? void 0 : _f.call(_e);
                     }
                 }
             }

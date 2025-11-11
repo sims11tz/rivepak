@@ -219,7 +219,26 @@ export abstract class BaseCanvasObj
 	public height:number = 0;
 
 	public _parent:BaseCanvasObj | null = null;
-	public SetParent(parent:BaseCanvasObj | null): void {this._parent = parent;}
+	public SetParent(parent:BaseCanvasObj | null):void
+	{
+		console.log('_canvasCanvasObj--->'+this.id+':'+this.label+'< SET PARENT ))> '+((parent) ? parent.id+':'+parent.label : 'null'));
+		const hadParent = this._parent !== null;
+		const willHaveParent = parent !== null;
+
+		this._parent = parent;
+
+		// Trigger hooks based on parent state change
+		if(willHaveParent && !hadParent)
+		{
+			// Just got added to engine/container
+			this.OnParentAdded();
+		}
+		else if(!willHaveParent && hadParent)
+		{
+			// Just removed from engine/container
+			this.OnParentRemoved();
+		}
+	}
 	public get parent():BaseCanvasObj | null { return this._parent; }
 
 	// Store world coordinates separately for rendering (calculated by parent)
@@ -490,6 +509,24 @@ export abstract class BaseCanvasObj
 		this._OnDispose = func;
 	}
 	public _OnDispose:((canvasObj: BaseCanvasObj) => void) | null = null;
+
+	/**
+	 * Hook method called when object gets a parent (added to engine/container)
+	 * Subclasses can override to handle initialization that requires parent context
+	 */
+	public OnParentAdded():void
+	{
+		// Override in subclasses if needed
+	}
+
+	/**
+	 * Hook method called when object loses its parent (removed from engine/container)
+	 * Subclasses can override to handle cleanup that requires parent context
+	 */
+	public OnParentRemoved():void
+	{
+		// Override in subclasses if needed
+	}
 
 	public Dispose():void
 	{

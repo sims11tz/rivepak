@@ -75,7 +75,7 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"render" | "x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render", (oldValue: number | boolean, newValue: number | boolean) => void>;
         visible: boolean;
         render: boolean;
         z: number;
@@ -93,6 +93,8 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
         _OnZIndexChanged: ((canvasObj: BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         OnDispose: ((canvasObj: BaseCanvasObj) => void) | null;
         _OnDispose: ((canvasObj: BaseCanvasObj) => void) | null;
+        OnParentAdded(): void;
+        OnParentRemoved(): void;
     };
 } & T;
 export {};

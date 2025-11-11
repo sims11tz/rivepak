@@ -7,7 +7,12 @@ export declare class CanvasContainerObj extends BaseCanvasObj {
     set visible(value: boolean);
     constructor(canvasDef: CanvasObjectDef);
     protected _debugGraphics: PIXI.Graphics | null;
+    private _needsDebugGraphics;
     protected InitContainer(): void;
+    private initDebugGraphics;
+    private destroyDebugGraphics;
+    OnParentAdded(): void;
+    OnParentRemoved(): void;
     protected DrawDebug(): void;
     /**
      * Adds a child object to this container

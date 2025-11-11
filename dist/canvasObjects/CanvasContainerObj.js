@@ -25,11 +25,13 @@ export class CanvasContainerObj extends BaseCanvasObj {
         this.children = [];
         this._childOriginalTransforms = new Map();
         this._debugGraphics = null;
+        this._needsDebugGraphics = false; // Flag to track if debug graphics should be created when parent is set
         this._debugRive = true;
         this.InitContainer();
     }
     InitContainer() {
         var _a, _b, _c, _d, _e, _f;
+        console.log('%c <CanvasContainerObj> InitContainer for ' + this.label, 'color:#FF8800; font-weight:bold;');
         this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
         this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
         this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
@@ -46,29 +48,79 @@ export class CanvasContainerObj extends BaseCanvasObj {
             this.x -= (this.width / 2);
             this.y -= (this.height / 2);
         }
+        // Don't create debug graphics yet if we don't have a parent
+        // Wait until OnParentAdded is called
         if (this._debugRive) {
-            this._debugGraphics = new PIXI.Graphics();
-            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
-            // Pixi uses logical pixels, but container coordinates might be in Rive's high-DPI space
-            // Scale the debug graphics by devicePixelRatio to match Rive coordinates
-            const dpr = window.devicePixelRatio || 1;
-            this._debugGraphics.x = this.x / dpr;
-            this._debugGraphics.y = this.y / dpr;
-            this._debugGraphics.scale.set(this.xScale, this.yScale);
-            this._debugGraphics.eventMode = "static";
+            this.initDebugGraphics();
         }
-        //this.UpdateBaseProps();
-        if (this._debugRive)
-            this.DrawDebug();
+    }
+    initDebugGraphics(forceCreate = false) {
+        console.log('%c <CanvasContainerObj> initDebugGraphics for ' + this.label, 'color:#FF8800; font-weight:bold;');
+        console.log('%c <CanvasContainerObj> ' + this.label + '.  parent=>', 'color:#FF8800; font-weight:bold;', this._parent);
+        console.log('%c <CanvasContainerObj> ' + this.label + '.  forceCreate=>', 'color:#FF8800; font-weight:bold;', forceCreate);
+        // Only create debug graphics if we're being force-created (from OnParentAdded)
+        // OR if we have a parent (are in a container)
+        if (!forceCreate && this._parent === null) {
+            console.log('%c <CanvasContainerObj> COCK BLOCK 1 ' + this.label, 'color:#FF8800; font-weight:bold;');
+            this._needsDebugGraphics = true;
+            return;
+        }
+        // Prevent double-initialization
+        if (this._debugGraphics) {
+            console.log('%c <CanvasContainerObj> COCK BLOCK 2 ' + this.label, 'color:#FF8800; font-weight:bold;');
+            return;
+        }
+        console.log('%c <CanvasContainerObj> COCK BLOCK 3 create ' + this.label, 'color:#FF8800; font-weight:bold;');
+        this._debugGraphics = new PIXI.Graphics();
+        PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
+        // Pixi uses logical pixels, but container coordinates might be in Rive's high-DPI space
+        // Scale the debug graphics by devicePixelRatio to match Rive coordinates
+        const dpr = window.devicePixelRatio || 1;
+        this._debugGraphics.x = this.x / dpr;
+        this._debugGraphics.y = this.y / dpr;
+        this._debugGraphics.scale.set(this.xScale, this.yScale);
+        this._debugGraphics.eventMode = "static";
+        this.DrawDebug();
+    }
+    destroyDebugGraphics() {
+        if (this._debugGraphics) {
+            this._debugGraphics.removeAllListeners();
+            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._debugGraphics);
+            this._debugGraphics.destroy();
+            this._debugGraphics = null;
+        }
+    }
+    OnParentAdded() {
+        console.warn('%c <CanvasContainerObj> OnParentAdded for ' + this.label, 'color:#FF8800; font-weight:bold;');
+        // Handle debug graphics based on parent state
+        if (this._needsDebugGraphics) {
+            console.log('%c <CanvasContainerObj> call initDebug graphiocs ' + this.label, 'color:#FF8800; font-weight:bold;');
+            this.initDebugGraphics(true); // forceCreate=true since we're being added to engine
+            this._needsDebugGraphics = false;
+        }
+        else {
+            console.log('%c <CanvasContainerObj> call NO .. ', 'color:#FF8800; font-weight:bold;');
+        }
+    }
+    OnParentRemoved() {
+        console.warn('%c <CanvasContainerObj> OnParentRemoved for ' + this.label, 'color:#FF8800; font-weight:bold;');
+        // Clean up debug graphics when removed from engine
+        if (this._debugGraphics) {
+            this.destroyDebugGraphics();
+        }
     }
     DrawDebug() {
         if (this._debugRive && this._debugGraphics) {
+            console.log('%c <CanvasContainerObj> DrawDEBUG YES' + this.label, 'color:#FF8800; font-weight:bold;');
             // Draw in Rive coordinate space (high-DPI)
             const dpr = window.devicePixelRatio || 1;
             this._debugGraphics.clear();
             this._debugGraphics.rect(0, 0, this.width / dpr, this.height / dpr);
             this._debugGraphics.fill({ color: 0x66CCFF, alpha: 0.15 });
             this._debugGraphics.stroke({ width: 2 / dpr, color: 0xfeeb77, alpha: 0.5 });
+        }
+        else {
+            console.log('%c <CanvasContainerObj> DrawDEBUG no' + this.label, 'color:#FF8800; font-weight:bold;');
         }
     }
     /**
@@ -347,11 +399,14 @@ export class CanvasContainerObj extends BaseCanvasObj {
         //	this._graphics.y = transformedY;
         //	this._graphics.scale.set(xScale, yScale);
         //}
-        if (this._debugRive && this._debugGraphics) {
+        if (this._debugGraphics) {
+            if (onceSecond)
+                console.log('%c <' + frameCount + '>  updating debug graphics for container ' + this.label, 'color:#00FF88; font-weight:bold;');
             this._debugGraphics.x = transformedX;
             this._debugGraphics.y = transformedY;
             this._debugGraphics.scale.set(xScale, yScale);
         }
+        //if(onceSecond) console.log('%c <'+frameCount+'>  TEST '+this.label,'color:#00FF88; font-weight:bold;');
         for (const child of this.children) {
             //if(onceSecond) console.log('%c <'+frameCount+'>  updating child transform for '+child.label,'color:#00FF88; font-weight:bold;');
             this.updateChildTransform(child, onceSecond);
@@ -405,13 +460,8 @@ export class CanvasContainerObj extends BaseCanvasObj {
             // Dispose the child---- the Controller they are attached to should dispose of them.... we hope?
             //child.Dispose();
         }
-        // Clean up debug graphics if present
-        if (this._debugGraphics) {
-            this._debugGraphics.removeAllListeners();
-            PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.removeChild(this._debugGraphics);
-            this._debugGraphics.destroy();
-            this._debugGraphics = null;
-        }
+        // Clean up debug graphics using the helper method
+        this.destroyDebugGraphics();
         // Clear collections
         this.children = [];
         this._childOriginalTransforms.clear();

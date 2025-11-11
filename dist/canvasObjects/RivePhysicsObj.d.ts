@@ -76,7 +76,7 @@ declare const BaseRivePhysicsObject_base: {
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
-        _propertyChangeListeners: Map<"render" | "x" | "y" | "z" | "xScale" | "yScale" | "visible", (oldValue: number | boolean, newValue: number | boolean) => void>;
+        _propertyChangeListeners: Map<"x" | "y" | "z" | "xScale" | "yScale" | "visible" | "render", (oldValue: number | boolean, newValue: number | boolean) => void>;
         visible: boolean;
         render: boolean;
         z: number;
@@ -94,6 +94,8 @@ declare const BaseRivePhysicsObject_base: {
         _OnZIndexChanged: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj, oldZIndex: number, newZIndex: number) => void) | null;
         OnDispose: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj) => void) | null;
         _OnDispose: ((canvasObj: import("./_baseCanvasObj").BaseCanvasObj) => void) | null;
+        OnParentAdded(): void;
+        OnParentRemoved(): void;
     };
 } & typeof CanvasRiveObj;
 declare class BaseRivePhysicsObject extends BaseRivePhysicsObject_base {

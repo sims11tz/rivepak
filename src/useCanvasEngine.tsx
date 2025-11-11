@@ -429,6 +429,13 @@ export class CanvasEngine
 						// Mark that this z was auto-assigned so we can track it
 						(obj as any)._autoAssignedZ = true;
 					}
+
+					// Trigger OnParentAdded hook for objects added directly to engine (without a parent container)
+					// This allows objects to initialize Pixi graphics and other resources that require being in the engine
+					if(obj.parent === null)
+					{
+						(obj as any).OnParentAdded?.();
+					}
 				}
 			}
 

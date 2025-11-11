@@ -1400,47 +1400,31 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.TOP_CENTER) {
                     const offsetNumber = (PixiController.get().PixiAbove.view.width - objBoundsReuse.maxX) / 2;
                     if (daveDebug) {
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!       pixi.w=' + PixiController.get().PixiAbove.view.width);
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--! offsetNumber=' + offsetNumber);
+                        //if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!       pixi.w='+PixiController.get().PixiAbove.view.width);
+                        //if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--! offsetNumber='+offsetNumber);
                     }
                     objBoundsReuse.minX = objBoundsReuse.minX + offsetNumber;
                     objBoundsReuse.maxX = objBoundsReuse.maxX + offsetNumber;
                 }
                 else if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER) {
-                    if (daveDebug) {
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  RiveController.width=' + RiveController.get().Canvas.width);
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  PixiController.width=' + PixiController.get().PixiAbove.view.width);
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  RiveController.height=' + RiveController.get().Canvas.height);
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  PixiController.height=' + PixiController.get().PixiAbove.view.height);
-                        if (onceSecond)
-                            console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-                    }
+                    //if(daveDebug)
+                    //{
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  RiveController.width='+RiveController.get().Canvas.width);
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  PixiController.width='+PixiController.get().PixiAbove.view.width);
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  RiveController.height='+RiveController.get().Canvas.height);
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  PixiController.height='+PixiController.get().PixiAbove.view.height);
+                    //	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
+                    //}
                     const offsetWNumber = (RiveController.get().Canvas.width - objBoundsReuse.maxX) / 2;
-                    if (onceSecond)
-                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W=' + offsetWNumber);
+                    //if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W='+offsetWNumber);
                     objBoundsReuse.minX = objBoundsReuse.minX + offsetWNumber;
                     objBoundsReuse.maxX = objBoundsReuse.maxX + offsetWNumber;
                     // Vertical centering - divide by 2 to center (not just the full difference)
-                    if (onceSecond)
-                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--! BEFORE V-OFFSET objBoundsReuse.minY=' + objBoundsReuse.minY + ', objBoundsReuse.maxY=' + objBoundsReuse.maxY + ', canvasHeight=' + RiveController.get().Canvas.height);
-                    const offsetHNumber = (RiveController.get().Canvas.height - objBoundsReuse.maxY) / 2;
-                    if (onceSecond)
-                        console.log(' !--!(' + this.label + ') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset H=' + offsetHNumber);
+                    const offsetHNumber = (PixiController.get().PixiAbove.view.height / 2);
                     objBoundsReuse.minY = objBoundsReuse.minY + offsetHNumber;
                     objBoundsReuse.maxY = objBoundsReuse.maxY + offsetHNumber;
-                }
-                else {
-                    console.log(' else <> ');
                 }
                 const artboardBounds = {
                     minX: this.artboard.bounds.minX,
