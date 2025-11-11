@@ -1,6 +1,6 @@
-import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance, ViewModelInstanceTrigger } from "@rive-app/webgl2-advanced";
+import RiveCanvas, { AABB, Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance, ViewModelInstanceTrigger } from "@rive-app/webgl2-advanced";
 import { RiveController, RiveObjectDef } from "../controllers/RiveController";
-import { BaseCanvasObj, CanvasObjectEntity, GlobalUIDGenerator, OBJECT_SCALE_MODE } from "./_baseCanvasObj";
+import { BaseCanvasObj, CanvasObjectEntity, GlobalUIDGenerator, OBJECT_SCALE_ALIGN, OBJECT_SCALE_MODE } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 import { PixiController } from "../controllers/PixiController";
 import { CanvasEngine } from "../useCanvasEngine";
@@ -1619,6 +1619,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			// Get DPR to account for high-res backing store
 			const dpr = Math.max(1, window.devicePixelRatio || 1);
 
+
 			if(this._resolutionScale !== -1)
 			{
 				// Bounds for Rive renderer need to be in canvas pixels (with DPR)
@@ -1637,19 +1638,90 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 			this.Renderer.save();
 
+			const daveDebug = false;
 			// For STRETCH mode, use Fit.scaleDown which might allow non-uniform scaling
 			if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 			{
+				//if(daveDebug && onceSecond) console.log('>>stretch>1>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
+				//if(daveDebug && onceSecond) console.log('>>stretch>2>'+this.id+':'+this._label+'>  '+this._objBoundsReuse.minX+','+this._objBoundsReuse.minY+' -> '+this._objBoundsReuse.maxX+','+this._objBoundsReuse.maxY);
+
+
+
+				//const diff = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
+				//const diff2 = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
+				//const expectedWidth = this.artboard.width * this.xScale * dpr;
+				//const expectedHeight = this.artboard.height * this.yScale * dpr;
+				//if(daveDebug && onceSecond) console.log('>>stretch>2.5>'+this.id+':'+this._label+'>  diff='+diff+', expectedW='+expectedWidth);
+				//if(daveDebug && onceSecond) console.log('>>stretch>2.5>'+this.id+':'+this._label+'>  diff2='+diff2+', expectedH='+expectedHeight);
+				//if(daveDebug && onceSecond) console.log('>>stretch>3>'+this.id+':'+this._label+'>  ');
+
+				let test1:AABB = {
+					minX: this._objBoundsReuse.minX,
+					minY: this._objBoundsReuse.minY,
+					maxX: this._objBoundsReuse.maxX,
+					maxY: this._objBoundsReuse.maxY
+				};
+				if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+				{
+					//console.log('>>stretch>center>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
+					//test1.maxX = test1.minX + (this.artboard.width * this.xScale * dpr);
+
+
+					//newWidth = PixiController.get().PixiAbove.view.width/dpr;
+					//newHeight = PixiController.get().PixiAbove.view.height/dpr;
+
+
+					//When the browser width is 1904
+					//const offsetNumber = ((PixiController.get().PixiAbove.view.width/2)/dpr);//952 looks basically perfect
+					//const offsetNumber = (((PixiController.get().PixiAbove.view.width)/dpr));//1904 too far to the right!
+
+					const offsetNumber = ((PixiController.get().PixiAbove.view.width/2)/dpr);
+
+					//const offsetNumber = 880;// looks alomst perfect on 1900 wide screen
+					if(onceSecond) console.log('>>stretch>center>'+this.id+':'+this._label+'>  offsetNumber='+offsetNumber);
+					test1.maxX = test1.maxX + offsetNumber;
+
+					//test1.maxX = test1.maxX + (1900/2);
+
+					//newWidth = ;
+					//newHeight = PixiController.get().PixiAbove.view.height/dpr;
+				}
+
+				const test:AABB = {
+					minX: this.artboard.bounds.minX,
+					minY: this.artboard.bounds.minY,
+					maxX: this.artboard.bounds.maxX,
+					maxY: this.artboard.bounds.maxY
+				};
+
+				//const test:AABB = {
+				//	minX: 0,
+				//	minY: 0,
+				//	maxX: 0,
+				//	maxY: 0
+				//};
+
 				// Try using Fit.none to skip automatic scaling, then manually scale
 				this.Renderer.align(
 					this.Rive.Fit.none,
-					this.Rive.Alignment.topLeft,
-					this._objBoundsReuse,
-					this.artboard.bounds
+					this.Rive.Alignment.topCenter,
+					test1,
+					test
 				);
 			}
 			else
 			{
+				//if(daveDebug && onceSecond) console.log('>>fill>1>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
+				//if(daveDebug && onceSecond) console.log('>>fill>2>'+this.id+':'+this._label+'>  '+this._objBoundsReuse.minX+','+this._objBoundsReuse.minY+' -> '+this._objBoundsReuse.maxX+','+this._objBoundsReuse.maxY);
+
+				//const diff = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
+				//const diff2 = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
+				//const expectedWidth = this.artboard.width * this.xScale * dpr;
+				//const expectedHeight = this.artboard.height * this.yScale * dpr;
+				//if(daveDebug && onceSecond) console.log('>>fill>2.5>'+this.id+':'+this._label+'>  diff='+diff+', expectedW='+expectedWidth);
+				//if(daveDebug && onceSecond) console.log('>>fill>2.5>'+this.id+':'+this._label+'>  diff2='+diff2+', expectedH='+expectedHeight);
+				//if(daveDebug && onceSecond) console.log('>>fill>3>'+this.id+':'+this._label+'>  ');
+
 				// Use Fit.contain for FIT/FILL/MANUAL modes (maintains aspect ratio)
 				this.Renderer.align(
 					this.Rive.Fit.contain,
@@ -1670,15 +1742,51 @@ export class CanvasRiveObj extends BaseCanvasObj
 				// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
 				// So divide by DPR to convert back to CSS coordinates for Pixi
 				const dpr = Math.max(1, window.devicePixelRatio || 1);
-				if(onceMinute) console.log('>>igraph>1>'+this.id+':'+this._label+'>  dpr='+dpr);
+				if(daveDebug && onceSecond) console.log('>>igraph>1>'+this.id+':'+this._label+'>  dpr='+dpr);
 
 				this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
 				this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
-				if(onceMinute) console.log('>>igraph>2>  x='+this._interactiveGraphics.x+', y='+this._interactiveGraphics.y);
+				if(daveDebug && onceSecond) console.log('>>igraph>2>  x='+this._interactiveGraphics.x+', y='+this._interactiveGraphics.y);
 
-				this._interactiveGraphics.width = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
-				this._interactiveGraphics.height = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
-				if(onceMinute) console.log('>>igraph>3>  w='+this._interactiveGraphics.width+', h='+this._interactiveGraphics.height);
+
+/*
+export enum OBJECT_SCALE_MODE
+{
+	MANUAL = "MANUAL",       // Explicit xScale/yScale values (current default behavior)
+	FIT = "FIT",            // Scale to fit inside bounds, maintain aspect ratio
+	FILL = "FILL",          // Scale to fill bounds completely, maintain aspect ratio (may crop)
+	STRETCH = "STRETCH"      // Scale to fill bounds exactly, break aspect ratio if needed
+}
+*/
+
+				let newWidth = scaledWidth / dpr;
+				let newHeight = scaledHeight / dpr;
+
+				if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+				{
+					newWidth = PixiController.get().PixiAbove.view.width/dpr;
+					newHeight = PixiController.get().PixiAbove.view.height/dpr;
+				}
+				else
+				{
+					//const newWidth = PixiController.get().PixiAbove.view.width/dpr;
+					//const newHeight = PixiController.get().PixiAbove.view.height/dpr;
+					// Calculate new dimensions in CSS pixels
+					newWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+					newHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+					//const newWidth = this.artboard.width * this.xScale * dpr;
+					//const newHeight = this.artboard.height * this.yScale * dpr;
+					//const newWidth = this.artboard.width * this.xScale;
+					//const newHeight = this.artboard.height * this.yScale;
+					// Redraw the interactive graphics with new dimensions instead of scaling
+					// (setting width/height on Graphics scales content, which has limits)
+					if(daveDebug && onceSecond) console.log('>>igraph>3>  w='+newWidth+', h='+newHeight);
+				}
+
+				this._interactiveGraphics.clear();
+				this._interactiveGraphics.rect(2, 2, newWidth-2, newHeight-4);
+				this._interactiveGraphics.fill({color:0x650a5a, alpha: 0.35});
+				this._interactiveGraphics.stroke({width: 1, color:0xfeeb77, alpha: 1});
 			}
 
 			if(this._textLabel)
@@ -1709,11 +1817,13 @@ export class CanvasRiveObj extends BaseCanvasObj
 		this.drawTextLabel();
 	}
 
+
+//UNTESTED-----------UNTESTED
 	/**
 	 * Change the scale mode at runtime
 	 * @param scaleMode - The new scale mode to apply
 	 * @param scaleBounds - Optional new bounds (if not provided, uses existing scaleBounds from defObj)
-	 */
+
 	public SetScaleMode(scaleMode:OBJECT_SCALE_MODE, scaleBounds?:{width:number; height:number}): void
 	{
 		// Update defObj
@@ -1794,6 +1904,8 @@ export class CanvasRiveObj extends BaseCanvasObj
 			this.ApplyResolutionScale(this._resolutionScale, '*');
 		}
 	}
+*/
+
 
 	private _textLabel: PIXI.Text | null = null;
 	private drawTextLabel()
@@ -1930,11 +2042,38 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 	protected onClick(event:MouseEvent | PointerEvent | PIXI.PixiTouch)
 	{
-		console.log('CLICK Rive Object: '+this._label);
-		console.log('CLICK Rive Object: x:'+this.x+', y:'+this.y+' ---  w:'+this.width+', h:'+this.height);
-		console.log('CLICK Rive Object: artboard w:'+this.artboard.width+', h:'+this.artboard.height);
-		console.log('CLICK Rive Object: scaleMode:',this.defObj.scaleMode);
-		console.log('CLICK Rive Object: xScale:'+this.xScale+', yScale:'+this.yScale);
+		console.log('');
+		console.log('CLICK');
+		console.log('CLICK : '+this._label);
+		console.log('CLICK : x:'+this.x+', y:'+this.y+' ---  w:'+this.width+', h:'+this.height);
+		console.log('CLICK : artboard w:'+this.artboard.width+', h:'+this.artboard.height);
+		console.log('CLICK : scaleMode:',this.defObj.scaleMode);
+		console.log('CLICK : xScale:'+this.xScale+', yScale:'+this.yScale);
+
+
+		if(this._interactiveGraphics)
+		{
+			console.log('CLICK : iG:');
+			console.log('CLICK : iG: x='+this._interactiveGraphics.x+', y='+this._interactiveGraphics.y);
+			console.log('CLICK : iG: width='+this._interactiveGraphics.width+', height='+this._interactiveGraphics.height);
+		}
+
+		if(this._objBoundsReuse)
+		{
+			console.log('CLICK : ');
+			console.log('CLICK : objre:');
+			console.log('CLICK : objre: minX='+this._objBoundsReuse.minX+', minY='+this._objBoundsReuse.minY);
+			console.log('CLICK : objre: maxX='+this._objBoundsReuse.maxX+', maxY='+this._objBoundsReuse.maxY);
+		}
+
+		console.log('');
+		console.log('CLICK : PIXI<1> W: '+PixiController.get().PixiAbove.view.width+',  H: '+PixiController.get().PixiAbove.view.height);
+		console.log('CLICK : PIXI<2> W: '+PixiController.get().PixiAbove.canvas.width+',  H: '+PixiController.get().PixiAbove.canvas.height);
+
+		console.log('');
+		console.log('CLICK : Rive<1> W: '+RiveController.get().Canvas.width+',  H: '+RiveController.get().Canvas.height);
+		console.log('');
+		console.log('CLICK : CanvasE<1> W: '+CanvasEngine.get().width+',  H: '+CanvasEngine.get().height);
 		if(this._onClickCallback)
 		{
 			this._onClickCallback?.(event,this);

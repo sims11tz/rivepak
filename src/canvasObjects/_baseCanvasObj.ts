@@ -11,6 +11,20 @@ export enum OBJECT_SCALE_MODE
 	STRETCH = "STRETCH"      // Scale to fill bounds exactly, break aspect ratio if needed
 }
 
+export enum OBJECT_SCALE_ALIGN
+{
+	DEFAULT = "default",
+	TOP = "top",
+	BOTTOM = "bottom",
+	LEFT = "left",
+	RIGHT = "right",
+	CENTER = "center",
+	TOP_LEFT = "top-left",
+	TOP_RIGHT = "top-right",
+	BOTTOM_LEFT = "bottom-left",
+	BOTTOM_RIGHT = "bottom-right",
+}
+
 export class GlobalUIDGenerator
 {
 	private static currentId = 0;
@@ -144,6 +158,7 @@ export interface CanvasObjectDef
 
 	// Object scaling mode configuration
 	scaleMode?:OBJECT_SCALE_MODE;
+	scaleAlign?:OBJECT_SCALE_ALIGN;
 	scaleBounds?:{width:number; height:number}; // Bounds to scale relative to (canvas, container, etc.)
 
 	x?:number;

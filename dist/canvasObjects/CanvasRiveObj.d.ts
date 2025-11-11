@@ -1,7 +1,7 @@
 /// <reference types="matter-js" />
 import RiveCanvas, { Artboard, LinearAnimationInstance, Renderer, SMIInput, StateMachineInstance, ViewModelInstance } from "@rive-app/webgl2-advanced";
 import { RiveObjectDef } from "../controllers/RiveController";
-import { BaseCanvasObj, OBJECT_SCALE_MODE } from "./_baseCanvasObj";
+import { BaseCanvasObj } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 export declare enum RIVEBUS_COMMON_APP_TO_RIVE_EVENTS {
     BUTTON_CLICK_EVENT = "BUTTON_CLICK_EVENT",
@@ -259,11 +259,88 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
      * Change the scale mode at runtime
      * @param scaleMode - The new scale mode to apply
      * @param scaleBounds - Optional new bounds (if not provided, uses existing scaleBounds from defObj)
-     */
-    SetScaleMode(scaleMode: OBJECT_SCALE_MODE, scaleBounds?: {
-        width: number;
-        height: number;
-    }): void;
+
+    public SetScaleMode(scaleMode:OBJECT_SCALE_MODE, scaleBounds?:{width:number; height:number}): void
+    {
+        // Update defObj
+        this.defObj.scaleMode = scaleMode;
+        if(scaleBounds)
+        {
+            this.defObj.scaleBounds = scaleBounds;
+        }
+
+        // Recalculate dimensions
+        const artboardWidth = this.artboard.width;
+        const artboardHeight = this.artboard.height;
+        const aspectRatio = artboardWidth / artboardHeight;
+
+        if(scaleMode !== OBJECT_SCALE_MODE.MANUAL && this.defObj.scaleBounds)
+        {
+            const bounds = this.defObj.scaleBounds;
+            const boundsAspectRatio = bounds.width / bounds.height;
+
+            switch(scaleMode)
+            {
+                case OBJECT_SCALE_MODE.STRETCH:
+                    this.width = bounds.width;
+                    this.height = bounds.height;
+                    this.xScale = this.width / artboardWidth;
+                    this.yScale = this.height / artboardHeight;
+                    break;
+
+                case OBJECT_SCALE_MODE.FIT:
+                    if(aspectRatio > boundsAspectRatio)
+                    {
+                        this.width = bounds.width;
+                        this.height = this.width / aspectRatio;
+                    }
+                    else
+                    {
+                        this.height = bounds.height;
+                        this.width = this.height * aspectRatio;
+                    }
+                    this.xScale = this.width / artboardWidth;
+                    this.yScale = this.height / artboardHeight;
+                    break;
+
+                case OBJECT_SCALE_MODE.FILL:
+                    if(aspectRatio > boundsAspectRatio)
+                    {
+                        this.height = bounds.height;
+                        this.width = this.height * aspectRatio;
+                    }
+                    else
+                    {
+                        this.width = bounds.width;
+                        this.height = this.width / aspectRatio;
+                    }
+                    this.xScale = this.width / artboardWidth;
+                    this.yScale = this.height / artboardHeight;
+                    break;
+            }
+        }
+        else
+        {
+            // MANUAL mode - reset to defObj values or defaults
+            this.xScale = this.defObj.xScale ?? 1;
+            this.yScale = this.defObj.yScale ?? 1;
+            this.width = artboardWidth * this.xScale;
+            this.height = artboardHeight * this.yScale;
+        }
+
+        // Update entity obj for interactive objects
+        if(this._entityObj)
+        {
+            this.updateEntityObj();
+        }
+
+        // Reapply resolution scale if it's set
+        if(this._resolutionScale !== -1)
+        {
+            this.ApplyResolutionScale(this._resolutionScale, '*');
+        }
+    }
+*/
     private _textLabel;
     private drawTextLabel;
     private _interactiveGraphics;
