@@ -1398,21 +1398,14 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     maxY: this._objBoundsReuse.maxY
                 };
                 if (this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER) {
-                    //console.log('>>stretch>center>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
-                    //test1.maxX = test1.minX + (this.artboard.width * this.xScale * dpr);
-                    //newWidth = PixiController.get().PixiAbove.view.width/dpr;
-                    //newHeight = PixiController.get().PixiAbove.view.height/dpr;
-                    //When the browser width is 1904
-                    //const offsetNumber = ((PixiController.get().PixiAbove.view.width/2)/dpr);//952 looks basically perfect
-                    //const offsetNumber = (((PixiController.get().PixiAbove.view.width)/dpr));//1904 too far to the right!
-                    const offsetNumber = ((PixiController.get().PixiAbove.view.width / 2) / dpr);
-                    //const offsetNumber = 880;// looks alomst perfect on 1900 wide screen
+                    // The artboard is stretched to fit canvas height, so its rendered width is in test1.maxX
+                    // Calculate how much wider the canvas is than the rendered artboard, then shift by half
+                    const offsetNumber = (PixiController.get().PixiAbove.view.width - test1.maxX) / 2;
                     if (onceSecond)
-                        console.log('>>stretch>center>' + this.id + ':' + this._label + '>  offsetNumber=' + offsetNumber);
+                        console.log('>>stretch>center>' + this.id + ':' + this._label + '>  canvasWidth=' + PixiController.get().PixiAbove.view.width + ', test1.maxX=' + test1.maxX + ', offsetNumber=' + offsetNumber);
+                    // Shift both edges by the same amount to move the entire artboard
+                    test1.minX = test1.minX + offsetNumber;
                     test1.maxX = test1.maxX + offsetNumber;
-                    //test1.maxX = test1.maxX + (1900/2);
-                    //newWidth = ;
-                    //newHeight = PixiController.get().PixiAbove.view.height/dpr;
                 }
                 const test = {
                     minX: this.artboard.bounds.minX,
