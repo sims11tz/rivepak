@@ -1421,6 +1421,22 @@ export class CanvasRiveObj extends BaseCanvasObj
 			onceSecond = onceMinute = true;
 		}
 
+		//let centerWidth = 0;
+		//let centerHeight = 0;
+		//if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+		//{
+		//	centerWidth = (PixiController.get().PixiAbove.view.width - this._objBoundsReuse.maxX) / 2;
+		//}
+		//else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+		//{
+		//	centerWidth = (RiveController.get().Canvas.width - this._objBoundsReuse.maxX) / 2;
+		//	centerHeight = (PixiController.get().PixiAbove.view.height/2);
+		//}
+
+		//super.Update(time,frameCount,onceSecond,onceMinute,centerWidth,centerHeight);
+
+		super.Update(time,frameCount,onceSecond,onceMinute);
+
 		this._actionQueueProcessedThisFrame = false;
 		this._processActionQueue();
 
@@ -1636,20 +1652,12 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 			this.Renderer.save();
 
-			const daveDebug = false;
+			const daveDebug = true;
 			// For STRETCH mode, use Fit.scaleDown which might allow non-uniform scaling
 			if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 			{
-				//if(daveDebug && onceSecond) console.log('>>stretch>1>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
-				//if(daveDebug && onceSecond) console.log('>>stretch>2>'+this.id+':'+this._label+'>  '+this._objBoundsReuse.minX+','+this._objBoundsReuse.minY+' -> '+this._objBoundsReuse.maxX+','+this._objBoundsReuse.maxY);
-				//const diff = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
-				//const diff2 = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
-				//const expectedWidth = this.artboard.width * this.xScale * dpr;
-				//const expectedHeight = this.artboard.height * this.yScale * dpr;
-				//if(daveDebug && onceSecond) console.log('>>stretch>2.5>'+this.id+':'+this._label+'>  diff='+diff+', expectedW='+expectedWidth);
-				//if(daveDebug && onceSecond) console.log('>>stretch>2.5>'+this.id+':'+this._label+'>  diff2='+diff2+', expectedH='+expectedHeight);
-				//if(daveDebug && onceSecond) console.log('>>stretch>3>'+this.id+':'+this._label+'>  ');
 
+				//IF BrOKEN TS THIS... ok
 				let objBoundsReuse:AABB = {
 					minX: this._objBoundsReuse.minX,
 					minY: this._objBoundsReuse.minY,
@@ -1657,69 +1665,41 @@ export class CanvasRiveObj extends BaseCanvasObj
 					maxY: this._objBoundsReuse.maxY
 				};
 
-				if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.TOP_CENTER)
+				if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 				{
 					const offsetNumber = (PixiController.get().PixiAbove.view.width - objBoundsReuse.maxX) / 2;
 					if(daveDebug)
 					{
-						//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!       pixi.w='+PixiController.get().PixiAbove.view.width);
-						//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--! offsetNumber='+offsetNumber);
+						if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!       pixi.w='+PixiController.get().PixiAbove.view.width);
+						if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--! offsetNumber='+offsetNumber);
 					}
 					objBoundsReuse.minX = objBoundsReuse.minX + offsetNumber;
 					objBoundsReuse.maxX = objBoundsReuse.maxX + offsetNumber;
 				}
 				else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
 				{
-					//if(daveDebug)
-					//{
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  RiveController.width='+RiveController.get().Canvas.width);
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-W-!  PixiController.width='+PixiController.get().PixiAbove.view.width);
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  RiveController.height='+RiveController.get().Canvas.height);
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!-H-!  PixiController.height='+PixiController.get().PixiAbove.view.height);
-					//	if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--! ');
-					//}
-
-					const offsetWNumber = (RiveController.get().Canvas.width - objBoundsReuse.maxX) / 2;
-					//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W='+offsetWNumber);
+					const offsetWNumber = (RiveController.get().Canvas.width - this._objBoundsReuse.maxX) / 2;
+					if(daveDebug && onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W='+offsetWNumber);
 					objBoundsReuse.minX = objBoundsReuse.minX + offsetWNumber;
 					objBoundsReuse.maxX = objBoundsReuse.maxX + offsetWNumber;
 
 					// Vertical centering - divide by 2 to center (not just the full difference)
 					const offsetHNumber = (PixiController.get().PixiAbove.view.height/2);
+					if(daveDebug && onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset H='+offsetHNumber);
 					objBoundsReuse.minY = objBoundsReuse.minY + offsetHNumber;
 					objBoundsReuse.maxY = objBoundsReuse.maxY + offsetHNumber;
 				}
 
-				const artboardBounds:AABB = {
-					minX: this.artboard.bounds.minX,
-					minY: this.artboard.bounds.minY,
-					maxX: this.artboard.bounds.maxX,
-					maxY: this.artboard.bounds.maxY
-				};
-
-				// Try using Fit.none to skip automatic scaling, then manually scale
 				this.Renderer.align(
 					this.Rive.Fit.none,
 					this.Rive.Alignment.topCenter,
 					objBoundsReuse,
-					artboardBounds
+					this.artboard.bounds
 				);
 			}
 			else
 			{
-				//if(daveDebug && onceSecond) console.log('>>fill>1>'+this.id+':'+this._label+'>  scaledW='+scaledWidth+', scaledH='+scaledHeight);
-				//if(daveDebug && onceSecond) console.log('>>fill>2>'+this.id+':'+this._label+'>  '+this._objBoundsReuse.minX+','+this._objBoundsReuse.minY+' -> '+this._objBoundsReuse.maxX+','+this._objBoundsReuse.maxY);
-
-				//const diff = this._objBoundsReuse.maxX - this._objBoundsReuse.minX;
-				//const diff2 = this._objBoundsReuse.maxY - this._objBoundsReuse.minY;
-				//const expectedWidth = this.artboard.width * this.xScale * dpr;
-				//const expectedHeight = this.artboard.height * this.yScale * dpr;
-				//if(daveDebug && onceSecond) console.log('>>fill>2.5>'+this.id+':'+this._label+'>  diff='+diff+', expectedW='+expectedWidth);
-				//if(daveDebug && onceSecond) console.log('>>fill>2.5>'+this.id+':'+this._label+'>  diff2='+diff2+', expectedH='+expectedHeight);
-				//if(daveDebug && onceSecond) console.log('>>fill>3>'+this.id+':'+this._label+'>  ');
-
+				if(daveDebug && onceSecond) console.log(' !--!('+this.label+') === no stretch -- default whatever that is.. ');
 				// Use Fit.contain for FIT/FILL/MANUAL modes (maintains aspect ratio)
 				this.Renderer.align(
 					this.Rive.Fit.contain,
@@ -1737,25 +1717,12 @@ export class CanvasRiveObj extends BaseCanvasObj
 					onceMinute = true;
 				}
 
-				// Pixi uses CSS pixels, but _objBoundsReuse is in canvas pixels (with DPR)
-				// So divide by DPR to convert back to CSS coordinates for Pixi
 				const dpr = Math.max(1, window.devicePixelRatio || 1);
 				if(daveDebug && onceSecond) console.log('>>igraph>1>'+this.id+':'+this._label+'>  dpr='+dpr);
 
 				this._interactiveGraphics.x = this._objBoundsReuse.minX / dpr;
 				this._interactiveGraphics.y = this._objBoundsReuse.minY / dpr;
 				if(daveDebug && onceSecond) console.log('>>igraph>2>  x='+this._interactiveGraphics.x+', y='+this._interactiveGraphics.y);
-
-
-/*
-export enum OBJECT_SCALE_MODE
-{
-	MANUAL = "MANUAL",       // Explicit xScale/yScale values (current default behavior)
-	FIT = "FIT",            // Scale to fit inside bounds, maintain aspect ratio
-	FILL = "FILL",          // Scale to fill bounds completely, maintain aspect ratio (may crop)
-	STRETCH = "STRETCH"      // Scale to fill bounds exactly, break aspect ratio if needed
-}
-*/
 
 				let newWidth = scaledWidth / dpr;
 				let newHeight = scaledHeight / dpr;
@@ -1767,32 +1734,18 @@ export enum OBJECT_SCALE_MODE
 				}
 				else
 				{
-					//const newWidth = PixiController.get().PixiAbove.view.width/dpr;
-					//const newHeight = PixiController.get().PixiAbove.view.height/dpr;
-					// Calculate new dimensions in CSS pixels
 					newWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
 					newHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
-					//const newWidth = this.artboard.width * this.xScale * dpr;
-					//const newHeight = this.artboard.height * this.yScale * dpr;
-					//const newWidth = this.artboard.width * this.xScale;
-					//const newHeight = this.artboard.height * this.yScale;
-					// Redraw the interactive graphics with new dimensions instead of scaling
-					// (setting width/height on Graphics scales content, which has limits)
-					if(daveDebug && onceSecond) console.log('>>igraph>3>  w='+newWidth+', h='+newHeight);
+					//if(daveDebug && onceSecond) console.log('>>igraph>3>  w='+newWidth+', h='+newHeight);
 				}
 
+				const debugDrawThisHere = this._debugRive ?? false;
 				this._interactiveGraphics.clear();
 				this._interactiveGraphics
 					.rect(2, 2, newWidth-2, newHeight-4)
-					.fill({color:0x770f77, alpha:0})
-					.stroke({width:1, color:0xfeeb77, alpha:0}
+					.fill({color:0x770f77, alpha:debugDrawThisHere?0.5:0})
+					.stroke({width:1, color:0xfeeb77, alpha:debugDrawThisHere?1:0}
 				);
-
-
-				//this._interactiveGraphics.fill({color:0x650a5a, alpha:daveDebug?0.35:0});
-				//this._interactiveGraphics.stroke({width:1, color:0xfeeb77, alpha:daveDebug?1:0});
-				if(daveDebug && onceSecond) console.log('fillllllnSTROKE');
-
 			}
 
 			if(this._textLabel)
@@ -1992,19 +1945,22 @@ export enum OBJECT_SCALE_MODE
 			console.log('>>igraph>3>  w='+newWidth+', h='+newHeight);
 		}
 
+		//wtf what was that a couple below... ?
 		console.log("interactiveGraphics rect: w:"+this.width+" h:"+this.height);
-		this._interactiveGraphics.rect(0, 0, this.width, this.height);
+		//this._interactiveGraphics.rect(0, 0, this.width, this.height);
 		//this._interactiveGraphics.fill({color:0x650a5a, alpha: 0.05});
 		//this._interactiveGraphics.stroke({ width: 1, color:0xfeeb77, alpha:1 });
-		this._interactiveGraphics.fill({color:0x650a5a, alpha:0});
-		this._interactiveGraphics.stroke({width:1, color:0xfeeb77, alpha:0});
+		//this._interactiveGraphics.fill({color:0x650a5a, alpha:0});
+		//this._interactiveGraphics.stroke({width:1, color:0xfeeb77, alpha:0});
+
+
 
 		this._interactiveGraphics.clear();
-			this._interactiveGraphics
-				.rect(2, 2, newWidth-2, newHeight-4)
-				.fill({color:0x770f77, alpha:0})
-				.stroke({width:1, color:0xfeeb77, alpha:0}
-			);
+		this._interactiveGraphics
+			.rect(2, 2, newWidth-2, newHeight-4)
+			.fill({color:0x770f77, alpha:0})
+			.stroke({width:1, color:0xfeeb77, alpha:0}
+		);
 
 		console.log("interactiveGraphics : w:"+this._interactiveGraphics.width+" h:"+this._interactiveGraphics.height);
 

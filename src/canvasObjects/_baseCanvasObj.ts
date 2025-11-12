@@ -1,7 +1,6 @@
 import Matter from "matter-js";
-
-import { PIXI_LAYER } from "../controllers/PixiController";
 import type { TextStyleOptions } from "pixi.js";
+import { PIXI_LAYER } from "../controllers/PixiController";
 
 export enum OBJECT_SCALE_MODE
 {
@@ -221,7 +220,7 @@ export abstract class BaseCanvasObj
 	public _parent:BaseCanvasObj | null = null;
 	public SetParent(parent:BaseCanvasObj | null):void
 	{
-		console.log('_canvasCanvasObj--->'+this.id+':'+this.label+'< SET PARENT ))> '+((parent) ? parent.id+':'+parent.label : 'null'));
+		//console.log('_canvasCanvasObj--->'+this.id+':'+this.label+'< SET PARENT ))> '+((parent) ? parent.id+':'+parent.label : 'null'));
 		const hadParent = this._parent !== null;
 		const willHaveParent = parent !== null;
 
@@ -272,6 +271,7 @@ export abstract class BaseCanvasObj
 	public _transformedYlast:number = -1;
 
 	public _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+	public _objBoundsCalcs = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
 	public _body:Matter.Body | null = null;
 
@@ -479,7 +479,92 @@ export abstract class BaseCanvasObj
 		}
 	}
 
-	public abstract Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean): void;
+	public Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean, centerWidth=0, centerHeight=0)
+	{
+/*
+		//if(onceSecond) console.log(' ');
+		//if(onceSecond) console.log(' BaseCanvasObj['+this.label+'] Update() centerWidth='+centerWidth+', centerHeight='+centerHeight);
+		//if(onceSecond) console.log(' BaseCanvasObj['+this.label+'] Update() this.width='+this.width+', this.height='+this.height);
+		//if(onceSecond) console.log(' BaseCanvasObj['+this.label+'] Update() this.xScale='+this.xScale+', this.yScale='+this.yScale);
+		//if(onceSecond) console.log(' BaseCanvasObj['+this.label+'] ______________________________________');
+		//const scaledWidth = this.width * this.xScale;
+		//const scaledHeight = this.height * this.yScale;
+		const scaledWidth = this.width;
+		const scaledHeight = this.height;
+		//if(onceSecond) console.log(' BaseCanvasObj['+this.label+'] Update() scaledW='+scaledWidth+', scaledH='+scaledHeight);
+
+		// Get DPR to account for high-res backing store
+		const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+		if(this._resolutionScale !== -1)
+		{
+			//if(onceSecond) console.log(' !--!('+this.label+') === SET BOUNDS A! ');
+			// Bounds for Rive renderer need to be in canvas pixels (with DPR)
+			this._objBoundsReuse.minX = Math.round(this._transformedX * dpr);
+			this._objBoundsReuse.minY = Math.round(this._transformedY * dpr);
+			this._objBoundsReuse.maxX = Math.round((this._transformedX + (scaledWidth * this._resolutionScale)) * dpr);
+			this._objBoundsReuse.maxY = Math.round((this._transformedY + (scaledHeight * this._resolutionScale)) * dpr);
+		}
+		else
+		{
+			//if(onceSecond) console.log(' !--!('+this.label+') === SET BOUNDS B! ');
+			this._objBoundsReuse.minX = Math.round(this.x * dpr);
+			this._objBoundsReuse.minY = Math.round(this.y * dpr);
+			this._objBoundsReuse.maxX = Math.round((this.x + scaledWidth) * dpr);
+			this._objBoundsReuse.maxY = Math.round((this.y + scaledHeight) * dpr);
+		}
+
+		this._objBoundsCalcs = {
+			minX: this._objBoundsReuse.minX,
+			minY: this._objBoundsReuse.minY,
+			maxX: this._objBoundsReuse.maxX,
+			maxY: this._objBoundsReuse.maxY
+		};
+
+		if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+		{
+			//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.STRETCH!!!!!!! )!--! centerWidth='+centerWidth);
+			this._objBoundsCalcs.minX = this._objBoundsReuse.minX + centerWidth;
+			this._objBoundsCalcs.maxX = this._objBoundsReuse.maxX + centerWidth;
+		}
+		else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+		{
+			//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   centerWidth W='+centerWidth);
+			this._objBoundsCalcs.minX = this._objBoundsReuse.minX + centerWidth;
+			this._objBoundsCalcs.maxX = this._objBoundsReuse.maxX + centerWidth;
+
+			//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   centerWidth W='+centerHeight);
+			this._objBoundsCalcs.minY = this._objBoundsReuse.minY + centerHeight;
+			this._objBoundsCalcs.maxY = this._objBoundsReuse.maxY + centerHeight;
+		}
+
+
+
+		//if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+				//{
+				//	const offsetNumber = (PixiController.get().PixiAbove.view.width - this._objBoundsReuse.maxX) / 2;
+				//	if(daveDebug)
+				//	{
+				//		//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--!       pixi.w='+PixiController.get().PixiAbove.view.width);
+				//		//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.TOP_CENTER)!--! offsetNumber='+offsetNumber);
+				//	}
+				//	this._objBoundsReuse.minX = this._objBoundsReuse.minX + offsetNumber;
+				//	this._objBoundsReuse.maxX = this._objBoundsReuse.maxX + offsetNumber;
+				//}
+				//else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+				//{
+				//	const offsetWNumber = (RiveController.get().Canvas.width - this._objBoundsReuse.maxX) / 2;
+				//	//if(onceSecond) console.log(' !--!('+this.label+') === OBJECT_SCALE_ALIGN.CENTER)!--!   Offset W='+offsetWNumber);
+				//	this._objBoundsReuse.minX = this._objBoundsReuse.minX + offsetWNumber;
+				//	this._objBoundsReuse.maxX = this._objBoundsReuse.maxX + offsetWNumber;
+
+				//	// Vertical centering - divide by 2 to center (not just the full difference)
+				//	const offsetHNumber = (PixiController.get().PixiAbove.view.height/2);
+				//	this._objBoundsReuse.minY = this._objBoundsReuse.minY + offsetHNumber;
+				//	this._objBoundsReuse.maxY = this._objBoundsReuse.maxY + offsetHNumber;
+				//}
+*/
+	}
 
 	public SwapDepths(other:BaseCanvasObj)
 	{

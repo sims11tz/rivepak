@@ -1,7 +1,7 @@
 import { PixiController } from "../controllers/PixiController";
 import { RiveController } from "../controllers/RiveController";
 import { CanvasEngine } from "../useCanvasEngine";
-import { BaseCanvasObj, CanvasObjectDef } from "./_baseCanvasObj";
+import { BaseCanvasObj, CanvasObjectDef, OBJECT_SCALE_ALIGN, OBJECT_SCALE_MODE } from "./_baseCanvasObj";
 import * as PIXI from "pixi.js";
 
 export class CanvasContainerObj extends BaseCanvasObj
@@ -35,7 +35,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	{
 		super(canvasDef);
 
-		this._debugRive = true;
+		//this._debugRive = true;
 
 		this.InitContainer();
 	}
@@ -45,35 +45,104 @@ export class CanvasContainerObj extends BaseCanvasObj
 
 	protected InitContainer():void
 	{
-		console.log('%c <CanvasContainerObj> InitContainer for '+this.label,'color:#FF8800; font-weight:bold;');
+		const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-		this.width = this.defObj.width ?? 100;
-		this.height = this.defObj.height ?? 100;
-		this.xScale = this.defObj.xScale ?? 1;
-		this.yScale = this.defObj.yScale ?? 1;
+		const scaledWidth = CanvasEngine.get().width;
+		const scaledHeight = CanvasEngine.get().height;
 
-		this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
-		this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
+		let canvasWidth = scaledWidth / dpr;
+		let canvasHeight = scaledHeight / dpr;
 
-		if(this.centerGlobally)
+		if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 		{
-			//console.log(`CANVAS CONTAINER... center globally`);
-			this.x = CanvasEngine.get().width / 2;
-			this.y = CanvasEngine.get().height / 2;
+			if(PixiController.get().PixiAbove && PixiController.get().PixiAbove.view)
+			{
+				canvasWidth = PixiController.get().PixiAbove.view.width/dpr;
+				canvasHeight = PixiController.get().PixiAbove.view.height/dpr;
+			}
+			else if(RiveController.get().CanvasBounds.width && RiveController.get().CanvasBounds.height)
+			{
+				canvasWidth = RiveController.get().CanvasBounds.width/dpr;
+				canvasHeight = RiveController.get().CanvasBounds.height/dpr;
+			}
+		}
+		else
+		{
+			canvasWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+			canvasHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
 		}
 
-		if(this.centerGlobally || this.centerLocally)
+		console.warn('hiiiiii');
+		// Handle scaleMode if specified
+		if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 		{
-			//console.log(`CANVAS CONTAINER... center locally`);
-			this.x -= (this.width / 2);
-			this.y -= (this.height / 2);
+			console.log(' SCALE MODE IS STRETCH for '+this.label);
+			// STRETCH mode: fill entire canvas
+			this.width = canvasWidth;
+			this.height = canvasHeight;
+			console.log(' width='+this.width+', height='+this.height);
+
+			this.xScale = 1;
+			this.yScale = 1;
+			this.x = 0;
+			this.y = 0;
 		}
+		else
+		{
+			console.log(' SCALE MODE IS DEFAULT for '+this.label);
+			// Default behavior
+			this.width = this.defObj.width ?? 100;
+			this.height = this.defObj.height ?? 100;
+			this.xScale = this.defObj.xScale ?? 1;
+			this.yScale = this.defObj.yScale ?? 1;
+
+			console.log(' SCALE MODE IS DEFAULT for '+this.label);
+
+			this.x = this.defObj.x ?? Math.random() * RiveController.get().Canvas.width;
+			this.y = this.defObj.y ?? Math.random() * RiveController.get().Canvas.height;
+
+			if(this.centerGlobally)
+			{
+				//console.log(`CANVAS CONTAINER... center globally`);
+				this.x = CanvasEngine.get().width / 2;
+				this.y = CanvasEngine.get().height / 2;
+			}
+
+			if(this.centerGlobally || this.centerLocally)
+			{
+				//console.log(`CANVAS CONTAINER... center locally`);
+				this.x -= (this.width / 2);
+				this.y -= (this.height / 2);
+			}
+		}
+
+		console.log(' InitContainer : width='+this.width+', height='+this.height);
+
+// Handle scaleAlign for positioning
+		//if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+		//{
+		//	// Center both horizontally and vertically
+		//	this.x = (canvasWidth - this.width) / 2;
+		//	this.y = (canvasHeight - this.height) / 2;
+		//}
+		//else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.TOP_CENTER)
+		//{
+		//	// Center horizontally, align to top
+		//	this.x = (canvasWidth - this.width) / 2;
+		//	this.y = 0;
+		//}
 
 		// Don't create debug graphics yet if we don't have a parent
 		// Wait until OnParentAdded is called
+		console.warn('eeeeeeps peeeeps');
 		if(this._debugRive)
 		{
+			console.log('%c <CanvasContainerObj> scheduling debug graphics init for '+this.label,'color:#FF8800; font-weight:bold;');
 			this.initDebugGraphics();
+		}
+		else
+		{
+			console.log('%c <CanvasContainerObj> no init for you.. '+this.label,'color:#FF8800; font-weight:bold;');
 		}
 	}
 
@@ -99,17 +168,9 @@ export class CanvasContainerObj extends BaseCanvasObj
 			return;
 		}
 
-		console.log('%c <CanvasContainerObj> COCK BLOCK 3 create '+this.label,'color:#FF8800; font-weight:bold;');
+		console.log('%c <CanvasContainerObj> GO HO 3 '+this.label,'color:#FF8800; font-weight:bold;');
 		this._debugGraphics = new PIXI.Graphics();
 		PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._debugGraphics);
-
-		// Pixi uses logical pixels, but container coordinates might be in Rive's high-DPI space
-		// Scale the debug graphics by devicePixelRatio to match Rive coordinates
-		const dpr = window.devicePixelRatio || 1;
-		this._debugGraphics.x = this.x / dpr;
-		this._debugGraphics.y = this.y / dpr;
-		this._debugGraphics.scale.set(this.xScale, this.yScale);
-		this._debugGraphics.eventMode = "static";
 
 		this.DrawDebug();
 	}
@@ -127,23 +188,15 @@ export class CanvasContainerObj extends BaseCanvasObj
 
 	public override OnParentAdded():void
 	{
-		console.warn('%c <CanvasContainerObj> OnParentAdded for '+this.label,'color:#FF8800; font-weight:bold;');
-		// Handle debug graphics based on parent state
 		if(this._needsDebugGraphics)
 		{
-			console.log('%c <CanvasContainerObj> call initDebug graphiocs '+this.label,'color:#FF8800; font-weight:bold;');
-			this.initDebugGraphics(true); // forceCreate=true since we're being added to engine
+			this.initDebugGraphics(true);
 			this._needsDebugGraphics = false;
-		}
-		else
-		{
-			console.log('%c <CanvasContainerObj> call NO .. ','color:#FF8800; font-weight:bold;');
 		}
 	}
 
 	public override OnParentRemoved():void
 	{
-		console.warn('%c <CanvasContainerObj> OnParentRemoved for '+this.label,'color:#FF8800; font-weight:bold;');
 		// Clean up debug graphics when removed from engine
 		if(this._debugGraphics)
 		{
@@ -151,21 +204,107 @@ export class CanvasContainerObj extends BaseCanvasObj
 		}
 	}
 
-	protected DrawDebug()
+	private _lastScaledWidth:number = 0;
+	private _lastScaledHeight:number = 0;
+
+	protected DrawDebug(onceSecond:boolean=false):void
 	{
-		if(this._debugRive && this._debugGraphics)
+		let bigD = false;
+		if(this._debugGraphics)
 		{
-			console.log('%c <CanvasContainerObj> DrawDEBUG YES'+this.label,'color:#FF8800; font-weight:bold;');
-			// Draw in Rive coordinate space (high-DPI)
+			if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG for '+this.label,'color:#FF8800; font-weight:bold;');
+
 			const dpr = window.devicePixelRatio || 1;
+			let scaledWidth = this.width / dpr;
+			let scaledHeight = this.height / dpr;
+
+			if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+			{
+				if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG  SCALE STRETCH','color:#FF8800; font-weight:bold;');
+				scaledWidth = PixiController.get().PixiAbove.view.width/dpr;
+				scaledHeight = PixiController.get().PixiAbove.view.height/dpr;
+			}
+			else
+			{
+				if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG   NOT STRETCH','color:#FF8800; font-weight:bold;');
+				if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG  objBoundsReuse => ','color:#FF8800; font-weight:bold;', this._objBoundsReuse);
+				scaledWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+				scaledHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+				//if(this.centerGlobally)
+				//{
+
+				//}
+
+				//if(this.centerGlobally || this.centerLocally)
+				//{
+
+				//}
+			}
+
+			if(this._lastScaledWidth === scaledWidth && this._lastScaledHeight === scaledHeight)
+			{
+				if(onceSecond) console.log('%c <CanvasContainerObj>  cock block old shit... already done it!','color:#FF8800; font-weight:bold;');
+				return;
+			}
+			else
+			{
+				console.log(' in like flinn ....');
+				this._lastScaledWidth = scaledWidth;
+				this._lastScaledHeight = scaledHeight;
+				bigD = onceSecond = true;
+			}
+
+			if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG scaledWidth='+scaledWidth,'color:#FF8800; font-weight:bold;');
+			if(bigD && onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG scaledHeight='+scaledHeight,'color:#FF8800; font-weight:bold;');
+
+			//this._debugGraphics.clear();
+			//this._debugGraphics.rect(5, 5, scaledWidth-5, scaledHeight-5).
+			//fill({color:0x66CCFF, alpha:0.35}).
+			//stroke({ width:2, color:0xfeeb77, alpha:0.5 });
+
+			if(bigD && onceSecond) console.log('>>igraph>1>'+this.id+':'+this._label+'>  dpr='+dpr);
+			if(bigD && onceSecond) console.log('>>igraph>2>  x='+this._debugGraphics.x+', y='+this._debugGraphics.y);
+
+			let newWidth = scaledWidth / dpr;
+			let newHeight = scaledHeight / dpr;
+
+			if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+			{
+				newWidth = PixiController.get().PixiAbove.view.width/dpr;
+				newHeight = PixiController.get().PixiAbove.view.height/dpr;
+				if(bigD && onceSecond) console.log('>> STRETCH  newWidth='+newWidth+', newHeight='+newHeight);
+			}
+			else
+			{
+				if(bigD && onceSecond) console.log('>> NOT STRETCH  this._objBoundsReuse:::: ',this._objBoundsReuse);
+				newWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+				newHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+				//newWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
+				//newHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
+				//newWidth = PixiController.get().PixiAbove.view.width/dpr;
+				//newHeight = PixiController.get().PixiAbove.view.height/dpr;
+				if(bigD && onceSecond) console.log('>> NOT STRETCH  newWidth='+newWidth+', newHeight='+newHeight);
+			}
+
+			this._debugGraphics.x = this._objBoundsReuse.minX / dpr;
+			this._debugGraphics.y = this._objBoundsReuse.minY / dpr;
+			if(bigD && onceSecond) console.log('>>   debugGraphics x='+this._debugGraphics.x+', y='+this._debugGraphics.y);
+			if(bigD && onceSecond) console.log('>>  debugGraphics nw='+(newWidth-2)+', nh='+(newHeight-2));
+			if(bigD && onceSecond) console.log('>>  debugGraphics  w='+this._debugGraphics.width+', h='+this._debugGraphics.height);
+
+
 			this._debugGraphics.clear();
-			this._debugGraphics.rect(0, 0, this.width / dpr, this.height / dpr);
-			this._debugGraphics.fill({color: 0x66CCFF, alpha: 0.15});
-			this._debugGraphics.stroke({ width: 2 / dpr, color: 0xfeeb77, alpha: 0.5 });
+			this._debugGraphics
+				.rect(2, 2, newWidth-2, newHeight-4)
+				.fill({color:0x770f77, alpha:0.35})
+				.stroke({width:1, color:0xfeeb77, alpha:0.75 }
+			);
+
+			if(bigD && onceSecond) console.log('>>  debugGraphics POST DRAW w='+this._debugGraphics.width+', h='+this._debugGraphics.height);
 		}
 		else
 		{
-			console.log('%c <CanvasContainerObj> DrawDEBUG no'+this.label,'color:#FF8800; font-weight:bold;');
+			if(onceSecond) console.log('%c <CanvasContainerObj> DrawDEBUG no'+this.label,'color:#FF8800; font-weight:bold;');
 		}
 	}
 
@@ -370,7 +509,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	/**
 	 * Gets the world position of this container (accounting for nested containers)
 	 */
-	public GetWorldPosition(): { x: number, y: number }
+	public GetWorldPosition(): { x:number, y:number }
 	{
 		let worldX = this.x;
 		let worldY = this.y;
@@ -389,7 +528,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	/**
 	 * Gets the world scale of this container (accounting for nested containers)
 	 */
-	public GetWorldScale(): { xScale: number, yScale: number }
+	public GetWorldScale(): { xScale:number, yScale:number }
 	{
 		let worldXScale = this.xScale;
 		let worldYScale = this.yScale;
@@ -408,7 +547,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	/**
 	 * Checks if a point is within this container's bounds
 	 */
-	public ContainsPoint(x: number, y: number): boolean
+	public ContainsPoint(x:number, y:number): boolean
 	{
 		return x >= this.x &&
 		       x <= this.x + (this.width * this.xScale) &&
@@ -419,7 +558,7 @@ export class CanvasContainerObj extends BaseCanvasObj
 	/**
 	 * Gets a child at a specific point (useful for hit testing)
 	 */
-	public GetChildAtPoint(x: number, y: number):BaseCanvasObj | null
+	public GetChildAtPoint(x:number, y:number):BaseCanvasObj | null
 	{
 		// Check children in reverse order (top to bottom)
 		for (let i = this.children.length - 1; i >= 0; i--)
@@ -448,12 +587,25 @@ export class CanvasContainerObj extends BaseCanvasObj
 	/**
 	 * Updates container and all its children
 	 */
-	public Update(time: number, frameCount: number, onceSecond: boolean):void
+	public Update(time:number, frameCount:number, onceSecond:boolean, onceMinute:boolean):void
 	{
 		if (!this.enabled || !this.visible) return;
 
-		// Update all child transforms relative to container
+		let centerWidth = 0;
+		let centerHeight = 0;
+		if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
+		{
+			centerWidth = (PixiController.get().PixiAbove.view.width - this._objBoundsReuse.maxX) / 2;
+		}
+		else if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
+		{
+			centerWidth = (RiveController.get().Canvas.width - this._objBoundsReuse.maxX) / 2;
+			centerHeight = (PixiController.get().PixiAbove.view.height/2);
+		}
 
+		super.Update(time,frameCount,onceSecond,onceMinute,centerWidth,centerHeight);
+/*
+????????????????????
 		// Handle autoscale if needed
 		//if (CanvasEngine.get().EngineSettings?.autoScale)
 		//{
@@ -486,44 +638,21 @@ export class CanvasContainerObj extends BaseCanvasObj
 			xScale = this.xScale;
 			yScale = this.yScale;
 		}
-
-		//if(CanvasEngine.get().EngineSettings?.autoScale && (this._debugRive && this._debugGraphics))
-		//{
-		//	transformedX = this.x * CanvasEngine.get().CurrentCanvasScale;
-		//	transformedY = this.y * CanvasEngine.get().CurrentCanvasScale;
-		//	xScale = CanvasEngine.get().CurrentCanvasScale * this.xScale;
-		//	yScale = CanvasEngine.get().CurrentCanvasScale * this.yScale;
-		//}
-		//else
-		//{
-		//	transformedX = this.x;
-		//	transformedY = this.y;
-		//	xScale = this.xScale;
-		//	yScale = this.yScale;
-		//}
-
-		//if(this._graphics)
-		//{
-		//	this._graphics.x = transformedX;
-		//	this._graphics.y = transformedY;
-		//	this._graphics.scale.set(xScale, yScale);
-		//}
-
+????????????????????
+*/
 		if(this._debugGraphics)
 		{
-			if(onceSecond) console.log('%c <'+frameCount+'>  updating debug graphics for container '+this.label,'color:#00FF88; font-weight:bold;');
-			this._debugGraphics.x = transformedX;
-			this._debugGraphics.y = transformedY;
-			this._debugGraphics.scale.set(xScale, yScale);
+			this.DrawDebug(onceSecond);
 		}
 
-		//if(onceSecond) console.log('%c <'+frameCount+'>  TEST '+this.label,'color:#00FF88; font-weight:bold;');
+
 
 		for(const child of this.children)
 		{
 			//if(onceSecond) console.log('%c <'+frameCount+'>  updating child transform for '+child.label,'color:#00FF88; font-weight:bold;');
 			this.updateChildTransform(child,onceSecond);
 
+			//THE ENGINE SHOULD DO THIS........
 			// Update the child itself
 			//if (child.enabled)
 			//{

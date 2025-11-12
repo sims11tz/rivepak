@@ -13,7 +13,9 @@ export declare class CanvasContainerObj extends BaseCanvasObj {
     private destroyDebugGraphics;
     OnParentAdded(): void;
     OnParentRemoved(): void;
-    protected DrawDebug(): void;
+    private _lastScaledWidth;
+    private _lastScaledHeight;
+    protected DrawDebug(onceSecond?: boolean): void;
     /**
      * Adds a child object to this container
      */
@@ -77,7 +79,7 @@ export declare class CanvasContainerObj extends BaseCanvasObj {
     /**
      * Updates container and all its children
      */
-    Update(time: number, frameCount: number, onceSecond: boolean): void;
+    Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
     /**
      * Sets the position of the container
 

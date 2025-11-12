@@ -72,6 +72,12 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
             maxX: number;
             maxY: number;
         };
+        _objBoundsCalcs: {
+            minX: number;
+            minY: number;
+            maxX: number;
+            maxY: number;
+        };
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;

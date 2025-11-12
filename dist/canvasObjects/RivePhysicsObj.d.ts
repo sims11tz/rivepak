@@ -73,6 +73,12 @@ declare const BaseRivePhysicsObject_base: {
             maxX: number;
             maxY: number;
         };
+        _objBoundsCalcs: {
+            minX: number;
+            minY: number;
+            maxX: number;
+            maxY: number;
+        };
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;
