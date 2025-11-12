@@ -1652,11 +1652,10 @@ export class CanvasRiveObj extends BaseCanvasObj
 
 			this.Renderer.save();
 
-			const daveDebug = true;
+			const daveDebug = false;
 			// For STRETCH mode, use Fit.scaleDown which might allow non-uniform scaling
 			if(this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH)
 			{
-
 				//IF BrOKEN TS THIS... ok
 				let objBoundsReuse:AABB = {
 					minX: this._objBoundsReuse.minX,
