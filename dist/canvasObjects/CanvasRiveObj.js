@@ -1512,20 +1512,25 @@ export class CanvasRiveObj extends BaseCanvasObj {
         }
     }
     initInteractive(forceCreate = false) {
+        const debug = false;
         // Only create interactive graphics if we have a parent (are added to engine)
         // OR if forceCreate is true (called from InitVisuals which means we're being added to engine)
         if (!forceCreate && this._parent === null) {
-            console.log('initInteractive cock block');
+            if (debug)
+                console.log('initInteractive cock block');
             this._needsInteractive = true;
             return;
         }
-        console.log('initInteractive 1> go');
+        if (debug)
+            console.log('initInteractive 1> go');
         // Prevent double-initialization
         if (this._interactiveGraphics) {
-            console.log('initInteractive cock block 2');
+            if (debug)
+                console.log('initInteractive cock block 2');
             return;
         }
-        console.log("   INIT INTERACTIVE RIVE OBJECT -- <" + this.id + ":" + this._label + ">");
+        if (debug)
+            console.log("   INIT INTERACTIVE RIVE OBJECT -- <" + this.id + ":" + this._label + ">");
         this._interactiveGraphics = new PIXI.Graphics();
         PixiController.get().GetPixiInstance(this.defObj.pixiLayer).stage.addChild(this._interactiveGraphics);
         const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -1538,10 +1543,12 @@ export class CanvasRiveObj extends BaseCanvasObj {
         else {
             newWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
             newHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
-            console.log('>>igraph>3>  w=' + newWidth + ', h=' + newHeight);
+            if (debug)
+                console.log('>>igraph>3>  w=' + newWidth + ', h=' + newHeight);
         }
         //wtf what was that a couple below... ?
-        console.log("interactiveGraphics rect: w:" + this.width + " h:" + this.height);
+        if (debug)
+            console.log("interactiveGraphics rect: w:" + this.width + " h:" + this.height);
         //this._interactiveGraphics.rect(0, 0, this.width, this.height);
         //this._interactiveGraphics.fill({color:0x650a5a, alpha: 0.05});
         //this._interactiveGraphics.stroke({ width: 1, color:0xfeeb77, alpha:1 });
@@ -1552,7 +1559,8 @@ export class CanvasRiveObj extends BaseCanvasObj {
             .rect(2, 2, newWidth - 2, newHeight - 4)
             .fill({ color: 0x770f77, alpha: 0 })
             .stroke({ width: 1, color: 0xfeeb77, alpha: 0 });
-        console.log("interactiveGraphics : w:" + this._interactiveGraphics.width + " h:" + this._interactiveGraphics.height);
+        if (debug)
+            console.log("interactiveGraphics : w:" + this._interactiveGraphics.width + " h:" + this._interactiveGraphics.height);
         this._interactiveGraphics.x = this.x;
         this._interactiveGraphics.y = this.y;
         this._interactiveGraphics.eventMode = "static";
@@ -1592,31 +1600,34 @@ export class CanvasRiveObj extends BaseCanvasObj {
     }
     onClick(event) {
         var _a;
-        console.log('');
-        console.log('CLICK');
-        console.log('CLICK : ' + this._label);
-        console.log('CLICK : x:' + this.x + ', y:' + this.y + ' ---  w:' + this.width + ', h:' + this.height);
-        console.log('CLICK : artboard w:' + this.artboard.width + ', h:' + this.artboard.height);
-        console.log('CLICK : scaleMode:', this.defObj.scaleMode);
-        console.log('CLICK : xScale:' + this.xScale + ', yScale:' + this.yScale);
-        if (this._interactiveGraphics) {
-            console.log('CLICK : iG:');
-            console.log('CLICK : iG: x=' + this._interactiveGraphics.x + ', y=' + this._interactiveGraphics.y);
-            console.log('CLICK : iG: width=' + this._interactiveGraphics.width + ', height=' + this._interactiveGraphics.height);
+        const debug = false;
+        if (debug) {
+            console.log('');
+            console.log('CLICK');
+            console.log('CLICK : ' + this._label);
+            console.log('CLICK : x:' + this.x + ', y:' + this.y + ' ---  w:' + this.width + ', h:' + this.height);
+            console.log('CLICK : artboard w:' + this.artboard.width + ', h:' + this.artboard.height);
+            console.log('CLICK : scaleMode:', this.defObj.scaleMode);
+            console.log('CLICK : xScale:' + this.xScale + ', yScale:' + this.yScale);
+            if (this._interactiveGraphics) {
+                console.log('CLICK : iG:');
+                console.log('CLICK : iG: x=' + this._interactiveGraphics.x + ', y=' + this._interactiveGraphics.y);
+                console.log('CLICK : iG: width=' + this._interactiveGraphics.width + ', height=' + this._interactiveGraphics.height);
+            }
+            if (this._objBoundsReuse) {
+                console.log('CLICK : ');
+                console.log('CLICK : objre:');
+                console.log('CLICK : objre: minX=' + this._objBoundsReuse.minX + ', minY=' + this._objBoundsReuse.minY);
+                console.log('CLICK : objre: maxX=' + this._objBoundsReuse.maxX + ', maxY=' + this._objBoundsReuse.maxY);
+            }
+            console.log('');
+            console.log('CLICK : PIXI<1> W: ' + PixiController.get().PixiAbove.view.width + ',  H: ' + PixiController.get().PixiAbove.view.height);
+            console.log('CLICK : PIXI<2> W: ' + PixiController.get().PixiAbove.canvas.width + ',  H: ' + PixiController.get().PixiAbove.canvas.height);
+            console.log('');
+            console.log('CLICK : Rive<1> W: ' + RiveController.get().Canvas.width + ',  H: ' + RiveController.get().Canvas.height);
+            console.log('');
+            console.log('CLICK : CanvasE<1> W: ' + CanvasEngine.get().width + ',  H: ' + CanvasEngine.get().height);
         }
-        if (this._objBoundsReuse) {
-            console.log('CLICK : ');
-            console.log('CLICK : objre:');
-            console.log('CLICK : objre: minX=' + this._objBoundsReuse.minX + ', minY=' + this._objBoundsReuse.minY);
-            console.log('CLICK : objre: maxX=' + this._objBoundsReuse.maxX + ', maxY=' + this._objBoundsReuse.maxY);
-        }
-        console.log('');
-        console.log('CLICK : PIXI<1> W: ' + PixiController.get().PixiAbove.view.width + ',  H: ' + PixiController.get().PixiAbove.view.height);
-        console.log('CLICK : PIXI<2> W: ' + PixiController.get().PixiAbove.canvas.width + ',  H: ' + PixiController.get().PixiAbove.canvas.height);
-        console.log('');
-        console.log('CLICK : Rive<1> W: ' + RiveController.get().Canvas.width + ',  H: ' + RiveController.get().Canvas.height);
-        console.log('');
-        console.log('CLICK : CanvasE<1> W: ' + CanvasEngine.get().width + ',  H: ' + CanvasEngine.get().height);
         if (this._onClickCallback) {
             (_a = this._onClickCallback) === null || _a === void 0 ? void 0 : _a.call(this, event, this);
         }
