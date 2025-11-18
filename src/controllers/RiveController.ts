@@ -561,7 +561,8 @@ export class RiveController
 							{
 								try
 								{
-									vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR;
+									//vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR;
+									vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = 'FALSE';
 								}
 								catch(e)
 								{
