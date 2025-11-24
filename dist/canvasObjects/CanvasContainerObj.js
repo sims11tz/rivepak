@@ -33,6 +33,7 @@ export class CanvasContainerObj extends BaseCanvasObj {
     }
     InitContainer() {
         var _a, _b, _c, _d, _e, _f;
+        const debug = false;
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         const scaledWidth = CanvasEngine.get().width;
         const scaledHeight = CanvasEngine.get().height;
@@ -52,27 +53,32 @@ export class CanvasContainerObj extends BaseCanvasObj {
             canvasWidth = (this._objBoundsReuse.maxX - this._objBoundsReuse.minX) / dpr;
             canvasHeight = (this._objBoundsReuse.maxY - this._objBoundsReuse.minY) / dpr;
         }
-        console.warn('hiiiiii');
+        if (debug)
+            console.warn('hiiiiii');
         // Handle scaleMode if specified
         if (this.defObj.scaleMode === OBJECT_SCALE_MODE.STRETCH) {
-            console.log(' SCALE MODE IS STRETCH for ' + this.label);
+            if (debug)
+                console.log(' SCALE MODE IS STRETCH for ' + this.label);
             // STRETCH mode: fill entire canvas
             this.width = canvasWidth;
             this.height = canvasHeight;
-            console.log(' width=' + this.width + ', height=' + this.height);
+            if (debug)
+                console.log(' width=' + this.width + ', height=' + this.height);
             this.xScale = 1;
             this.yScale = 1;
             this.x = 0;
             this.y = 0;
         }
         else {
-            console.log(' SCALE MODE IS DEFAULT for ' + this.label);
+            if (debug)
+                console.log(' SCALE MODE IS DEFAULT for ' + this.label);
             // Default behavior
             this.width = (_a = this.defObj.width) !== null && _a !== void 0 ? _a : 100;
             this.height = (_b = this.defObj.height) !== null && _b !== void 0 ? _b : 100;
             this.xScale = (_c = this.defObj.xScale) !== null && _c !== void 0 ? _c : 1;
             this.yScale = (_d = this.defObj.yScale) !== null && _d !== void 0 ? _d : 1;
-            console.log(' SCALE MODE IS DEFAULT for ' + this.label);
+            if (debug)
+                console.log(' SCALE MODE IS DEFAULT for ' + this.label);
             this.x = (_e = this.defObj.x) !== null && _e !== void 0 ? _e : Math.random() * RiveController.get().Canvas.width;
             this.y = (_f = this.defObj.y) !== null && _f !== void 0 ? _f : Math.random() * RiveController.get().Canvas.height;
             if (this.centerGlobally) {
@@ -86,7 +92,8 @@ export class CanvasContainerObj extends BaseCanvasObj {
                 this.y -= (this.height / 2);
             }
         }
-        console.log(' InitContainer : width=' + this.width + ', height=' + this.height);
+        if (debug)
+            console.log(' InitContainer : width=' + this.width + ', height=' + this.height);
         // Handle scaleAlign for positioning
         //if(this.defObj.scaleAlign === OBJECT_SCALE_ALIGN.CENTER)
         //{
@@ -102,13 +109,16 @@ export class CanvasContainerObj extends BaseCanvasObj {
         //}
         // Don't create debug graphics yet if we don't have a parent
         // Wait until OnParentAdded is called
-        console.warn('eeeeeeps peeeeps');
+        if (debug)
+            console.warn('eeeeeeps peeeeps');
         if (this._debugRive) {
-            console.log('%c <CanvasContainerObj> scheduling debug graphics init for ' + this.label, 'color:#FF8800; font-weight:bold;');
+            if (debug)
+                console.log('%c <CanvasContainerObj> scheduling debug graphics init for ' + this.label, 'color:#FF8800; font-weight:bold;');
             this.initDebugGraphics();
         }
         else {
-            console.log('%c <CanvasContainerObj> no init for you.. ' + this.label, 'color:#FF8800; font-weight:bold;');
+            if (debug)
+                console.log('%c <CanvasContainerObj> no init for you.. ' + this.label, 'color:#FF8800; font-weight:bold;');
         }
     }
     initDebugGraphics(forceCreate = false) {
