@@ -96,6 +96,8 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     protected _inputs: Map<string, SMIInput>;
     protected _viewModels: Map<string, ViewModelInstance>;
     protected _viewModelInstance: ViewModelInstance | null;
+    private _layoutFit;
+    private _layoutAlignment;
     private _actionQueue;
     private _actionQueueProcessedThisFrame;
     _triggerCallbacks: Map<string, ((event: any) => void)[]>;
@@ -227,6 +229,25 @@ export declare class CanvasRiveObj extends BaseCanvasObj {
     get filePath(): string;
     protected _baseRiveVMPath: string;
     get baseRiveVMPath(): string;
+    get layoutFit(): any;
+    set layoutFit(value: any);
+    get layoutAlignment(): any;
+    set layoutAlignment(value: any);
+    /**
+     * Set both layout fit and alignment in one call
+     * @example obj.SetLayout(obj.Rive.Fit.cover, obj.Rive.Alignment.center)
+     */
+    SetLayout(fit: any, alignment: any): void;
+    /**
+     * Convenience getter for Rive's Fit options
+     * @example obj.RiveFit.contain, obj.RiveFit.cover, obj.RiveFit.fill, etc.
+     */
+    get RiveFit(): any;
+    /**
+     * Convenience getter for Rive's Alignment options
+     * @example obj.RiveAlignment.center, obj.RiveAlignment.topLeft, etc.
+     */
+    get RiveAlignment(): any;
     constructor(riveDef: RiveObjectDef, artboard: Artboard);
     private _lastMousePos;
     private _lastMouseDown;

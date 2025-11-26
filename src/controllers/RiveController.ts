@@ -22,6 +22,8 @@ export interface RiveObjectDef extends CanvasObjectDef
 	id?:string;
 	primaryVMName?:string;
 	startTransparent?:boolean;
+	layoutFit?:any;
+	layoutAlignment?:any;
 	onClickCallback?:(event: MouseEvent | PointerEvent | PIXI.PixiTouch, sourceObj:CanvasRiveObj) => void;
 	onHoverCallback?:(sourceObj:CanvasRiveObj) => void;
 	onHoverOutCallback?:(sourceObj:CanvasRiveObj) => void;

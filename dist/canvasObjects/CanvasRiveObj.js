@@ -714,13 +714,39 @@ export class CanvasRiveObj extends BaseCanvasObj {
     get artboardName() { return this._artboardName; }
     get filePath() { return this._filePath; }
     get baseRiveVMPath() { return this._baseRiveVMPath; }
+    // Layout control - direct access to Rive Fit/Alignment objects
+    get layoutFit() { return this._layoutFit; }
+    set layoutFit(value) { this._layoutFit = value; }
+    get layoutAlignment() { return this._layoutAlignment; }
+    set layoutAlignment(value) { this._layoutAlignment = value; }
+    /**
+     * Set both layout fit and alignment in one call
+     * @example obj.SetLayout(obj.Rive.Fit.cover, obj.Rive.Alignment.center)
+     */
+    SetLayout(fit, alignment) {
+        this._layoutFit = fit;
+        this._layoutAlignment = alignment;
+    }
+    /**
+     * Convenience getter for Rive's Fit options
+     * @example obj.RiveFit.contain, obj.RiveFit.cover, obj.RiveFit.fill, etc.
+     */
+    get RiveFit() { return this.Rive.Fit; }
+    /**
+     * Convenience getter for Rive's Alignment options
+     * @example obj.RiveAlignment.center, obj.RiveAlignment.topLeft, etc.
+     */
+    get RiveAlignment() { return this.Rive.Alignment; }
     constructor(riveDef, artboard) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         super(riveDef);
         this._stateMachine = null;
         this._inputs = new Map();
         this._viewModels = new Map();
         this._viewModelInstance = null;
+        // Layout control properties - stores references to Rive.Fit/Rive.Alignment objects
+        this._layoutFit = null;
+        this._layoutAlignment = null;
         // Unified action queue for ViewModel changes and input actions
         this._actionQueue = [];
         this._actionQueueProcessedThisFrame = false;
@@ -844,6 +870,9 @@ export class CanvasRiveObj extends BaseCanvasObj {
         this._riveInstance = RiveController.get().Rive;
         this._artboard = artboard;
         this._animations = [];
+        // Initialize layout with values from def or use defaults
+        this._layoutFit = (_c = riveDef.layoutFit) !== null && _c !== void 0 ? _c : this._riveInstance.Fit.contain;
+        this._layoutAlignment = (_d = riveDef.layoutAlignment) !== null && _d !== void 0 ? _d : this._riveInstance.Alignment.topLeft;
     }
     // Inspect all props/methods on a WASM-wrapped object (e.g., a Rive Node)
     dumpWasmObject(obj) {
@@ -1427,13 +1456,14 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     objBoundsReuse.minY = objBoundsReuse.minY + offsetHNumber;
                     objBoundsReuse.maxY = objBoundsReuse.maxY + offsetHNumber;
                 }
-                this.Renderer.align(this.Rive.Fit.none, this.Rive.Alignment.topCenter, objBoundsReuse, this.artboard.bounds);
+                // Use configured layout properties
+                this.Renderer.align(this._layoutFit, this._layoutAlignment, objBoundsReuse, this.artboard.bounds);
             }
             else {
                 if (daveDebug && onceSecond)
                     console.log(' !--!(' + this.label + ') === no stretch -- default whatever that is.. ');
-                // Use Fit.contain for FIT/FILL/MANUAL modes (maintains aspect ratio)
-                this.Renderer.align(this.Rive.Fit.contain, this.Rive.Alignment.topLeft, this._objBoundsReuse, this.artboard.bounds);
+                // Use configured layout properties
+                this.Renderer.align(this._layoutFit, this._layoutAlignment, this._objBoundsReuse, this.artboard.bounds);
             }
             if (this._interactiveGraphics) {
                 if (this._customOncePerCheck === false) {
