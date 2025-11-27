@@ -1050,7 +1050,7 @@ export function UseCanvasEngineHook(
 		canvasJSXRef.current = (
 			<div id="canvasArea" ref={canvasAreaRef}>
 				<div id="debugTools" className="debugTools" style={{ display: canvasSettings.debugMode ? "flex" : "none", position:"absolute", zIndex:"99999", bottom:"2px", left:"10px", gap: "10px", marginBottom:"10px", alignItems: "center", justifyContent: "center" }}>
-					<button onClick={ToggleRunState}><span ref={runStateLabel}></span></button>
+					<button onClick={ToggleRunState} title="Toggle animation play/pause"><span ref={runStateLabel}></span></button>
 					<div className="fpsContainer" style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
 						<span className="fpsSpinner" style={{display: "flex", maxWidth: "15px", minWidth: "15px", width: "15px"}} ref={fpsSpinner}></span><span ref={fpsRef}></span>
 					</div>
