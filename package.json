@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@pixi/ui": "^2.2.7",
-    "@rive-app/webgl2-advanced": "^2.32.1",
+    "@rive-app/webgl2-advanced": "^2.32.2",
     "matter-js": "^0.20.0",
     "pixi.js": "^8.14.1",
     "popmotion": "^11.0.5",
