@@ -5,8 +5,11 @@ export declare class PhysicsController {
     get engine(): Matter.Engine;
     private _engine;
     private _debugRender;
+    private _debugRenderDiv;
     private _physicswalls;
     private _wallOptions;
+    private _logicalWidth;
+    private _logicalHeight;
     private wallThickness;
     Init(canvas: HTMLCanvasElement, physicsWalls: boolean | undefined, debugRenderDiv: HTMLDivElement, debug?: boolean): void;
     SetSize(width: number, height: number, dprIn?: number): void;

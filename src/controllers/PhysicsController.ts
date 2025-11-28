@@ -9,15 +9,19 @@ export class PhysicsController
 	public get engine() { return this._engine!; }
 	private _engine: Matter.Engine | null = null;
 	private _debugRender: Matter.Render | null = null;
+	private _debugRenderDiv: HTMLDivElement | null = null;
 
 	private _physicswalls:boolean = false;
 	private _wallOptions = { isStatic: true, restitution: 1, friction: 0, frictionStatic: 0, frictionAir: 0, wallThickness: 0.035 };
+	private _logicalWidth:number = 0;
+	private _logicalHeight:number = 0;
 
 	private wallThickness(delta:number) { return delta*this._wallOptions.wallThickness; }
 
 	public Init(canvas:HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv:HTMLDivElement, debug:boolean = false)
 	{
 		this._physicswalls = physicsWalls;
+		this._debugRenderDiv = debugRenderDiv;
 
 		if (this._debugRender)
 		{
@@ -30,14 +34,20 @@ export class PhysicsController
 		this._engine.gravity.y = 0;
 		this._engine.gravity.x = 0;
 
+		// Use clientWidth/clientHeight for logical (CSS) dimensions
+		// These are the actual rendered size, not the internal buffer size
+		this._logicalWidth = canvas.clientWidth || canvas.width;
+		this._logicalHeight = canvas.clientHeight || canvas.height;
+
 		if (debug && debugRenderDiv)
 		{
+			// Create debug render at LOGICAL dimensions (not physical pixels)
 			this._debugRender = Matter.Render.create({
 				element: debugRenderDiv,
 				engine: this._engine,
 				options: {
-					width: canvas.width,
-					height: canvas.height,
+					width: this._logicalWidth,
+					height: this._logicalHeight,
 					wireframes: true,
 					background: "transparent",
 				},
@@ -52,11 +62,12 @@ export class PhysicsController
 		Matter.Events.on(this._engine, "collisionStart", this.handleCollision);
 		if(physicsWalls)
 		{
+			// Use logical dimensions for walls
 			const walls = [
-				Matter.Bodies.rectangle(canvas.width / 2, 0, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
-				Matter.Bodies.rectangle(canvas.width / 2, canvas.height, canvas.width - this.wallThickness(canvas.width), this.wallThickness(canvas.width), this._wallOptions),
-				Matter.Bodies.rectangle(0, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
-				Matter.Bodies.rectangle(canvas.width, canvas.height / 2, this.wallThickness(canvas.width), canvas.height, this._wallOptions),
+				Matter.Bodies.rectangle(this._logicalWidth / 2, 0, this._logicalWidth - this.wallThickness(this._logicalWidth), this.wallThickness(this._logicalWidth), this._wallOptions),
+				Matter.Bodies.rectangle(this._logicalWidth / 2, this._logicalHeight, this._logicalWidth - this.wallThickness(this._logicalWidth), this.wallThickness(this._logicalWidth), this._wallOptions),
+				Matter.Bodies.rectangle(0, this._logicalHeight / 2, this.wallThickness(this._logicalWidth), this._logicalHeight, this._wallOptions),
+				Matter.Bodies.rectangle(this._logicalWidth, this._logicalHeight / 2, this.wallThickness(this._logicalWidth), this._logicalHeight, this._wallOptions),
 			];
 			walls.forEach(w => (w as any).isWall = true);
 			Matter.World.add(this._engine.world, walls);
@@ -65,15 +76,20 @@ export class PhysicsController
 
 	public SetSize(width:number, height:number, dprIn:number=-1)
 	{
+		// Width/height are logical dimensions, store them
+		this._logicalWidth = width;
+		this._logicalHeight = height;
+
 		if (this._debugRender)
 		{
+			// Use logical dimensions for the debug render canvas
 			this._debugRender.canvas.width = width;
 			this._debugRender.canvas.height = height;
 			this._debugRender.options.width = width;
 			this._debugRender.options.height = height;
 		}
 
-		// Optionally, rebuild walls if they exist
+		// Optionally, rebuild walls if they exist (using logical dimensions)
 		if (this._engine && this._physicswalls)
 		{
 			const world = this._engine.world;
@@ -136,7 +152,6 @@ export class PhysicsController
 			Matter.Events.off(this._engine, "collisionStart", this.handleCollision);
 			Matter.World.clear(this._engine.world, false);
 			this._engine = null;
-
 		}
 
 		if (this._debugRender)
@@ -145,5 +160,9 @@ export class PhysicsController
 			this._debugRender.canvas.remove();
 			this._debugRender = null;
 		}
+
+		this._debugRenderDiv = null;
+		this._logicalWidth = 0;
+		this._logicalHeight = 0;
 	}
 }
