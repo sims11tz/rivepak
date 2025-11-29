@@ -42,17 +42,17 @@ export class PhysicsController
 		if (debug && debugRenderDiv)
 		{
 			// Create debug render at LOGICAL dimensions (not physical pixels)
-			this._debugRender = Matter.Render.create({
-				element: debugRenderDiv,
-				engine: this._engine,
-				options: {
-					width: this._logicalWidth,
-					height: this._logicalHeight,
-					wireframes: true,
-					background: "transparent",
-				},
-			});
-			Matter.Render.run(this._debugRender);
+			//this._debugRender = Matter.Render.create({
+			//	element: debugRenderDiv,
+			//	engine: this._engine,
+			//	options: {
+			//		width: this._logicalWidth,
+			//		height: this._logicalHeight,
+			//		wireframes: false,
+			//		background: "transparent",
+			//	},
+			//});
+			//Matter.Render.run(this._debugRender);
 		}
 		else if (debugRenderDiv)
 		{
