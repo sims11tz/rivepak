@@ -1586,7 +1586,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 				});
 			}
 
-// DEPRECATED Check for events and do callbacks
+// DEPRECATED Check for events  and do callbacks
 			const eventCount = this._stateMachine.reportedEventCount();
 			if(!this._disposed && eventCount > 0)
 			{
