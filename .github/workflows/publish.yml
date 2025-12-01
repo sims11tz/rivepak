@@ -25,10 +25,10 @@ jobs:
           node-version: "20"
           registry-url: "https://npm.pkg.github.com/"
 
-      - name: Who am I?
+      - name: Who am I.. Im me!?
         run: npm whoami --registry=https://npm.pkg.github.com
         env:
-          NODE_AUTH_TOKEN: "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"
+          NODE_AUTH_TOKEN: ${{ secrets.RIVE_PAK_NPM_TOKEN }}
 
       - name: Install dependencies
         run: npm install
