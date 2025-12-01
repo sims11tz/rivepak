@@ -13,8 +13,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed to push updated version back to repo
-      packages: write
+      contents: write    # push version bump + tags
+      packages: write    # allow publishing to GitHub Packages
+
+    env:
+      # use the built-in token; no custom PAT required
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -23,12 +28,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "20"
-          registry-url: "https://npm.pkg.github.com/"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@sims11tz"   # important for scoped package
 
-      - name: Who am I?
+      - name: Debug whoami (optional)
         run: npm whoami --registry=https://npm.pkg.github.com
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: npm install
@@ -42,5 +46,3 @@ jobs:
           npm publish
 
           git push origin main --follow-tags
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
