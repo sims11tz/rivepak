@@ -1353,7 +1353,7 @@ export class CanvasRiveObj extends BaseCanvasObj {
                     }
                 }
             }
-            // Debug: Log state changes
+            // Debug: Log state ch anges
             //if(!this._disposed && this._stateMachine)
             //{
             //	const stateChangeCount = this._stateMachine.stateChangedCount();

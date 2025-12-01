@@ -13,8 +13,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed to push updated version back to repo
+      contents: write
       packages: write
+
+    env:
+      # tie the secret to the variable that .npmrc expects
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,11 +29,10 @@ jobs:
         with:
           node-version: "20"
           registry-url: "https://npm.pkg.github.com/"
+          scope: "@sims11tz"
 
       - name: Who am I.. Im me!?
         run: npm whoami --registry=https://npm.pkg.github.com
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: npm install
@@ -42,5 +46,3 @@ jobs:
           npm publish
 
           git push origin main --follow-tags
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
