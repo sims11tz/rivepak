@@ -31,8 +31,8 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@sims11tz"   # important for scoped package
 
-      - name: Debug whoami (optional)
-        run: npm whoami --registry=https://npm.pkg.github.com
+      #- name: Debug whoami (optional)
+      #  run: npm whoami --registry=https://npm.pkg.github.com
 
       - name: Install dependencies
         run: npm install

@@ -1611,7 +1611,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 			//	const stateChangeCount = this._stateMachine.stateChangedCount();
 			//	if(stateChangeCount > 0)
 			//	{
-			//		for(let x = 0; x < stateChange Count; x++)
+			//		for(let x = 0; x < stateChangeCount; x++)
 			//		{
 			//			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
 			//			if (stateChange != undefined)
