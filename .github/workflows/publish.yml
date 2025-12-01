@@ -24,7 +24,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
