@@ -1605,7 +1605,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 				}
 			}
 
-// Debug: Log state cha nges
+// Debug: Log state changes
 			//if(!this._disposed && this._stateMachine)
 			//{
 			//	const stateChangeCount = this._stateMachine.stateChangedCount();

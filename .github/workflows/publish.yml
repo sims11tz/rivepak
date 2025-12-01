@@ -12,36 +12,23 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
-    # Let this workflow push commits/tags and publish packages
     permissions:
-      contents: write
+      contents: write # needed to push updated version back to repo
       packages: write
-
-    # Use the built-in GitHub token for npm auth
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: "20"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@sims11tz"
+          registry-url: "https://npm.pkg.github.com/"
 
-      # Optional but super helpful while debugging
-      - name: Configure npm for GitHub Packages
-        run: |
-          echo "@sims11tz:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
-
-      # You can delete this once things work
-      - name: Who am I (debug)?
+      - name: Who am I.. Im me!?
         run: npm whoami --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: npm install
@@ -51,11 +38,9 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          # Bump patch version, commit with tag (v0.0.xx)
           npm version patch --force -m "ci: auto bump to %s [skip ci]"
-
-          # Publish to GitHub Packages
           npm publish
 
-          # Push commit + tag back to main
           git push origin main --follow-tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
