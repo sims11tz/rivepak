@@ -1340,23 +1340,19 @@ export class CanvasRiveObj extends BaseCanvasObj {
                 });
             }
             // DEPRECATED Check for events and do callbacks
-            //const eventCount = this._stateMachine.reportedEventCount();
-            //if(!this._disposed && eventCount > 0)
-            //{
-            //	for(let i = 0; i < eventCount; i++)
-            //	{
-            //		const event = this._stateMachine.reportedEventAt(i);
-            //		if (event != undefined)
-            //		{
-            //			// Trigger any subscribed callbacks for this event
-            //			const callbacks = this._eventCallbacks.get(event.name);
-            //			if(callbacks && callbacks.length > 0)
-            //			{
-            //				callbacks.forEach(callback => callback(event));
-            //			}
-            //		}
-            //	}
-            //}
+            const eventCount = this._stateMachine.reportedEventCount();
+            if (!this._disposed && eventCount > 0) {
+                for (let i = 0; i < eventCount; i++) {
+                    const event = this._stateMachine.reportedEventAt(i);
+                    if (event != undefined) {
+                        // Trigger any subscribed callbacks for this event
+                        const callbacks = this._eventCallbacks.get(event.name);
+                        if (callbacks && callbacks.length > 0) {
+                            callbacks.forEach(callback => callback(event));
+                        }
+                    }
+                }
+            }
             // Debug: Log state changes
             //if(!this._disposed && this._stateMachine)
             //{
