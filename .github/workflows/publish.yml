@@ -28,7 +28,7 @@ jobs:
       - name: Who am I?
         run: npm whoami --registry=https://npm.pkg.github.com
         env:
-          NODE_AUTH_TOKEN: "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"
+          NODE_AUTH_TOKEN: "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"
 
       - name: Install dependencies
         run: npm install
@@ -43,4 +43,4 @@ jobs:
 
           git push origin main --follow-tags
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.RIVE_PAK_NPM_TOKEN }}
