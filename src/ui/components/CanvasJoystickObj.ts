@@ -80,10 +80,7 @@ export class CanvasJoystickObj extends BaseUIComponent
 		config.width = config.width || outerRadius * 2;
 		config.height = config.height || outerRadius * 2;
 
-		// Store config before super() - it will be accessed in InitComponent()
-		// Using Object.assign to work around TypeScript's restriction on 'this' before super()
 		super(config);
-		// _joystickConfig is set in InitComponent via the config parameter
 	}
 
 	protected InitComponent():void
@@ -119,6 +116,17 @@ export class CanvasJoystickObj extends BaseUIComponent
 
 		// Add global pointer move/up listeners for drag tracking outside bounds
 		this.setupGlobalListeners();
+
+		// Defer interaction setup until after constructor chain completes
+		// This ensures our arrow function handlers are properly assigned
+		// (arrow function class properties aren't assigned until after parent constructor)
+		Promise.resolve().then(() =>
+		{
+			// Remove base class handlers (which point to parent's arrow functions)
+			this.RemoveInteraction();
+			// Re-add with our correct handlers
+			this.SetupInteraction();
+		});
 	}
 
 	private setupGlobalListeners():void
@@ -138,6 +146,7 @@ export class CanvasJoystickObj extends BaseUIComponent
 	{
 		if(!this._isDragging || !this._enabled) return;
 
+		console.log('%c Joystick global move:', 'color:#00FFFF;', event.clientX, event.clientY);
 		this.updateThumbPositionFromGlobal(event.clientX, event.clientY);
 	}
 
@@ -145,6 +154,12 @@ export class CanvasJoystickObj extends BaseUIComponent
 	{
 		if(!this._isDragging) return;
 
+		this.doJoystickRelease();
+	}
+
+	private doJoystickRelease():void
+	{
+		console.log('%c Joystick released!', 'color:#FFFF00; font-weight:bold;');
 		this._isDragging = false;
 		this._pressed = false;
 
@@ -169,13 +184,10 @@ export class CanvasJoystickObj extends BaseUIComponent
 
 	private updateThumbPositionFromGlobal(clientX:number, clientY:number):void
 	{
-		// Get canvas bounds
-		const canvas = this._container.parent?.parent as PIXI.Container;
-		if(!canvas) return;
-
 		// Convert client coordinates to local container coordinates
 		// Get the container's global position
 		const globalPos = this._container.getGlobalPosition();
+		console.log('%c Joystick globalPos:', 'color:#AAFFAA;', globalPos.x, globalPos.y);
 
 		// Calculate local position relative to container center
 		const localX = clientX - globalPos.x;
@@ -255,10 +267,13 @@ export class CanvasJoystickObj extends BaseUIComponent
 		this._container.alpha = this._enabled ? 1.0 : 0.4;
 	}
 
+	// Override base class arrow function handlers
+	// These are arrow functions to match the base class pattern
 	protected HandlePointerDown = (event:PIXI.FederatedPointerEvent):void =>
 	{
 		if(!this._enabled) return;
 
+		console.log('%c Joystick HandlePointerDown!', 'color:#00FF00; font-weight:bold;');
 		this._isDragging = true;
 		this._pressed = true;
 
@@ -270,42 +285,24 @@ export class CanvasJoystickObj extends BaseUIComponent
 		this._onPress?.(this);
 	}
 
-	protected HandlePointerMove = (event:PIXI.FederatedPointerEvent):void =>
-	{
-		if(!this._isDragging || !this._enabled) return;
-
-		this.updateThumbPosition(event);
-	}
-
 	protected HandlePointerUp = (event:PIXI.FederatedPointerEvent):void =>
 	{
 		if(!this._isDragging) return;
 
-		this._isDragging = false;
-		this._pressed = false;
-
-		if(this._snapBack)
-		{
-			// Reset thumb to center
-			this._thumbX = 0;
-			this._thumbY = 0;
-			this._normalizedX = 0;
-			this._normalizedY = 0;
-
-			this.Render();
-
-			// Emit release with zero values
-			this._onMove?.(0, 0);
-		}
-
-		// Emit release event
-		UIEventBus.emit(UIEventBus.createEvent(UIEventType.RELEASE, this));
-		this._onJoystickRelease?.();
+		this.doJoystickRelease();
 	}
 
-	protected HandlePointerUpOutside = (event:PIXI.FederatedPointerEvent):void =>
+	protected HandlePointerOver = (event:PIXI.FederatedPointerEvent):void =>
 	{
-		this.HandlePointerUp(event);
+		if(!this._enabled) return;
+		this._hovered = true;
+	}
+
+	protected HandlePointerOut = (event:PIXI.FederatedPointerEvent):void =>
+	{
+		if(!this._enabled) return;
+		this._hovered = false;
+		// Don't release on pointer out - we want to track dragging outside bounds
 	}
 
 	private updateThumbPosition(event:PIXI.FederatedPointerEvent):void
