@@ -18,6 +18,7 @@ export * from './components/CanvasDropdownObj';
 export * from './components/CanvasTooltipObj';
 export * from './components/CanvasProgressBarObj';
 export * from './components/CanvasModalObj';
+export * from './components/CanvasJoystickObj';
 
 // Containers
 export * from './containers/CanvasFlexContainer';
