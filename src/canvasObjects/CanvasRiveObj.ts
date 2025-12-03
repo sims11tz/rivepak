@@ -1780,7 +1780,7 @@ export class CanvasRiveObj extends BaseCanvasObj
 				this._interactiveGraphics.clear();
 				this._interactiveGraphics
 					.rect(2, 2, newWidth-2, newHeight-4)
-					.fill({color:0x770f77, alpha:debugDrawThisHere?0.5:0})
+					.fill({color:0x770f77, alpha:debugDrawThisHere?0.15:0})
 					.stroke({width:1, color:0xfeeb77, alpha:debugDrawThisHere?1:0}
 				);
 			}
