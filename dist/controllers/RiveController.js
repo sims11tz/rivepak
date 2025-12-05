@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import RiveCanvas from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
 import { RIVE_COMMON_ENUMS } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasEngine } from "../useCanvasEngine";
 import RivePakUtils from "../RivePakUtils";
+import { getRendererInfo, loadRiveModule } from "../utils/RendererFactory";
 export var RIVE_OBJECT_TYPE;
 (function (RIVE_OBJECT_TYPE) {
     RIVE_OBJECT_TYPE["ANIMATION"] = "ANIMATION";
@@ -59,6 +59,7 @@ export class RiveObjectsSet {
 }
 export class RiveController {
     constructor() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._riveInstance = null;
         this._riveRenderer = null;
         this._canvas = null;
@@ -67,7 +68,10 @@ export class RiveController {
         this._riveObjectsSet = null;
         this._initCalled = false;
         this._cache = new Map();
+        this._loadingPromises = new Map();
         this._disposed = false;
+        // --- RENDERER TYPE TRACKING ---
+        this._activeRendererType = "webgl2";
         // --- WASM SOURCE TOGGLE (ADDED) ---
         this._wasmSource = "local";
         this._wasmLocalBase = "/rive/"; // where you serve rive.wasm locally
@@ -97,6 +101,8 @@ export class RiveController {
     get CanvasBounds() { return this._canvasBounds; }
     get CanvasGlobalBounds() { return this._canvasGlobalBounds; }
     get RiveObjectsSet() { return this._riveObjectsSet; }
+    get ActiveRendererType() { return this._activeRendererType; }
+    get RendererInfo() { return getRendererInfo(); }
     /**
      * Configure where to load the Rive WASM from.
      * Call before Init().
@@ -150,8 +156,11 @@ export class RiveController {
                     console.log('..<RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE RIVE>..');
                     console.log('WASM source:', this._wasmSource, 'base:', this._wasmSource === "custom" ? this._wasmCustomBase : (this._wasmSource === "cdn" ? this._wasmCdnBase : this._wasmLocalBase));
                 }
-                // *** THE ONLY CHANGE THAT MATTERS FOR WASM SOURCE ***
-                this._riveInstance = yield RiveCanvas({
+                // *** DYNAMIC RENDERER LOADING - WebGL2 on desktop, Canvas on mobile ***
+                const { default: RiveCanvasInit, type: rendererType } = yield loadRiveModule();
+                this._activeRendererType = rendererType;
+                console.log(`[RiveController] 🎨 Using ${rendererType.toUpperCase()} renderer (mobile: ${getRendererInfo().isMobile})`);
+                this._riveInstance = yield RiveCanvasInit({
                     locateFile: (file) => this._getWasmUrl(file),
                 });
                 this._riveRenderer = this._riveInstance.makeRenderer(canvas, true);
@@ -529,30 +538,95 @@ export class RiveController {
             return this._riveObjectsSet;
         });
     }
+    fetchWithRetry(url, maxRetries = 3) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const startTime = performance.now();
+            console.log(`[RiveLoader] 🔄 Starting fetch: ${url}`);
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const attemptStart = performance.now();
+                    console.log(`[RiveLoader] 📡 Attempt ${attempt + 1}/${maxRetries} for ${url}`);
+                    const response = yield fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const bytes = yield response.arrayBuffer();
+                    const uint8Array = new Uint8Array(bytes);
+                    const elapsed = (performance.now() - attemptStart).toFixed(0);
+                    const sizeMB = (bytes.byteLength / (1024 * 1024)).toFixed(2);
+                    console.log(`[RiveLoader] ✅ Fetched ${url} (${sizeMB}MB) in ${elapsed}ms`);
+                    return uint8Array;
+                }
+                catch (error) {
+                    const elapsed = (performance.now() - startTime).toFixed(0);
+                    console.warn(`[RiveLoader] ⚠️ Attempt ${attempt + 1}/${maxRetries} failed for ${url} after ${elapsed}ms`, error);
+                    if (attempt === maxRetries - 1) {
+                        console.error(`[RiveLoader] ❌ All ${maxRetries} attempts failed for ${url}`);
+                        throw error;
+                    }
+                    const backoffMs = Math.pow(2, attempt) * 1000;
+                    console.log(`[RiveLoader] ⏳ Waiting ${backoffMs}ms before retry...`);
+                    yield new Promise(r => setTimeout(r, backoffMs));
+                }
+            }
+            throw new Error(`Failed to fetch ${url} after ${maxRetries} attempts`);
+        });
+    }
     loadRiveFiles(filenames, callback) {
         return __awaiter(this, void 0, void 0, function* () {
             const originalFiles = Array.isArray(filenames) ? filenames : [filenames];
             const uniqueFilesToLoad = Array.from(new Set(originalFiles));
             const uniqueLoadedFiles = new Map();
+            console.log(`[RiveLoader] 📦 loadRiveFiles called with ${originalFiles.length} files (${uniqueFilesToLoad.length} unique)`);
             yield Promise.all(uniqueFilesToLoad.map((filePath) => __awaiter(this, void 0, void 0, function* () {
+                const fileName = filePath.split('/').pop();
                 try {
+                    // Check cache first
                     if (this._cache.has(filePath)) {
+                        console.log(`[RiveLoader] 💾 Cache HIT for ${fileName}`);
+                        const parseStart = performance.now();
                         const riveFile = yield this._riveInstance.load(this._cache.get(filePath));
+                        const parseTime = (performance.now() - parseStart).toFixed(0);
+                        console.log(`[RiveLoader] ✅ Parsed ${fileName} from cache in ${parseTime}ms`);
                         uniqueLoadedFiles.set(filePath, riveFile);
                         return;
                     }
-                    const response = yield fetch(filePath);
-                    const bytes = yield response.arrayBuffer();
-                    const uint8Array = new Uint8Array(bytes);
+                    // Check if already loading (prevent race condition / duplicate fetches)
+                    if (this._loadingPromises.has(filePath)) {
+                        console.log(`[RiveLoader] ⏳ Waiting for in-flight fetch: ${fileName}`);
+                        const waitStart = performance.now();
+                        const uint8Array = yield this._loadingPromises.get(filePath);
+                        const waitTime = (performance.now() - waitStart).toFixed(0);
+                        console.log(`[RiveLoader] 🔗 Got in-flight result for ${fileName} after ${waitTime}ms wait`);
+                        const parseStart = performance.now();
+                        const riveFile = yield this._riveInstance.load(uint8Array);
+                        const parseTime = (performance.now() - parseStart).toFixed(0);
+                        console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
+                        uniqueLoadedFiles.set(filePath, riveFile);
+                        return;
+                    }
+                    // Start loading with retry logic
+                    console.log(`[RiveLoader] 🆕 No cache, starting fresh fetch: ${fileName}`);
+                    const loadPromise = this.fetchWithRetry(filePath);
+                    this._loadingPromises.set(filePath, loadPromise);
+                    const uint8Array = yield loadPromise;
                     this._cache.set(filePath, uint8Array);
+                    this._loadingPromises.delete(filePath);
+                    const parseStart = performance.now();
                     const riveFile = yield this._riveInstance.load(uint8Array);
+                    const parseTime = (performance.now() - parseStart).toFixed(0);
+                    console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
                     uniqueLoadedFiles.set(filePath, riveFile);
                 }
                 catch (error) {
-                    console.error(`RiveController - Failed to load ${filePath}`, error);
+                    console.error(`[RiveLoader] ❌ Failed to load ${fileName}:`, error);
+                    this._loadingPromises.delete(filePath);
                     uniqueLoadedFiles.set(filePath, null);
                 }
             })));
+            const successCount = Array.from(uniqueLoadedFiles.values()).filter(f => f !== null).length;
+            const failCount = uniqueLoadedFiles.size - successCount;
+            console.log(`[RiveLoader] 📊 Load complete: ${successCount} success, ${failCount} failed`);
             const loadedFiles = originalFiles.map((filePath) => ({
                 filename: filePath,
                 riveFile: uniqueLoadedFiles.get(filePath) || null,

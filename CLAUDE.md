@@ -1,159 +1,265 @@
-# RivePak - Canvas Engine Framework
+Here you go — you can save this as MOBILE_RIVE_CRASH_DEBUG.md and hand it to Claude.
 
-IMPORTANT !!! -- NEVER CONSIDER .js files.... Only grok and modify .ts files!!!!!!!
+# Mobile Rive Crash – Debug & Fix Plan
 
-## Overview
+## Context
 
-RivePak is a TypeScript library that integrates HTML canvas, Pixi.js, Rive, and Matter.js into a unified visual system. It provides a powerful framework for creating interactive canvas applications with vector animations (Rive), raster graphics (Pixi), and physics simulation (Matter.js).
+- Project: **cookiesforfish.com** (React client using Rive + canvas/WebGL2 advanced runtime).
+- Issue: Site works fine on **desktop Chrome/Firefox**, but on **iOS (Safari & Chrome)**:
+  - The page briefly shows content, then the tab hard-crashes.
+  - Chrome on iOS shows “Can’t open this page”.
+- Using Safari Remote Web Inspector shows:
+  - The request to `https://cookiesforfish.com/rive/fish_component.riv` starts,
+  - `webgl2_advanced.wasm` and other assets load,
+  - Then **the page process crashes** (`Webpage Crashed`) — no normal HTTP error.
+- Sometimes, after multiple reloads, the page works, which suggests a **fragile runtime / memory issue**, not network / WAF.
 
-## Architecture
+Conclusion so far:
+This is almost certainly **a Rive/WebGL issue specific to iOS**, triggered by `fish_component.riv` + the advanced runtime, rather than AWS / WAF / networking.
 
-### Core Technologies Integration
+---
 
-- **Rive**: Handles vector animations and interactive state machines
-- **Pixi.js**: Provides additional graphics rendering capabilities
-- **Matter.js**: Adds physics simulation (optional)
-- **Canvas**: Dual-canvas system with Rive on bottom layer, Pixi on top
+## Hypothesis
 
-### Key Components
+1. The **`fish_component.riv` scene is too heavy or hits a bug** in the advanced Rive runtime on iOS Safari.
+2. iOS memory / GPU constraints or WebKit quirks cause the page to crash when that scene + `webgl2_advanced.wasm` are initialized.
+3. Directly downloading the `.riv` file works (so the file is served correctly); the crash happens when JS/wasm tries to **load or render** it.
 
-#### 1. CanvasEngine (Singleton)
-The main orchestrator that manages all subsystems:
-- Located in: `src/CanvasEngine.tsx`
-- Manages initialization, update loops, and coordination between controllers
-- Handles canvas setup and resolution scaling
+---
 
-#### 2. Controllers
+## Goals
 
-**RiveController** (`src/controllers/RiveController.tsx`)
-- Manages Rive runtime, renderer, and artboards
-- Handles Rive file loading and caching
-- Updates Rive animations and state machines
-- Processes interactive Rive objects
+1. **Stop mobile crashes immediately** (even if that means temporarily disabling the scene on iOS).
+2. **Reduce risk** on iOS by:
+   - Avoiding the advanced WebGL2 runtime on iOS.
+   - Clamping `devicePixelRatio` so we don’t allocate massive canvases.
+3. **Optionally** refactor/simplify `fish_component.riv` for mobile.
 
-**PixiController** (`src/controllers/PixiController.tsx`)
-- Manages Pixi.js application and stage
-- Renders on overlay canvas
-- Handles Pixi object updates
+---
 
-**PhysicsController** (`src/controllers/PhysicsController.tsx`)
-- Manages Matter.js engine
-- Optional physics simulation
-- Configurable walls/boundaries
-- Debug visualization support
+## Tasks for Claude
 
-#### 3. Object System
+### 1. Add a reusable `isIOS` helper
 
-Base class hierarchy:
-```
-CanvasObj (abstract)
-├── CanvasRiveObj
-│   ├── Basic Rive animations
-│   └── Physics-enabled Rive objects (via mixin)
-└── CanvasPixiShapeObj
-    ├── Basic Pixi graphics
-    └── Physics-enabled Pixi objects (via mixin)
-```
+Create a small utility function in a shared place (e.g. `src/utils/platform.ts`):
 
-Physics capabilities added via `CanvasPhysicsMixin` in `src/objs/CanvasPhysicsMixin.tsx`
+```ts
+export const isIOS = (): boolean => {
+ if (typeof navigator === 'undefined') return false;
+ return /iPad|iPhone|iPod/.test(navigator.userAgent);
+};
 
-#### 4. React Integration
 
-**UseCanvasEngineHook** (`src/hooks/useCanvasEngine.tsx`)
-Primary React hook that provides:
-- Canvas component (`RivePakCanvas`)
-- Object management functions
-- State control methods
-- Event handlers
+Make sure this is tree-shakeable and doesn’t break SSR (always guard with typeof navigator !== 'undefined').
 
-### File Structure
+2. TEMP: Disable the fish scene on iOS (safety switch)
 
-```
-src/
-├── index.ts                    # Main exports
-├── CanvasEngine.tsx           # Core engine singleton
-├── controllers/               # Subsystem controllers
-│   ├── PixiController.tsx
-│   ├── PhysicsController.tsx
-│   └── RiveController.tsx
-├── objs/                      # Object classes
-│   ├── CanvasObj.tsx         # Base class
-│   ├── CanvasRiveObj.tsx     # Rive objects
-│   ├── CanvasPixiShapeObj.tsx # Pixi objects
-│   └── CanvasPhysicsMixin.tsx # Physics mixin
-├── hooks/                     # React hooks
-│   └── useCanvasEngine.tsx
-├── types.tsx                  # TypeScript definitions
-└── utils/                     # Utility functions
-```
+Locate the main React component that mounts the fish game using fish_component.riv
+(e.g. something like FishGameRoute, FishScene, FishComponent, etc.).
 
-### Key Features
+Wrap the Rive init/render with an iOS guard:
 
-1. **Dual Canvas System**: Rive canvas with Pixi overlay for maximum flexibility
-2. **Resolution Scaling**: Automatic handling of different screen sizes
-3. **Physics Integration**: Optional Matter.js physics with debug visualization
-4. **Interactive Objects**: Mouse/pointer tracking for both Rive and Pixi objects
-5. **Z-index Management**: Proper depth sorting for rendering order
-6. **Event System**: PubSub pattern for decoupled communication
-7. **Performance Optimized**: Frame skipping logic and efficient update cycles
+import { isIOS } from '@/utils/platform';
 
-### Usage Example
-
-```typescript
-import { UseCanvasEngineHook } from '@sims11tz/rivpak';
-
-function MyCanvas()
-{
-  const {
-    RivePakCanvas,
-    addCanvasObjects,
-    ToggleRunState,
-    // ... other methods
-  } = UseCanvasEngineHook(
-    {
-      physicsEnabled: true,
-      physicsWalls: true,
-      debugMode: false,
-      autoScale: true
-    },
-    async (engine) => {
-      // Initialize your scene
-      await addCanvasObjects([
-        // Your canvas objects
-      ]);
-    }
+export const FishGameRoute: React.FC = () => {
+ if (isIOS()) {
+  // TEMP: Placeholder to keep mobile stable while debugging
+  return (
+   <div
+    style={{
+     color: '#fff',
+     padding: '2rem',
+     textAlign: 'center',
+     fontFamily: 'system-ui',
+    }}
+   >
+    Mobile version is under construction 🐟🍪
+   </div>
   );
+ }
 
-  return <RivePakCanvas />;
+ // Existing fish_component.riv Rive + canvas setup goes here
+ // ...
+};
+
+
+Acceptance criteria for this step
+
+On iOS Safari & Chrome:
+
+https://cookiesforfish.com loads without crashing.
+
+The placeholder renders instead of the game.
+
+On desktop:
+
+Behavior is unchanged.
+
+Once this works, we’ve confirmed the crash is inside the fish scene path.
+
+3. Gate the advanced Rive runtime on iOS
+
+Wherever Rive is initialized with the webgl2 advanced runtime, introduce a feature flag based on isIOS().
+
+Examples (adapt to actual API you use):
+
+import { isIOS } from '@/utils/platform';
+
+const useAdvancedRuntime = !isIOS(); // disable on iOS
+
+// Pseudocode – adjust to the specific Rive setup in this project:
+
+const rendererType = useAdvancedRuntime ? 'webgl2-advanced' : 'webgl';
+
+const riveInstance = new Rive({
+ canvas,
+ src: '/rive/fish_component.riv',
+ // or however src is provided
+ rendererType,
+ // ...other options
+});
+
+
+If your setup uses an options object or a runtime selector, implement the equivalent logic:
+
+Desktop → advanced runtime enabled (as before).
+
+iOS → fallback to default WebGL (or even Canvas runtime if that’s available in the library you’re using).
+
+Acceptance criteria
+
+With the fish scene re-enabled on iOS, using the non-advanced runtime:
+
+The page consistently loads and does not crash.
+
+Performance may be slightly lower, but still playable.
+
+If it still crashes even without advanced runtime, keep the iOS placeholder from step 2 and proceed to further optimizations (below).
+
+4. Clamp devicePixelRatio for the main canvas
+
+Search the codebase for anywhere the canvas size is set using window.devicePixelRatio.
+Typical patterns to modify:
+
+Before (likely):
+const dpr = window.devicePixelRatio || 1;
+
+canvas.width = width * dpr;
+canvas.height = height * dpr;
+
+context.scale(dpr, dpr);
+
+After (clamped):
+const rawDpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+const dpr = Math.min(rawDpr, 2); // cap DPR at 2 to avoid huge buffers
+
+canvas.width = width * dpr;
+canvas.height = height * dpr;
+
+context.scale(dpr, dpr);
+
+
+Apply the same principle anywhere Rive/Pixi/WebGL canvases are sized.
+
+Why: iPhones often have DPR = 3. A full-screen canvas at DPR 3 plus a heavy Rive scene can allocate massive GPU buffers and trigger an OOM → crash.
+
+Acceptance criteria
+
+No visual regressions on desktop.
+
+On iOS, after re-enabling the fish scene with clamped DPR and non-advanced runtime, the page stays stable.
+
+5. Rive file optimization (optional but recommended)
+
+If we still see instability after the above:
+
+Clone the fish_component.riv file inside Rive.
+
+Create a lighter mobile variant, for example:
+
+Remove unused artboards and animations.
+
+Reduce texture sizes / image resolution.
+
+Remove any unnecessary effects / filters.
+
+Export as something like fish_component_mobile.riv.
+
+Then update the loader:
+
+import { isIOS } from '@/utils/platform';
+
+const riveSrc = isIOS()
+ ? '/rive/fish_component_mobile.riv'
+ : '/rive/fish_component.riv';
+
+const riveInstance = new Rive({
+ canvas,
+ src: riveSrc,
+ // ...
+});
+
+
+Acceptance criteria
+
+iOS uses the lighter scene and remains stable.
+
+Desktop still uses the full blown fish_component.riv.
+
+Logging & Verification
+
+To make debugging easier, add global error logging in the browser:
+
+if (typeof window !== 'undefined') {
+ window.addEventListener('error', (event) => {
+  console.log('Global error:', event.error || event.message);
+ });
+
+ window.addEventListener('unhandledrejection', (event) => {
+  console.log('Unhandled promise rejection:', event.reason);
+ });
 }
-```
 
-### Development
 
-- **Build**: `npm run build` - Compiles TypeScript to dist/
-- **Local Dev**: Uses `yalc` for local package development
-- **Package**: Published to GitHub Package Registry as `@sims11tz/rivpak`
+When testing on iOS via Safari Web Inspector:
 
-### Design Patterns
+Open Console tab.
 
-1. **Singleton Pattern**: Controllers are singletons for global access
-2. **Mixin Pattern**: Physics behavior added via TypeScript mixins
-3. **Observer Pattern**: PubSub for event handling
-4. **Component Pattern**: Objects composed of various capabilities
-5. **Factory Pattern**: Object creation abstracted through controller methods
+Reload the page.
 
-### Performance Considerations
+Confirm:
 
-- Uses Rive's animation frame for unified update loop
-- Frame skipping to maintain consistent timing
-- Object caching for Rive files
-- Efficient batch updates for physics bodies
-- Resolution-aware rendering
+No new runtime errors appear as the scene loads.
 
-### Future Extensibility
+The tab does not crash.
 
-The architecture supports:
-- Additional object types via inheritance
-- New controllers for other libraries
-- Custom mixins for new behaviors
-- Plugin system through the controller pattern
+Summary of Work for Claude
+
+Implement isIOS() helper.
+
+Add temporary iOS guard around the fish game route/component so mobile gets a placeholder (quick safety fix).
+
+Change Rive initialization so:
+
+iOS does not use the advanced WebGL2 runtime.
+
+Non-iOS remains unchanged.
+
+Clamp devicePixelRatio for all Rive/canvas setups (cap at 2).
+
+Test on:
+
+Desktop Chrome/Firefox (should be unchanged).
+
+iOS Safari/Chrome via remote debugging (page must no longer crash).
+
+If needed, create and wire a lighter mobile-specific Rive file and use that on iOS.
+
+Once all of this is in place and confirmed stable on iOS, we can remove or replace the placeholder and ship the full mobile experience.
+
+
+If you want, after Claude makes changes you can send me the relevant code snippets (Rive init + canvas sizing) and I’ll sanity-check them.
+::contentReference[oaicite:0]{index=0}
+
+
+ChatGPT can make mistakes. Check important info.

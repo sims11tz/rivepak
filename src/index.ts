@@ -17,6 +17,7 @@ export * from "./controllers/CanvasSequenceController";
 export * from "./controllers/CanvasSequence";
 export * from "./useCanvasEngine";
 export * from "./CanvasEngineEventBus";
+export * from "./utils/RendererFactory";
 
 export {default as RivePakUtils} from "./RivePakUtils";
 

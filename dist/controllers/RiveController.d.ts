@@ -1,7 +1,8 @@
-import { Artboard, Renderer } from "@rive-app/webgl2-advanced";
+import type { Artboard, Renderer, RiveCanvas } from "@rive-app/webgl2-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import * as PIXI from "pixi.js";
+import { RendererType } from "../utils/RendererFactory";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",
     PHYSICS = "PHYSICS"
@@ -36,7 +37,7 @@ export declare class RiveController {
     static myInstance: RiveController;
     static get(): RiveController;
     private _riveInstance;
-    get Rive(): import("@rive-app/webgl2-advanced").RiveCanvas;
+    get Rive(): RiveCanvas;
     private _riveRenderer;
     get Renderer(): Renderer;
     private _canvas;
@@ -49,7 +50,11 @@ export declare class RiveController {
     get RiveObjectsSet(): RiveObjectsSet;
     private _initCalled;
     private _cache;
+    private _loadingPromises;
     private _disposed;
+    private _activeRendererType;
+    get ActiveRendererType(): RendererType;
+    get RendererInfo(): import("../utils/RendererFactory").RendererInfo;
     private _wasmSource;
     private _wasmLocalBase;
     private _wasmCdnBase;
@@ -68,6 +73,7 @@ export declare class RiveController {
     Init(canvas: HTMLCanvasElement): Promise<void>;
     SetSize(width: number, height: number, dprIn?: number): void;
     CreateRiveObj(riveObjDefs: RiveObjectDef | RiveObjectDef[]): Promise<RiveObjectsSet>;
+    private fetchWithRetry;
     private loadRiveFiles;
     private _mousePos;
     private _mouseGlobalPos;

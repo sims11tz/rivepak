@@ -177,7 +177,7 @@ export class CanvasEngine
 		const riveRenderer: Renderer = RiveController.get().Renderer;
 
 		let riveFps = 0;
-		await riveInstance.enableFPSCounter((rFps) => {
+		await riveInstance.enableFPSCounter((rFps:number) => {
 			riveFps = Math.round(rFps);
 			//this.fpsValue = riveFps;
 			//if (this.fpsCallback) this.fpsCallback(this.fpsValue);
