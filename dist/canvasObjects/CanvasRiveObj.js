@@ -1358,21 +1358,17 @@ export class CanvasRiveObj extends BaseCanvasObj {
             //	}
             //}
             // Debug: Log state ch anges
-            //if(!this._disposed && this._stateMachine)
-            //{
-            //	const stateChangeCount = this._stateMachine.stateChangedCount();
-            //	if(stateChangeCount > 0)
-            //	{
-            //		for(let x = 0; x < stateChange Count; x++)
-            //		{
-            //			const stateChange = this._stateMachine.stateChangedNameByIndex(x);
-            //			if (stateChange != undefined)
-            //			{
-            //				console.log(this.id+'> RIVE STATE CHANGE<'+x+'>: ', stateChange);
-            //			}
-            //		}
-            //	}
-            //}
+            if (!this._disposed && this._stateMachine) {
+                const stateChangeCount = this._stateMachine.stateChangedCount();
+                if (stateChangeCount > 0) {
+                    for (let x = 0; x < stateChangeCount; x++) {
+                        const stateChange = this._stateMachine.stateChangedNameByIndex(x);
+                        if (stateChange != undefined) {
+                            console.log(this.id + '|' + frameCount + '> RIVE STATE CHANGE<' + x + '>: ', stateChange);
+                        }
+                    }
+                }
+            }
             if (!this._disposed && this.defObj.riveInteractive) {
                 this.updateEntityObj();
                 const artboardMoveSpace = RiveController.get().WindowToArtboard(this._entityObj);
