@@ -641,18 +641,26 @@ export class CanvasEngine
 		if(shouldRotate)
 		{
 			// In portrait mode on mobile, rotate 90 degrees
-			// Swap width/height for the container and adjust positioning
+			// The canvas will be rendered in landscape dimensions, then rotated to fit portrait screen
+			// We need to swap the visual dimensions so the rotated canvas fits properly
+
+			// After rotation, what was width becomes height and vice versa
+			// So we set the container to the swapped dimensions
 			this.canvasContainerRef!.style.width = `${newTargetHeight}px`;
 			this.canvasContainerRef!.style.height = `${newTargetWidth}px`;
-			this.canvasContainerRef!.style.margin = `${horizMargin}px ${vertMargin}px`;
-			this.canvasContainerRef!.style.transform = `rotate(90deg)`;
-			this.canvasContainerRef!.style.transformOrigin = `center center`;
-			// Adjust position to center after rotation
+			this.canvasContainerRef!.style.margin = `0`;
+
+			// Calculate the offset needed to center after rotation
+			// When we rotate 90deg around center, the element shifts by (width-height)/2 in both axes
 			const offsetX = (newTargetWidth - newTargetHeight) / 2;
 			const offsetY = (newTargetHeight - newTargetWidth) / 2;
+
+			// Apply rotation and translation together to keep centered
+			this.canvasContainerRef!.style.transform = `rotate(90deg) translate(${offsetY}px, ${-offsetX}px)`;
+			this.canvasContainerRef!.style.transformOrigin = `center center`;
 			this.canvasContainerRef!.style.position = `relative`;
-			this.canvasContainerRef!.style.left = `${offsetX}px`;
-			this.canvasContainerRef!.style.top = `${offsetY}px`;
+			this.canvasContainerRef!.style.left = `0px`;
+			this.canvasContainerRef!.style.top = `0px`;
 		}
 		else
 		{
