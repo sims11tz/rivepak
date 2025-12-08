@@ -626,14 +626,14 @@ export class RiveController
 	private async fetchWithRetry(url:string, maxRetries:number = 3):Promise<Uint8Array>
 	{
 		const startTime = performance.now();
-		console.log(`[RiveLoader] 🔄 Starting fetch: ${url}`);
+		if(this._debug) console.log(`[RiveLoader] 🔄 Starting fetch: ${url}`);
 
 		for (let attempt = 0; attempt < maxRetries; attempt++)
 		{
 			try
 			{
 				const attemptStart = performance.now();
-				console.log(`[RiveLoader] 📡 Attempt ${attempt + 1}/${maxRetries} for ${url}`);
+				if(this._debug) console.log(`[RiveLoader] 📡 Attempt ${attempt + 1}/${maxRetries} for ${url}`);
 
 				const response = await fetch(url);
 				if (!response.ok)
@@ -645,7 +645,7 @@ export class RiveController
 
 				const elapsed = (performance.now() - attemptStart).toFixed(0);
 				const sizeMB = (bytes.byteLength / (1024 * 1024)).toFixed(2);
-				console.log(`[RiveLoader] ✅ Fetched ${url} (${sizeMB}MB) in ${elapsed}ms`);
+				if(this._debug) console.log(`[RiveLoader] ✅ Fetched ${url} (${sizeMB}MB) in ${elapsed}ms`);
 
 				return uint8Array;
 			}
@@ -674,7 +674,7 @@ export class RiveController
 		const uniqueFilesToLoad = Array.from(new Set(originalFiles));
 		const uniqueLoadedFiles = new Map<string, RiveFile | null>();
 
-		console.log(`[RiveLoader] 📦 loadRiveFiles called with ${originalFiles.length} files (${uniqueFilesToLoad.length} unique)`);
+		if(this._debug) console.log(`[RiveLoader] 📦 loadRiveFiles called with ${originalFiles.length} files (${uniqueFilesToLoad.length} unique)`);
 
 		await Promise.all(
 			uniqueFilesToLoad.map(async (filePath: string) => {
@@ -684,11 +684,11 @@ export class RiveController
 					// Check cache first
 					if (this._cache.has(filePath))
 					{
-						console.log(`[RiveLoader] 💾 Cache HIT for ${fileName}`);
+						if(this._debug) console.log(`[RiveLoader] 💾 Cache HIT for ${fileName}`);
 						const parseStart = performance.now();
 						const riveFile = await this._riveInstance!.load(this._cache.get(filePath)!);
 						const parseTime = (performance.now() - parseStart).toFixed(0);
-						console.log(`[RiveLoader] ✅ Parsed ${fileName} from cache in ${parseTime}ms`);
+						if(this._debug) console.log(`[RiveLoader] ✅ Parsed ${fileName} from cache in ${parseTime}ms`);
 						uniqueLoadedFiles.set(filePath, riveFile);
 						return;
 					}
@@ -696,22 +696,22 @@ export class RiveController
 					// Check if already loading (prevent race condition / duplicate fetches)
 					if (this._loadingPromises.has(filePath))
 					{
-						console.log(`[RiveLoader] ⏳ Waiting for in-flight fetch: ${fileName}`);
+						if(this._debug) console.log(`[RiveLoader] ⏳ Waiting for in-flight fetch: ${fileName}`);
 						const waitStart = performance.now();
 						const uint8Array = await this._loadingPromises.get(filePath)!;
 						const waitTime = (performance.now() - waitStart).toFixed(0);
-						console.log(`[RiveLoader] 🔗 Got in-flight result for ${fileName} after ${waitTime}ms wait`);
+						if(this._debug) console.log(`[RiveLoader] 🔗 Got in-flight result for ${fileName} after ${waitTime}ms wait`);
 
 						const parseStart = performance.now();
 						const riveFile = await this._riveInstance!.load(uint8Array);
 						const parseTime = (performance.now() - parseStart).toFixed(0);
-						console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
+						if(this._debug) console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
 						uniqueLoadedFiles.set(filePath, riveFile);
 						return;
 					}
 
 					// Start loading with retry logic
-					console.log(`[RiveLoader] 🆕 No cache, starting fresh fetch: ${fileName}`);
+					if(this._debug) console.log(`[RiveLoader] 🆕 No cache, starting fresh fetch: ${fileName}`);
 					const loadPromise = this.fetchWithRetry(filePath);
 					this._loadingPromises.set(filePath, loadPromise);
 
@@ -722,7 +722,7 @@ export class RiveController
 					const parseStart = performance.now();
 					const riveFile = await this._riveInstance!.load(uint8Array);
 					const parseTime = (performance.now() - parseStart).toFixed(0);
-					console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
+					if(this._debug) console.log(`[RiveLoader] ✅ Parsed ${fileName} in ${parseTime}ms`);
 					uniqueLoadedFiles.set(filePath, riveFile);
 				}
 				catch (error)
@@ -736,7 +736,7 @@ export class RiveController
 
 		const successCount = Array.from(uniqueLoadedFiles.values()).filter(f => f !== null).length;
 		const failCount = uniqueLoadedFiles.size - successCount;
-		console.log(`[RiveLoader] 📊 Load complete: ${successCount} success, ${failCount} failed`);
+		if(this._debug) console.log(`[RiveLoader] 📊 Load complete: ${successCount} success, ${failCount} failed`);
 
 		const loadedFiles: Array<{ filename: string; riveFile: RiveFile | null }> = originalFiles.map((filePath) => ({
 			filename: filePath,
