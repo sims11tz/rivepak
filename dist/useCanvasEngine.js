@@ -175,35 +175,14 @@ export class CanvasEngine {
             const shouldRotate = isMobile && isPortrait;
             if (debug)
                 console.log('%c UCE>>ResizeCanToWin isMobile=' + isMobile + ', isPortrait=' + isPortrait + ', shouldRotate=' + shouldRotate, 'color:#FF6600; font-weight:bold;');
-            if (shouldRotate) {
-                // In portrait mode on mobile, rotate 90 degrees
-                // The canvas will be rendered in landscape dimensions, then rotated to fit portrait screen
-                // We need to swap the visual dimensions so the rotated canvas fits properly
-                // After rotation, what was width becomes height and vice versa
-                // So we set the container to the swapped dimensions
-                this.canvasContainerRef.style.width = `${newTargetHeight}px`;
-                this.canvasContainerRef.style.height = `${newTargetWidth}px`;
-                this.canvasContainerRef.style.margin = `0`;
-                // Calculate the offset needed to center after rotation
-                // When we rotate 90deg around center, the element shifts by (width-height)/2 in both axes
-                const offsetX = (newTargetWidth - newTargetHeight) / 2;
-                const offsetY = (newTargetHeight - newTargetWidth) / 2;
-                // Apply rotation and translation together to keep centered
-                this.canvasContainerRef.style.transform = `rotate(90deg) translate(${offsetY}px, ${-offsetX}px)`;
-                this.canvasContainerRef.style.transformOrigin = `center center`;
-                this.canvasContainerRef.style.position = `relative`;
-                this.canvasContainerRef.style.left = `0px`;
-                this.canvasContainerRef.style.top = `0px`;
-            }
-            else {
-                // Normal mode - no rotation
-                this.canvasContainerRef.style.width = `${newTargetWidth}px`;
-                this.canvasContainerRef.style.height = `${newTargetHeight}px`;
-                this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
-                this.canvasContainerRef.style.transform = `none`;
-                this.canvasContainerRef.style.left = `0px`;
-                this.canvasContainerRef.style.top = `0px`;
-            }
+            // No rotation - just scale to fit (same as desktop)
+            this.canvasContainerRef.style.width = `${newTargetWidth}px`;
+            this.canvasContainerRef.style.height = `${newTargetHeight}px`;
+            this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
+            this.canvasContainerRef.style.transform = `none`;
+            this.canvasContainerRef.style.position = `relative`;
+            this.canvasContainerRef.style.left = `0px`;
+            this.canvasContainerRef.style.top = `0px`;
             if (debug)
                 console.log('%c UCE>>ResizeCanToWin this.canvasContainerRef!.style.w=' + this.canvasContainerRef.style.width + ',.h=' + this.canvasContainerRef.style.height + ', this.canvasContainerRef!.style.h=' + this.canvasContainerRef.style.height, 'color:#483ac0; font-weight:bold;');
             if (debug)
