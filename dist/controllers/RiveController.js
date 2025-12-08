@@ -121,7 +121,7 @@ export class RiveController {
     _getWasmUrl(file) {
         var _a;
         switch (this._wasmSource) {
-            case "cdn": return this._wasmCdnBase; //+ file
+            case "cdn": return this._wasmCdnBase;
             case "custom": return ((_a = this._wasmCustomBase) !== null && _a !== void 0 ? _a : this._wasmLocalBase) + file;
             default: return this._wasmLocalBase + file; // "local"
         }

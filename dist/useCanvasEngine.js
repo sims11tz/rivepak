@@ -16,6 +16,7 @@ import { RiveController, RiveObjectsSet } from "./controllers/RiveController";
 import Matter from "matter-js";
 import { CanvasEngineResizePubSub, CanvasEngineStartResizePubSub } from "./CanvasEngineEventBus";
 import { RiveTimelineController } from "./canvasObjects/RiveTimelineController";
+import { isMobileDevice, isPortraitMode } from "./utils/RendererFactory";
 export var CANVAS_ENGINE_RUN_STATE;
 (function (CANVAS_ENGINE_RUN_STATE) {
     CANVAS_ENGINE_RUN_STATE["STOPPED"] = "STOPPED";
@@ -168,9 +169,36 @@ export class CanvasEngine {
                 console.log('%c UCE>>ResizeCanToWin newTargetWidth=' + newTargetWidth + ', newTargetHeight=' + newTargetHeight, 'color:#e84542; font-weight:bold;');
             if (debug)
                 console.log('%c UCE>>ResizeCanToWin newFullWidth=' + newFullWidth + ', newFullHeight=' + newFullHeight, 'color:#e84542; font-weight:bold;');
-            this.canvasContainerRef.style.width = `${newTargetWidth}px`;
-            this.canvasContainerRef.style.height = `${newTargetHeight}px`;
-            this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
+            // Check if we need to rotate for mobile portrait mode
+            const isMobile = isMobileDevice();
+            const isPortrait = isPortraitMode();
+            const shouldRotate = isMobile && isPortrait;
+            if (debug)
+                console.log('%c UCE>>ResizeCanToWin isMobile=' + isMobile + ', isPortrait=' + isPortrait + ', shouldRotate=' + shouldRotate, 'color:#FF6600; font-weight:bold;');
+            if (shouldRotate) {
+                // In portrait mode on mobile, rotate 90 degrees
+                // Swap width/height for the container and adjust positioning
+                this.canvasContainerRef.style.width = `${newTargetHeight}px`;
+                this.canvasContainerRef.style.height = `${newTargetWidth}px`;
+                this.canvasContainerRef.style.margin = `${horizMargin}px ${vertMargin}px`;
+                this.canvasContainerRef.style.transform = `rotate(90deg)`;
+                this.canvasContainerRef.style.transformOrigin = `center center`;
+                // Adjust position to center after rotation
+                const offsetX = (newTargetWidth - newTargetHeight) / 2;
+                const offsetY = (newTargetHeight - newTargetWidth) / 2;
+                this.canvasContainerRef.style.position = `relative`;
+                this.canvasContainerRef.style.left = `${offsetX}px`;
+                this.canvasContainerRef.style.top = `${offsetY}px`;
+            }
+            else {
+                // Normal mode - no rotation
+                this.canvasContainerRef.style.width = `${newTargetWidth}px`;
+                this.canvasContainerRef.style.height = `${newTargetHeight}px`;
+                this.canvasContainerRef.style.margin = `${vertMargin}px ${horizMargin}px`;
+                this.canvasContainerRef.style.transform = `none`;
+                this.canvasContainerRef.style.left = `0px`;
+                this.canvasContainerRef.style.top = `0px`;
+            }
             if (debug)
                 console.log('%c UCE>>ResizeCanToWin this.canvasContainerRef!.style.w=' + this.canvasContainerRef.style.width + ',.h=' + this.canvasContainerRef.style.height + ', this.canvasContainerRef!.style.h=' + this.canvasContainerRef.style.height, 'color:#483ac0; font-weight:bold;');
             if (debug)

@@ -44,6 +44,15 @@ export function setRendererOverride(type: RendererType | null): void
 }
 
 /**
+ * Check if device is in portrait (vertical) orientation
+ */
+export function isPortraitMode(): boolean
+{
+	if (typeof window === "undefined") return false;
+	return window.innerHeight > window.innerWidth;
+}
+
+/**
  * Get the current renderer info
  */
 export function getRendererInfo(): RendererInfo
@@ -51,7 +60,8 @@ export function getRendererInfo(): RendererInfo
 	if (_cachedRendererInfo) return _cachedRendererInfo;
 
 	const isMobile = isMobileDevice();
-	const type: RendererType = _rendererTypeOverride || (isMobile ? "canvas" : "webgl2");
+	// Always use webgl2 renderer for all devices
+	const type: RendererType = _rendererTypeOverride || "webgl2";
 
 	_cachedRendererInfo = {
 		type,
@@ -59,7 +69,7 @@ export function getRendererInfo(): RendererInfo
 		userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown"
 	};
 
-	console.log(`[RendererFactory] Detected: ${type} (mobile: ${isMobile})`);
+	console.log(`[RendererFactory] Detected: ${type} (mobile: ${isMobile}, portrait: ${isPortraitMode()})`);
 	return _cachedRendererInfo;
 }
 
