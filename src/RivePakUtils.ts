@@ -1,5 +1,15 @@
 import { File as RiveFile, Artboard, ViewModel, ViewModelInstance } from "@rive-app/webgl2-advanced";
 
+export interface ArtboardInfo
+{
+	index:number;
+	name:string;
+	width:number;
+	height:number;
+	animationCount:number;
+	stateMachineCount:number;
+}
+
 export default class RivePakUtils
 {
 	static myInstance: RivePakUtils;
@@ -376,6 +386,120 @@ export default class RivePakUtils
 			console.log("No VMI bound.");
 		}
 		console.log("==============================================");
+	}
+
+	/**
+	 * List all artboards in a RiveFile with their info.
+	 * Returns an array of ArtboardInfo objects.
+	 */
+	public static GetArtboards(file:RiveFile):ArtboardInfo[]
+	{
+		const artboards:ArtboardInfo[] = [];
+		try
+		{
+			if(!this._isFn(file, "artboardCount") || !this._isFn(file, "artboardByIndex"))
+			{
+				console.log("GetArtboards: No artboardCount/artboardByIndex on file.");
+				return artboards;
+			}
+
+			const count = (file as any).artboardCount();
+			for(let i = 0; i < count; i++)
+			{
+				const ab = (file as any).artboardByIndex(i);
+				if(ab)
+				{
+					artboards.push({
+						index: i,
+						name: ab.name ?? `(artboard-${i})`,
+						width: ab.width ?? 0,
+						height: ab.height ?? 0,
+						animationCount: ab.animationCount?.() ?? 0,
+						stateMachineCount: ab.stateMachineCount?.() ?? 0,
+					});
+				}
+			}
+		}
+		catch(e)
+		{
+			console.log("GetArtboards error:", e);
+		}
+		return artboards;
+	}
+
+	/**
+	 * Dump all artboards in a RiveFile to the console.
+	 */
+	public static DumpArtboards(file:RiveFile):void
+	{
+		console.log("");
+		console.log("🎨 ============== RIVE ARTBOARDS ==============");
+		const artboards = this.GetArtboards(file);
+		console.log(`📦 File has ${artboards.length} artboard(s):`);
+		for(const ab of artboards)
+		{
+			console.log(`  [${ab.index}] "${ab.name}" - ${ab.width}x${ab.height} (${ab.animationCount} anims, ${ab.stateMachineCount} SMs)`);
+		}
+		console.log("===============================================");
+	}
+
+	/**
+	 * Attempt to enumerate nested artboard instances within a parent artboard.
+	 * This looks for any nested artboard references accessible via the Rive API.
+	 * Note: The Rive web runtime has limited support for this - results may vary.
+	 */
+	public static DumpNestedArtboards(artboard:Artboard):void
+	{
+		console.log("");
+		console.log(`🔍 ============== NESTED ARTBOARDS in "${artboard?.name}" ==============`);
+		try
+		{
+			// Check for objects/nodes
+			// Note: Rive WASM doesn't expose a direct "enumerate children" API
+			// We can only access nodes by name if we know them in advance
+			// This is a limitation of the runtime
+
+			// Try to get some info about the artboard structure
+			const ab = artboard as any;
+
+			// Try some common API patterns that might exist
+			if(this._isFn(ab, "objectCount"))
+			{
+				console.log(`  objectCount: ${ab.objectCount()}`);
+			}
+
+			if(this._isFn(ab, "nestedArtboardCount"))
+			{
+				const count = ab.nestedArtboardCount();
+				console.log(`  nestedArtboardCount: ${count}`);
+				for(let i = 0; i < count; i++)
+				{
+					const nested = ab.nestedArtboardByIndex?.(i);
+					if(nested)
+					{
+						console.log(`    [${i}] ${nested.name ?? "(unnamed)"}`);
+					}
+				}
+			}
+			else
+			{
+				console.log("  ⚠️ No nestedArtboardCount API available.");
+				console.log("  💡 Tip: Open the .riv file in Rive Editor to see component names,");
+				console.log("     then use artboard.node('nodeName') to access specific nodes.");
+			}
+
+			// Try to dump what methods exist on the artboard for exploration
+			console.log("  📋 Available artboard methods (for exploration):");
+			const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(ab))
+				.filter(m => typeof ab[m] === "function" && !m.startsWith("_"))
+				.slice(0, 20);  // Limit output
+			console.log(`    ${methods.join(", ")}`);
+		}
+		catch(e)
+		{
+			console.log("DumpNestedArtboards error:", e);
+		}
+		console.log("==============================================================");
 	}
 
 	/** Try to discover enum name→index mapping even if the property lacks .options. */

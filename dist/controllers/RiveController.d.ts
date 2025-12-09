@@ -2,6 +2,7 @@ import type { Artboard, Renderer, RiveCanvas } from "@rive-app/webgl2-advanced";
 import { CanvasRiveObj } from "../canvasObjects/CanvasRiveObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import * as PIXI from "pixi.js";
+import { ArtboardInfo } from "../RivePakUtils";
 import { RendererType } from "../utils/RendererFactory";
 export declare enum RIVE_OBJECT_TYPE {
     ANIMATION = "ANIMATION",
@@ -94,6 +95,21 @@ export declare class RiveController {
         x: number;
         y: number;
     };
+    /**
+     * Load a Rive file and return info about all its artboards.
+     * Useful for exploring what artboards exist in a file.
+     * @param filePath - Path to the .riv file
+     * @param dumpToConsole - If true, also logs the info to console
+     * @returns Array of ArtboardInfo objects
+     */
+    GetArtboardsFromFile(filePath: string, dumpToConsole?: boolean): Promise<ArtboardInfo[]>;
+    /**
+     * Get info about a specific artboard by name from a file.
+     * Also attempts to enumerate any nested artboards/components.
+     * @param filePath - Path to the .riv file
+     * @param artboardName - Name of the artboard to inspect
+     */
+    InspectArtboard(filePath: string, artboardName: string): Promise<void>;
     Dispose(): void;
 }
 export {};

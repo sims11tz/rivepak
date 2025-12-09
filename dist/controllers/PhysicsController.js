@@ -62,15 +62,7 @@ export class PhysicsController {
         }
         Matter.Events.on(this._engine, "collisionStart", this.handleCollision);
         if (physicsWalls) {
-            // Use logical dimensions for walls
-            const walls = [
-                Matter.Bodies.rectangle(this._logicalWidth / 2, 0, this._logicalWidth - this.wallThickness(this._logicalWidth), this.wallThickness(this._logicalWidth), this._wallOptions),
-                Matter.Bodies.rectangle(this._logicalWidth / 2, this._logicalHeight, this._logicalWidth - this.wallThickness(this._logicalWidth), this.wallThickness(this._logicalWidth), this._wallOptions),
-                Matter.Bodies.rectangle(0, this._logicalHeight / 2, this.wallThickness(this._logicalWidth), this._logicalHeight, this._wallOptions),
-                Matter.Bodies.rectangle(this._logicalWidth, this._logicalHeight / 2, this.wallThickness(this._logicalWidth), this._logicalHeight, this._wallOptions),
-            ];
-            walls.forEach(w => w.isWall = true);
-            Matter.World.add(this._engine.world, walls);
+            this.createWalls();
         }
     }
     SetSize(width, height, dprIn = -1) {
@@ -84,20 +76,68 @@ export class PhysicsController {
             this._debugRender.options.width = width;
             this._debugRender.options.height = height;
         }
-        // Optionally, rebuild walls if they exist (using logical dimensions)
+        // Rebuild walls if they exist (using new logical dimensions)
         if (this._engine && this._physicswalls) {
-            const world = this._engine.world;
-            const wallsToRemove = world.bodies.filter(b => b.isWall);
-            wallsToRemove.forEach(w => Matter.World.remove(world, w));
-            const newWalls = [
-                Matter.Bodies.rectangle(width / 2, 0, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-                Matter.Bodies.rectangle(width / 2, height, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-                Matter.Bodies.rectangle(0, height / 2, this.wallThickness(width), height, this._wallOptions),
-                Matter.Bodies.rectangle(width, height / 2, this.wallThickness(width), height, this._wallOptions),
-            ];
-            newWalls.forEach(w => w.isWall = true);
-            Matter.World.add(world, newWalls);
+            this.removeWalls();
+            this.createWalls();
         }
+    }
+    /**
+     * Enable physics walls at canvas boundaries
+     * Can be called at runtime to add walls dynamically
+     */
+    EnableWalls() {
+        if (!this._engine)
+            return;
+        if (this._physicswalls)
+            return; // Already enabled
+        this._physicswalls = true;
+        this.createWalls();
+    }
+    /**
+     * Disable physics walls
+     * Can be called at runtime to remove walls dynamically
+     */
+    DisableWalls() {
+        if (!this._engine)
+            return;
+        if (!this._physicswalls)
+            return; // Already disabled
+        this._physicswalls = false;
+        this.removeWalls();
+    }
+    /**
+     * Check if physics walls are currently enabled
+     */
+    get wallsEnabled() {
+        return this._physicswalls;
+    }
+    /**
+     * Create boundary walls using current logical dimensions
+     */
+    createWalls() {
+        if (!this._engine)
+            return;
+        const width = this._logicalWidth;
+        const height = this._logicalHeight;
+        const walls = [
+            Matter.Bodies.rectangle(width / 2, 0, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
+            Matter.Bodies.rectangle(width / 2, height, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
+            Matter.Bodies.rectangle(0, height / 2, this.wallThickness(width), height, this._wallOptions),
+            Matter.Bodies.rectangle(width, height / 2, this.wallThickness(width), height, this._wallOptions),
+        ];
+        walls.forEach(w => w.isWall = true);
+        Matter.World.add(this._engine.world, walls);
+    }
+    /**
+     * Remove all boundary walls from the physics world
+     */
+    removeWalls() {
+        if (!this._engine)
+            return;
+        const world = this._engine.world;
+        const wallsToRemove = world.bodies.filter(b => b.isWall);
+        wallsToRemove.forEach(w => Matter.World.remove(world, w));
     }
     AddBody(body) {
         if (this._engine) {

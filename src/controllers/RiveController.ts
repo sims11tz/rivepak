@@ -2,13 +2,13 @@
 // Using webgl2-advanced for types since both canvas and webgl2 have compatible interfaces
 import type { File as RiveFile, Artboard, Renderer, ViewModel, ViewModelInstance, RiveCanvas } from "@rive-app/webgl2-advanced";
 import { RiveAnimationObject } from "../canvasObjects/RiveAnimationObj";
-import { CanvasRiveObj, RIVE_COMMON_ENUMS } from "../canvasObjects/CanvasRiveObj";
+import { CanvasRiveObj, RIVE_COMMON_ENUMS, RIVE_DEBUG_IN_EDITOR } from "../canvasObjects/CanvasRiveObj";
 import { RivePhysicsObject } from "../canvasObjects/RivePhysicsObj";
 import { CanvasObjectDef, CanvasObjectEntity } from "../canvasObjects/_baseCanvasObj";
 import { CanvasEngine, ResizeCanvasObj } from "../useCanvasEngine";
 import * as PIXI from "pixi.js";
 import { CanvasEngineResizePubSub } from "../CanvasEngineEventBus";
-import RivePakUtils from "../RivePakUtils";
+import RivePakUtils, { ArtboardInfo } from "../RivePakUtils";
 import { getRendererInfo, getRendererType, RendererType, loadRiveModule } from "../utils/RendererFactory";
 
 export enum RIVE_OBJECT_TYPE
@@ -578,7 +578,7 @@ export class RiveController
 							{
 								try
 								{
-									vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR;
+									vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = RIVE_DEBUG_IN_EDITOR.FALSE;
 									//vmi!.enum(RIVE_COMMON_ENUMS.DEBUG_IN_EDITOR).value = 'FALSE';
 								}
 								catch(e)
@@ -869,6 +869,97 @@ export class RiveController
 		if(entity.yScale !== 0) artboardY /= entity.yScale ?? 1;
 
 		return { x: artboardX, y: artboardY };
+	}
+
+	/**
+	 * Load a Rive file and return info about all its artboards.
+	 * Useful for exploring what artboards exist in a file.
+	 * @param filePath - Path to the .riv file
+	 * @param dumpToConsole - If true, also logs the info to console
+	 * @returns Array of ArtboardInfo objects
+	 */
+	public async GetArtboardsFromFile(filePath:string, dumpToConsole:boolean = true):Promise<ArtboardInfo[]>
+	{
+		if(!this._riveInstance)
+		{
+			console.error("RiveController not initialized - call Init() first");
+			return [];
+		}
+
+		try
+		{
+			const bytes = await this.fetchWithRetry(filePath);
+			const riveFile = await this._riveInstance.load(bytes);
+
+			if(dumpToConsole)
+			{
+				console.log(`%c 🎨 Artboards in "${filePath}":`, "color:#00FF88; font-weight:bold;");
+				RivePakUtils.DumpArtboards(riveFile);
+			}
+
+			const artboards = RivePakUtils.GetArtboards(riveFile);
+
+			// Also try to dump nested artboards for the first one (usually the main artboard)
+			if(dumpToConsole && artboards.length > 0)
+			{
+				const mainArtboard = (riveFile as any).artboardByIndex(0);
+				if(mainArtboard)
+				{
+					RivePakUtils.DumpNestedArtboards(mainArtboard);
+				}
+			}
+
+			return artboards;
+		}
+		catch(error)
+		{
+			console.error(`Failed to get artboards from ${filePath}:`, error);
+			return [];
+		}
+	}
+
+	/**
+	 * Get info about a specific artboard by name from a file.
+	 * Also attempts to enumerate any nested artboards/components.
+	 * @param filePath - Path to the .riv file
+	 * @param artboardName - Name of the artboard to inspect
+	 */
+	public async InspectArtboard(filePath:string, artboardName:string):Promise<void>
+	{
+		if(!this._riveInstance)
+		{
+			console.error("RiveController not initialized - call Init() first");
+			return;
+		}
+
+		try
+		{
+			const bytes = await this.fetchWithRetry(filePath);
+			const riveFile = await this._riveInstance.load(bytes);
+			const artboard = (riveFile as any).artboardByName(artboardName);
+
+			if(!artboard)
+			{
+				console.error(`Artboard "${artboardName}" not found in ${filePath}`);
+				RivePakUtils.DumpArtboards(riveFile);
+				return;
+			}
+
+			console.log(`%c 🔍 Inspecting artboard "${artboardName}" from "${filePath}":`, "color:#00FF88; font-weight:bold;");
+			console.log(`  Size: ${artboard.width}x${artboard.height}`);
+			console.log(`  Animations: ${artboard.animationCount?.() ?? 0}`);
+			console.log(`  State Machines: ${artboard.stateMachineCount?.() ?? 0}`);
+
+			// Dump nested artboards
+			RivePakUtils.DumpNestedArtboards(artboard);
+
+			// Also dump ViewModels for this file
+			RivePakUtils.DumpRiveDiagnostics(riveFile, artboard, null, null);
+		}
+		catch(error)
+		{
+			console.error(`Failed to inspect artboard from ${filePath}:`, error);
+		}
 	}
 
 	public Dispose()

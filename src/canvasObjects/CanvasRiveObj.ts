@@ -13,6 +13,12 @@ import { CanvasEngine } from "../useCanvasEngine";
 		REQUEST_TRANSITION_OUT = "REQUEST_TRANSITION_OUT",
 	}
 
+	export enum RIVE_DEBUG_IN_EDITOR
+	{
+		TRUE = "TRUE",
+		FALSE = "FALSE",
+	}
+
 	export enum RIVE_COMMON_ENUMS
 	{
 		DEBUG_IN_EDITOR = "DEBUG_IN_EDITOR",

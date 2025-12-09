@@ -13,6 +13,28 @@ export declare class PhysicsController {
     private wallThickness;
     Init(canvas: HTMLCanvasElement, physicsWalls: boolean | undefined, debugRenderDiv: HTMLDivElement, debug?: boolean): void;
     SetSize(width: number, height: number, dprIn?: number): void;
+    /**
+     * Enable physics walls at canvas boundaries
+     * Can be called at runtime to add walls dynamically
+     */
+    EnableWalls(): void;
+    /**
+     * Disable physics walls
+     * Can be called at runtime to remove walls dynamically
+     */
+    DisableWalls(): void;
+    /**
+     * Check if physics walls are currently enabled
+     */
+    get wallsEnabled(): boolean;
+    /**
+     * Create boundary walls using current logical dimensions
+     */
+    private createWalls;
+    /**
+     * Remove all boundary walls from the physics world
+     */
+    private removeWalls;
     AddBody(body: Matter.Body): void;
     Update(time: number, frameCount: number, onceSecond: boolean, onceMinute: boolean): void;
     private handleCollision;

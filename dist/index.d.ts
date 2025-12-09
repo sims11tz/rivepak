@@ -19,4 +19,5 @@ export * from "./useCanvasEngine";
 export * from "./CanvasEngineEventBus";
 export * from "./utils/RendererFactory";
 export { default as RivePakUtils } from "./RivePakUtils";
+export type { ArtboardInfo } from "./RivePakUtils";
 export * from "./ui";

@@ -20,6 +20,7 @@ export * from "./CanvasEngineEventBus";
 export * from "./utils/RendererFactory";
 
 export {default as RivePakUtils} from "./RivePakUtils";
+export type {ArtboardInfo} from "./RivePakUtils";
 
 // UI Components
 export * from "./ui";
