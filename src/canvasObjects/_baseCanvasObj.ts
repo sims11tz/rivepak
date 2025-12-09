@@ -180,6 +180,13 @@ export interface CanvasObjectDef
 	xSpeed?:number;
 	ySpeed?:number;
 
+	// Physics collision box adjustments
+	// Allows customizing the collision body size/position relative to visual
+	collisionWidthRatio?:number;   // Multiply collision width (default: 1.0)
+	collisionHeightRatio?:number;  // Multiply collision height (default: 1.0)
+	collisionXOffset?:number;      // Shift collision box horizontally (default: 0)
+	collisionYOffset?:number;      // Shift collision box vertically (default: 0)
+
 	pixiLayer?:PIXI_LAYER;
 
 	interactive?:boolean;

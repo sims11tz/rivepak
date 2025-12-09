@@ -13,10 +13,21 @@ export function CanvasPhysicsMixin(Base) {
             this._EPSILON = 0.0001;
         }
         InitPhysics() {
-            var _a, _b;
             //console.log('%c CanvasPhysicsMixin InitPhysics() ','color:#d2bc1c8');
             //console.log('%c CanvasPhysicsMixin InitPhysics() width:'+this.width+',height:'+this.height,'color:#d2bc1c8');
-            this._body = Matter.Bodies.rectangle(this.x + (this.width / 2), this.y + (this.height / 2), this.width, this.height, {
+            var _a, _b, _c, _d, _e, _f;
+            // Apply collision adjustments from defObj (default to 1.0 ratio and 0 offset)
+            const widthRatio = (_a = this.defObj.collisionWidthRatio) !== null && _a !== void 0 ? _a : 1.0;
+            const heightRatio = (_b = this.defObj.collisionHeightRatio) !== null && _b !== void 0 ? _b : 1.0;
+            const xOffset = (_c = this.defObj.collisionXOffset) !== null && _c !== void 0 ? _c : 0;
+            const yOffset = (_d = this.defObj.collisionYOffset) !== null && _d !== void 0 ? _d : 0;
+            console.log(`%c [PhysicsMixin] InitPhysics for ${this.label}: widthRatio=${widthRatio}, heightRatio=${heightRatio}, xOffset=${xOffset}, yOffset=${yOffset}`, 'color:#FF00FF;');
+            console.log(`%c [PhysicsMixin] defObj collision values: wR=${this.defObj.collisionWidthRatio}, hR=${this.defObj.collisionHeightRatio}, xO=${this.defObj.collisionXOffset}, yO=${this.defObj.collisionYOffset}`, 'color:#FF00FF;');
+            const collisionWidth = this.width * widthRatio;
+            const collisionHeight = this.height * heightRatio;
+            const collisionCenterX = this.x + (this.width / 2) + xOffset;
+            const collisionCenterY = this.y + (this.height / 2) + yOffset;
+            this._body = Matter.Bodies.rectangle(collisionCenterX, collisionCenterY, collisionWidth, collisionHeight, {
                 friction: 0,
                 frictionAir: 0,
                 frictionStatic: 0,
@@ -33,8 +44,8 @@ export function CanvasPhysicsMixin(Base) {
             let initialXSpeed = 0;
             let initialYSpeed = 0;
             if (this.defObj.xSpeed || this.defObj.ySpeed) {
-                initialXSpeed = (_a = this.defObj.xSpeed) !== null && _a !== void 0 ? _a : 0;
-                initialYSpeed = (_b = this.defObj.ySpeed) !== null && _b !== void 0 ? _b : 0;
+                initialXSpeed = (_e = this.defObj.xSpeed) !== null && _e !== void 0 ? _e : 0;
+                initialYSpeed = (_f = this.defObj.ySpeed) !== null && _f !== void 0 ? _f : 0;
             }
             else if (this.defObj.randomSpeed) {
                 initialXSpeed = (Math.random() > 0.5 ? 1 : -1) * 2;
