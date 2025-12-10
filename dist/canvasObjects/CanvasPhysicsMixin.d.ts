@@ -82,6 +82,11 @@ export declare function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>
             maxX: number;
             maxY: number;
         };
+        _visualXOffset: number;
+        _visualYOffset: number;
+        visualXOffset: number;
+        visualYOffset: number;
+        SetVisualOffset(xOffset: number, yOffset: number): void;
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;

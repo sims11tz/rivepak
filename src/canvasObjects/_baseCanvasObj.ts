@@ -187,6 +187,11 @@ export interface CanvasObjectDef
 	collisionXOffset?:number;      // Shift collision box horizontally (default: 0)
 	collisionYOffset?:number;      // Shift collision box vertically (default: 0)
 
+	// Visual rendering offset (shifts visual relative to x,y position)
+	// Useful when Rive artboard origin doesn't match visual center
+	visualXOffset?:number;         // Shift visual rendering horizontally (default: 0)
+	visualYOffset?:number;         // Shift visual rendering vertically (default: 0)
+
 	pixiLayer?:PIXI_LAYER;
 
 	interactive?:boolean;
@@ -279,6 +284,28 @@ export abstract class BaseCanvasObj
 
 	public _objBoundsReuse = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 	public _objBoundsCalcs = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+
+	// Visual offset - shifts rendered visual relative to x,y position
+	// x,y represents collision/physics center, visual offset shifts the artwork
+	public _visualXOffset:number = 0;
+	public _visualYOffset:number = 0;
+
+	public get visualXOffset():number { return this._visualXOffset; }
+	public set visualXOffset(value:number) { this._visualXOffset = value; }
+
+	public get visualYOffset():number { return this._visualYOffset; }
+	public set visualYOffset(value:number) { this._visualYOffset = value; }
+
+	/**
+	 * Set both visual offsets at once
+	 * @param xOffset Horizontal offset (positive = right)
+	 * @param yOffset Vertical offset (positive = down)
+	 */
+	public SetVisualOffset(xOffset:number, yOffset:number):void
+	{
+		this._visualXOffset = xOffset;
+		this._visualYOffset = yOffset;
+	}
 
 	public _body:Matter.Body | null = null;
 

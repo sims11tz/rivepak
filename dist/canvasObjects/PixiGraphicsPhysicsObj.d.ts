@@ -82,6 +82,11 @@ declare const BaseShapePhysicsObj_base: {
             maxX: number;
             maxY: number;
         };
+        _visualXOffset: number;
+        _visualYOffset: number;
+        visualXOffset: number;
+        visualYOffset: number;
+        SetVisualOffset(xOffset: number, yOffset: number): void;
         _disposed: boolean;
         _debugRive: boolean;
         _debugLogs: boolean;

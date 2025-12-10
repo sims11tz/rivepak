@@ -1680,17 +1680,21 @@ export class CanvasRiveObj extends BaseCanvasObj
 			if(this._resolutionScale !== -1)
 			{
 				// Bounds for Rive renderer need to be in canvas pixels (with DPR)
-				this._objBoundsReuse.minX = Math.round(this._transformedX * dpr);
-				this._objBoundsReuse.minY = Math.round(this._transformedY * dpr);
-				this._objBoundsReuse.maxX = Math.round((this._transformedX + (scaledWidth * this._resolutionScale)) * dpr);
-				this._objBoundsReuse.maxY = Math.round((this._transformedY + (scaledHeight * this._resolutionScale)) * dpr);
+				// Apply visual offset to shift rendered artwork relative to x,y position
+				const visualOffsetX = this._visualXOffset * this._resolutionScale;
+				const visualOffsetY = this._visualYOffset * this._resolutionScale;
+				this._objBoundsReuse.minX = Math.round((this._transformedX + visualOffsetX) * dpr);
+				this._objBoundsReuse.minY = Math.round((this._transformedY + visualOffsetY) * dpr);
+				this._objBoundsReuse.maxX = Math.round((this._transformedX + visualOffsetX + (scaledWidth * this._resolutionScale)) * dpr);
+				this._objBoundsReuse.maxY = Math.round((this._transformedY + visualOffsetY + (scaledHeight * this._resolutionScale)) * dpr);
 			}
 			else
 			{
-				this._objBoundsReuse.minX = Math.round(this.x * dpr);
-				this._objBoundsReuse.minY = Math.round(this.y * dpr);
-				this._objBoundsReuse.maxX = Math.round((this.x + scaledWidth) * dpr);
-				this._objBoundsReuse.maxY = Math.round((this.y + scaledHeight) * dpr);
+				// Apply visual offset to shift rendered artwork relative to x,y position
+				this._objBoundsReuse.minX = Math.round((this.x + this._visualXOffset) * dpr);
+				this._objBoundsReuse.minY = Math.round((this.y + this._visualYOffset) * dpr);
+				this._objBoundsReuse.maxX = Math.round((this.x + this._visualXOffset + scaledWidth) * dpr);
+				this._objBoundsReuse.maxY = Math.round((this.y + this._visualYOffset + scaledHeight) * dpr);
 			}
 
 			this.Renderer.save();
