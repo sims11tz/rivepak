@@ -10,6 +10,10 @@ declare const BaseRivePhysicsObject_base: {
         _transformedMixHeightlast: number;
         _transformedMixXlast: number;
         _transformedMixYlast: number;
+        _collisionWidthRatio: number;
+        _collisionHeightRatio: number;
+        _collisionXOffset: number;
+        _collisionYOffset: number;
         InitPhysics(): void;
         x: number;
         y: number;

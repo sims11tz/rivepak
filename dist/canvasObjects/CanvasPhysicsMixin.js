@@ -10,6 +10,11 @@ export function CanvasPhysicsMixin(Base) {
             this._transformedMixHeightlast = -1;
             this._transformedMixXlast = -1;
             this._transformedMixYlast = -1;
+            // Store collision adjustments for use in scaling and position sync
+            this._collisionWidthRatio = 1.0;
+            this._collisionHeightRatio = 1.0;
+            this._collisionXOffset = 0;
+            this._collisionYOffset = 0;
             this._EPSILON = 0.0001;
         }
         InitPhysics() {
@@ -17,16 +22,18 @@ export function CanvasPhysicsMixin(Base) {
             //console.log('%c CanvasPhysicsMixin InitPhysics() width:'+this.width+',height:'+this.height,'color:#d2bc1c8');
             var _a, _b, _c, _d, _e, _f;
             // Apply collision adjustments from defObj (default to 1.0 ratio and 0 offset)
-            const widthRatio = (_a = this.defObj.collisionWidthRatio) !== null && _a !== void 0 ? _a : 1.0;
-            const heightRatio = (_b = this.defObj.collisionHeightRatio) !== null && _b !== void 0 ? _b : 1.0;
-            const xOffset = (_c = this.defObj.collisionXOffset) !== null && _c !== void 0 ? _c : 0;
-            const yOffset = (_d = this.defObj.collisionYOffset) !== null && _d !== void 0 ? _d : 0;
-            console.log(`%c [PhysicsMixin] InitPhysics for ${this.label}: widthRatio=${widthRatio}, heightRatio=${heightRatio}, xOffset=${xOffset}, yOffset=${yOffset}`, 'color:#FF00FF;');
+            this._collisionWidthRatio = (_a = this.defObj.collisionWidthRatio) !== null && _a !== void 0 ? _a : 1.0;
+            this._collisionHeightRatio = (_b = this.defObj.collisionHeightRatio) !== null && _b !== void 0 ? _b : 1.0;
+            this._collisionXOffset = (_c = this.defObj.collisionXOffset) !== null && _c !== void 0 ? _c : 0;
+            this._collisionYOffset = (_d = this.defObj.collisionYOffset) !== null && _d !== void 0 ? _d : 0;
+            console.log(`%c [PhysicsMixin] InitPhysics for ${this.label}: widthRatio=${this._collisionWidthRatio}, heightRatio=${this._collisionHeightRatio}, xOffset=${this._collisionXOffset}, yOffset=${this._collisionYOffset}`, 'color:#FF00FF;');
             console.log(`%c [PhysicsMixin] defObj collision values: wR=${this.defObj.collisionWidthRatio}, hR=${this.defObj.collisionHeightRatio}, xO=${this.defObj.collisionXOffset}, yO=${this.defObj.collisionYOffset}`, 'color:#FF00FF;');
-            const collisionWidth = this.width * widthRatio;
-            const collisionHeight = this.height * heightRatio;
-            const collisionCenterX = this.x + (this.width / 2) + xOffset;
-            const collisionCenterY = this.y + (this.height / 2) + yOffset;
+            console.log(`%c [PhysicsMixin] InitPhysics base dimensions: width=${this.width}, height=${this.height}, x=${this.x}, y=${this.y}`, 'color:#FF00FF;');
+            const collisionWidth = this.width * this._collisionWidthRatio;
+            const collisionHeight = this.height * this._collisionHeightRatio;
+            const collisionCenterX = this.x + (this.width / 2) + this._collisionXOffset;
+            const collisionCenterY = this.y + (this.height / 2) + this._collisionYOffset;
+            console.log(`%c [PhysicsMixin] Creating body: collisionWidth=${collisionWidth}, collisionHeight=${collisionHeight}, centerX=${collisionCenterX}, centerY=${collisionCenterY}`, 'color:#FF00FF;');
             this._body = Matter.Bodies.rectangle(collisionCenterX, collisionCenterY, collisionWidth, collisionHeight, {
                 friction: 0,
                 frictionAir: 0,
@@ -37,6 +44,9 @@ export function CanvasPhysicsMixin(Base) {
                 inertia: Infinity,
                 label: this.label,
             });
+            const bw = this._body.bounds.max.x - this._body.bounds.min.x;
+            const bh = this._body.bounds.max.y - this._body.bounds.min.y;
+            console.log(`%c [PhysicsMixin] Body created: actual bounds w=${bw}, h=${bh}`, 'color:#FF00FF;');
             //console.log('%c CanvasPhysicsMixin InitPhysics() check body','color:#d2bc1c8');
             //this.checkBody();
             this._body.plugin = { object: this };
@@ -120,14 +130,22 @@ export function CanvasPhysicsMixin(Base) {
                 //this._transformedWidth = this.width * scale;
                 //console.log("MIX<"+property+">-"+this.label+"APRS  6 width TransW:"+this.transformedWidth+"--"+this._transformedMixWidthlast);
                 this._transformedMixWidthlast = this.transformedWidth;
+                // Target collision width = transformedWidth * collisionRatio
+                // The body was created with (width * collisionRatio), now we need to scale it
+                // to (transformedWidth * collisionRatio) = (width * scale * collisionRatio)
+                const targetCollisionWidth = this.transformedWidth * this._collisionWidthRatio;
                 const bodyWidth = this._body.bounds.max.x - this._body.bounds.min.x;
-                if (bodyWidth != this.transformedWidth) {
-                    const scaleAmount = this.transformedWidth / bodyWidth;
+                //console.log(`%c [PhysicsMixin] ApplyResScale WIDTH: transformedWidth=${this.transformedWidth}, ratio=${this._collisionWidthRatio}, target=${targetCollisionWidth}, bodyWidth=${bodyWidth}`, 'color:#FFAA00;');
+                if (bodyWidth != targetCollisionWidth) {
+                    const scaleAmount = targetCollisionWidth / bodyWidth;
+                    //console.log(`%c [PhysicsMixin] ApplyResScale WIDTH: scaleAmount=${scaleAmount}, shouldScale=${this.shouldScale(scaleAmount)}`, 'color:#FFAA00;');
                     if (this.shouldScale(scaleAmount)) {
-                        //console.log('%c MIX-'+this.label+'APRS  SCALE THAT WIDTH SHIT!!! bodyWidth='+bodyWidth+', this.transformedWidth='+this.transformedWidth+' scaleAmount='+scaleAmount,'color:#4783ff');
+                        //console.log('%c MIX-'+this.label+'APRS  SCALE THAT WIDTH SHIT!!! bodyWidth='+bodyWidth+', targetCollisionWidth='+targetCollisionWidth+' scaleAmount='+scaleAmount,'color:#4783ff');
                         Matter.Body.scale(this._body, scaleAmount, 1);
                         Matter.Body.setVelocity(this._body, { x: this._body.velocity.x * scaleAmount, y: this._body.velocity.y });
-                        Matter.Body.setPosition(this._body, { x: this._transformedX + (this.transformedWidth / 2), y: this._body.position.y });
+                        // Position body at visual center + collision offset (offset also scaled)
+                        const bodyCenterX = this._transformedX + (this.transformedWidth / 2) + (this._collisionXOffset * scale);
+                        Matter.Body.setPosition(this._body, { x: bodyCenterX, y: this._body.position.y });
                         Matter.Body.setInertia(this._body, Infinity);
                         //this.checkBody();
                         //Matter.Body.update(this._body, 0, 1, 1);
@@ -145,15 +163,19 @@ export function CanvasPhysicsMixin(Base) {
             if ((property == "*") || (property == "height" && this._transformedMixHeightlast != this.transformedHeight)) {
                 //console.log("MIX-"+this.label+"APRS  7 height TransH:"+this.transformedHeight+"--"+this._transformedMixHeightlast);
                 this._transformedMixHeightlast = this.transformedHeight;
+                // Use collision-adjusted height for the physics body target size
+                const targetCollisionHeight = this.transformedHeight * this._collisionHeightRatio;
                 const bodyHeight = this._body.bounds.max.y - this._body.bounds.min.y;
-                if (bodyHeight != this.transformedHeight) {
-                    const scaleAmount = this.transformedHeight / bodyHeight;
+                if (bodyHeight != targetCollisionHeight) {
+                    const scaleAmount = targetCollisionHeight / bodyHeight;
                     if (this.shouldScale(scaleAmount)) {
                         //console.log("MIX-"+this.label+"APRS  SCALE THAT HEIGHT SHIT!!! "+scaleAmount);
-                        //console.log('%c MIX-'+this.label+'APRS  SCALE THAT HEIGHT SHIT!!! bodyHeight='+bodyHeight+', this.transformedHeight='+this.transformedHeight+' scaleAmount='+scaleAmount,'color:#4783ff');
+                        //console.log('%c MIX-'+this.label+'APRS  SCALE THAT HEIGHT SHIT!!! bodyHeight='+bodyHeight+', targetCollisionHeight='+targetCollisionHeight+' scaleAmount='+scaleAmount,'color:#4783ff');
                         Matter.Body.scale(this._body, 1, scaleAmount);
                         Matter.Body.setVelocity(this._body, { x: this._body.velocity.x, y: this._body.velocity.y * scaleAmount });
-                        Matter.Body.setPosition(this._body, { x: this._body.position.x, y: this.transformedY + (this.transformedHeight / 2) });
+                        // Position body at visual center + collision offset
+                        const bodyCenterY = this.transformedY + (this.transformedHeight / 2) + (this._collisionYOffset * scale);
+                        Matter.Body.setPosition(this._body, { x: this._body.position.x, y: bodyCenterY });
                         Matter.Body.setInertia(this._body, Infinity);
                         //this.checkBody();
                         //Matter.Body.update(this._body, 0, 1, 1);
@@ -184,8 +206,10 @@ export function CanvasPhysicsMixin(Base) {
                         //console.log(' LOL ok try this1 :: '+(this._body.position.x/this._resolutionScale));
                         //console.log(' LOL ok try this2 :: '+(this.width / 2));
                     }
-                    this.x = (this._body.position.x / this._resolutionScale) - (this.width / 2);
-                    this.y = (this._body.position.y / this._resolutionScale) - (this.height / 2);
+                    // Sync position from physics body, accounting for collision offsets
+                    // Physics body center = visual center + offset, so visual = body - offset
+                    this.x = (this._body.position.x / this._resolutionScale) - (this.width / 2) - this._collisionXOffset;
+                    this.y = (this._body.position.y / this._resolutionScale) - (this.height / 2) - this._collisionYOffset;
                     //if(onceSecond)
                     //{
                     //	console.log('MIXIN.<'+this.x+'/'+this.y+'>........... update update update update update update update update END');
@@ -194,8 +218,9 @@ export function CanvasPhysicsMixin(Base) {
                     //}
                 }
                 else {
-                    this.x = this._body.position.x - this.width / 2;
-                    this.y = this._body.position.y - this.height / 2;
+                    // Sync position from physics body, accounting for collision offsets
+                    this.x = this._body.position.x - this.width / 2 - this._collisionXOffset;
+                    this.y = this._body.position.y - this.height / 2 - this._collisionYOffset;
                 }
                 //if(onceSecond)
                 //{
