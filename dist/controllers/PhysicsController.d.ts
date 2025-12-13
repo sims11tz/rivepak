@@ -10,14 +10,21 @@ export declare class PhysicsController {
     private _wallOptions;
     private _logicalWidth;
     private _logicalHeight;
+    private _wallOffsets;
     private wallThickness;
     Init(canvas: HTMLCanvasElement, physicsWalls: boolean | undefined, debugRenderDiv: HTMLDivElement, debug?: boolean): void;
     SetSize(width: number, height: number, dprIn?: number): void;
     /**
      * Enable physics walls at canvas boundaries
      * Can be called at runtime to add walls dynamically
+     * @param offsets - Optional offsets to move walls inward (positive = inward from edge)
      */
-    EnableWalls(): void;
+    EnableWalls(offsets?: {
+        top?: number;
+        bottom?: number;
+        left?: number;
+        right?: number;
+    }): void;
     /**
      * Disable physics walls
      * Can be called at runtime to remove walls dynamically
@@ -28,7 +35,7 @@ export declare class PhysicsController {
      */
     get wallsEnabled(): boolean;
     /**
-     * Create boundary walls using current logical dimensions
+     * Create boundary walls using current logical dimensions and offsets
      */
     private createWalls;
     /**

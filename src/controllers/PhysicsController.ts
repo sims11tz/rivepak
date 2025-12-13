@@ -16,6 +16,9 @@ export class PhysicsController
 	private _logicalWidth:number = 0;
 	private _logicalHeight:number = 0;
 
+	// Wall offsets (positive = inward from edge)
+	private _wallOffsets = { top: 0, bottom: 0, left: 0, right: 0 };
+
 	private wallThickness(delta:number) { return delta*this._wallOptions.wallThickness; }
 
 	public Init(canvas:HTMLCanvasElement, physicsWalls:boolean=false, debugRenderDiv:HTMLDivElement, debug:boolean = false)
@@ -92,11 +95,21 @@ export class PhysicsController
 	/**
 	 * Enable physics walls at canvas boundaries
 	 * Can be called at runtime to add walls dynamically
+	 * @param offsets - Optional offsets to move walls inward (positive = inward from edge)
 	 */
-	public EnableWalls():void
+	public EnableWalls(offsets?:{top?:number, bottom?:number, left?:number, right?:number}):void
 	{
 		if(!this._engine) return;
 		if(this._physicswalls) return; // Already enabled
+
+		// Store offsets
+		if(offsets)
+		{
+			this._wallOffsets.top = offsets.top ?? 0;
+			this._wallOffsets.bottom = offsets.bottom ?? 0;
+			this._wallOffsets.left = offsets.left ?? 0;
+			this._wallOffsets.right = offsets.right ?? 0;
+		}
 
 		this._physicswalls = true;
 		this.createWalls();
@@ -124,7 +137,7 @@ export class PhysicsController
 	}
 
 	/**
-	 * Create boundary walls using current logical dimensions
+	 * Create boundary walls using current logical dimensions and offsets
 	 */
 	private createWalls():void
 	{
@@ -132,12 +145,29 @@ export class PhysicsController
 
 		const width = this._logicalWidth;
 		const height = this._logicalHeight;
+		const thickness = this.wallThickness(width);
+
+		// Apply offsets (positive = inward from edge)
+		const topY = this._wallOffsets.top;
+		const bottomY = height - this._wallOffsets.bottom;
+		const leftX = this._wallOffsets.left;
+		const rightX = width - this._wallOffsets.right;
+
+		// Calculate effective width/height for horizontal/vertical walls
+		const effectiveWidth = rightX - leftX;
+		const effectiveHeight = bottomY - topY;
+		const centerX = leftX + effectiveWidth / 2;
+		const centerY = topY + effectiveHeight / 2;
 
 		const walls = [
-			Matter.Bodies.rectangle(width / 2, 0, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-			Matter.Bodies.rectangle(width / 2, height, width - this.wallThickness(width), this.wallThickness(width), this._wallOptions),
-			Matter.Bodies.rectangle(0, height / 2, this.wallThickness(width), height, this._wallOptions),
-			Matter.Bodies.rectangle(width, height / 2, this.wallThickness(width), height, this._wallOptions),
+			// Top wall
+			Matter.Bodies.rectangle(centerX, topY, effectiveWidth, thickness, this._wallOptions),
+			// Bottom wall
+			Matter.Bodies.rectangle(centerX, bottomY, effectiveWidth, thickness, this._wallOptions),
+			// Left wall
+			Matter.Bodies.rectangle(leftX, centerY, thickness, effectiveHeight, this._wallOptions),
+			// Right wall
+			Matter.Bodies.rectangle(rightX, centerY, thickness, effectiveHeight, this._wallOptions),
 		];
 		walls.forEach(w => (w as any).isWall = true);
 		Matter.World.add(this._engine.world, walls);
