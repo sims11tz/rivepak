@@ -44,16 +44,16 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 			this._collisionXOffset = this.defObj.collisionXOffset ?? 0;
 			this._collisionYOffset = this.defObj.collisionYOffset ?? 0;
 
-			console.log(`%c [PhysicsMixin] InitPhysics for ${this.label}: widthRatio=${this._collisionWidthRatio}, heightRatio=${this._collisionHeightRatio}, xOffset=${this._collisionXOffset}, yOffset=${this._collisionYOffset}`, 'color:#FF00FF;');
-			console.log(`%c [PhysicsMixin] defObj collision values: wR=${this.defObj.collisionWidthRatio}, hR=${this.defObj.collisionHeightRatio}, xO=${this.defObj.collisionXOffset}, yO=${this.defObj.collisionYOffset}`, 'color:#FF00FF;');
-			console.log(`%c [PhysicsMixin] InitPhysics base dimensions: width=${this.width}, height=${this.height}, x=${this.x}, y=${this.y}`, 'color:#FF00FF;');
+			//console.log(`%c [PhysicsMixin] InitPhysics for ${this.label}: widthRatio=${this._collisionWidthRatio}, heightRatio=${this._collisionHeightRatio}, xOffset=${this._collisionXOffset}, yOffset=${this._collisionYOffset}`, 'color:#FF00FF;');
+			//console.log(`%c [PhysicsMixin] defObj collision values: wR=${this.defObj.collisionWidthRatio}, hR=${this.defObj.collisionHeightRatio}, xO=${this.defObj.collisionXOffset}, yO=${this.defObj.collisionYOffset}`, 'color:#FF00FF;');
+			//console.log(`%c [PhysicsMixin] InitPhysics base dimensions: width=${this.width}, height=${this.height}, x=${this.x}, y=${this.y}`, 'color:#FF00FF;');
 
 			const collisionWidth = this.width * this._collisionWidthRatio;
 			const collisionHeight = this.height * this._collisionHeightRatio;
 			const collisionCenterX = this.x + (this.width / 2) + this._collisionXOffset;
 			const collisionCenterY = this.y + (this.height / 2) + this._collisionYOffset;
 
-			console.log(`%c [PhysicsMixin] Creating body: collisionWidth=${collisionWidth}, collisionHeight=${collisionHeight}, centerX=${collisionCenterX}, centerY=${collisionCenterY}`, 'color:#FF00FF;');
+			//console.log(`%c [PhysicsMixin] Creating body: collisionWidth=${collisionWidth}, collisionHeight=${collisionHeight}, centerX=${collisionCenterX}, centerY=${collisionCenterY}`, 'color:#FF00FF;');
 
 			this._body = Matter.Bodies.rectangle(collisionCenterX, collisionCenterY, collisionWidth, collisionHeight, {
 				friction: 0,
@@ -68,7 +68,7 @@ export function CanvasPhysicsMixin<T extends Constructor<BaseCanvasObj>>(Base:T)
 
 			const bw = this._body.bounds.max.x - this._body.bounds.min.x;
 			const bh = this._body.bounds.max.y - this._body.bounds.min.y;
-			console.log(`%c [PhysicsMixin] Body created: actual bounds w=${bw}, h=${bh}`, 'color:#FF00FF;');
+			//console.log(`%c [PhysicsMixin] Body created: actual bounds w=${bw}, h=${bh}`, 'color:#FF00FF;');
 			//console.log('%c CanvasPhysicsMixin InitPhysics() check body','color:#d2bc1c8');
 			//this.checkBody();
 
