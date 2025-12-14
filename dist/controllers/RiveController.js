@@ -319,32 +319,34 @@ export class RiveController {
                             console.log('>>MakeBestVMI... instanceName:', instanceName);
                         const vmi = RivePakUtils.MakeBestVMI(vm, targetArtboard, instanceName);
                         if (vmi) {
-                            canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.RegisterViewModel(vmName, vmi);
                             if (debug)
                                 console.log(`  ✅ Registered ViewModel: "${vmName}"`);
-                            if (typeof targetArtboard.bindViewModelInstance === "function") {
-                                boundVMIs.add(instanceName);
-                                targetArtboard.bindViewModelInstance(vmi);
-                                if (debug) {
-                                    console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
-                                }
-                            }
                             if (debug) {
                                 console.log('def.primaryVMName :', def.primaryVMName);
                                 console.log(' vmName :', vmName);
                                 console.log('vmIndex :', vmIndex);
                             }
+                            // Determine if this is the primary ViewModel
                             const isPrimary = (def.primaryVMName && vmName === def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
+                            // IMPORTANT: Only bind PRIMARY ViewModel to artboard!
+                            // Binding multiple VMs to the same artboard overwrites the previous binding,
+                            // breaking the primary VM. Secondary VMs should only bind to state machine.
                             if (isPrimary) {
                                 if (debug)
-                                    console.error('IS IS IS IS IS IS PRIMARY');
-                                if (debug)
-                                    console.log(`  🌟 Setting "${vmName}" as PRIMARY ViewModel`);
+                                    console.log(`  🌟 "${vmName}" is PRIMARY ViewModel`);
+                                canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.RegisterViewModel(vmName, vmi);
+                                if (typeof targetArtboard.bindViewModelInstance === "function") {
+                                    boundVMIs.add(vmName);
+                                    targetArtboard.bindViewModelInstance(vmi);
+                                    if (debug) {
+                                        console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
+                                    }
+                                }
                                 canvasRiveObj === null || canvasRiveObj === void 0 ? void 0 : canvasRiveObj.SetViewModelInstance(vmi);
                             }
                             else {
                                 if (debug)
-                                    console.error('NOT PRIMARY');
+                                    console.log(`  ⏭️ "${vmName}" is SECONDARY - skipping artboard bind (will bind to SM later)`);
                             }
                         }
                         else {
@@ -374,79 +376,85 @@ export class RiveController {
                         }
                         // Helper function to recursively bind nested viewModels
                         const bindNestedViewModels = (parentVMI, parentPath = '') => {
-                            if (!parentVMI)
-                                return;
-                            try {
-                                let propCount = parentVMI.propertyCount;
-                                const props = parentVMI.getProperties();
-                                if (propCount == undefined)
-                                    propCount = props.length;
-                                if (debug)
-                                    console.log('propCount :', propCount);
-                                if (debug)
-                                    console.log('props :', props);
-                                for (let i = 0; i < propCount; i++) {
-                                    const prop = props[i];
-                                    if (debug)
-                                        console.log('props<' + i + '>...', prop);
-                                    if (!prop) {
-                                        if (debug)
-                                            console.log('props:COCK-BLOCK');
-                                        continue;
-                                    }
-                                    try {
-                                        if (debug)
-                                            console.log('props--<1>--prop.name:' + prop.name);
-                                        const nestedVMI = parentVMI.viewModel(prop.name);
-                                        if (nestedVMI) {
-                                            if (debug)
-                                                console.log('props--<2>--');
-                                            const nestedPath = parentPath ? `${parentPath}/${prop.name}` : prop.name;
-                                            if (debug)
-                                                console.log(`  🔗 Binding nested ViewModel: "${nestedPath}"`);
-                                            if (debug)
-                                                console.log('props--<3>--');
-                                            // Check if already bound (prevents duplicate binding)
-                                            console.log(' 🔗 CHECK THE BINDING 2 : <' + prop.name + '> ', boundVMIs);
-                                            if (!boundVMIs.has(prop.name)) {
-                                                try {
-                                                    console.log('propname:' + prop.name);
-                                                    console.log('viewModel.name:' + nestedVMI.viewModel.name);
-                                                    console.log('artboard.name:' + nestedVMI.artboard.name);
-                                                    console.log('viewModel:', nestedVMI);
-                                                    sm.bindViewModelInstance(nestedVMI);
-                                                    boundVMIs.add(prop.name);
-                                                    //if(debug)
-                                                    console.warn(`  ✅ Bound nested "${nestedPath}" to State Machine successfully`);
-                                                }
-                                                catch (e) {
-                                                    console.error(`  ❌ Failed to bind nested "${nestedPath}" to State Machine:`, e);
-                                                }
-                                            }
-                                            else {
-                                                //if(debug)
-                                                console.log(`  ⏭️  Skipped nested "${nestedPath}" - already bound to State Machine`);
-                                            }
-                                            if (debug)
-                                                console.log('props--<5...> RECURSE?--');
-                                            // Recursively bind any viewModels nested within this one
-                                            bindNestedViewModels(nestedVMI, nestedPath);
-                                        }
-                                    }
-                                    catch (e) {
-                                        // Not a viewModel property, continue
-                                        if (debug)
-                                            console.log('props--<6.... CATCH!.');
-                                    }
-                                    if (debug)
-                                        console.log('props--<.jjjsadjfjasdfjasdfjasdjfasjdasjdfjasdfjasdfj');
-                                }
-                            }
-                            catch (e) {
-                                // Error accessing properties
-                                if (debug)
-                                    console.log('props--<7.... CATCH!.');
-                            }
+                            /*
+                                                    if(!parentVMI) return;
+                            
+                                                    try
+                                                    {
+                                                        let propCount = parentVMI.propertyCount;
+                                                        const props = parentVMI.getProperties();
+                                                        if(propCount == undefined) propCount = props.length;
+                                                        if(debug) console.log('propCount :', propCount);
+                                                        if(debug) console.log('props :', props);
+                            
+                                                        for(let i = 0; i < propCount; i++)
+                                                        {
+                                                            const prop = props[i];
+                                                            if(debug) console.log('props<'+i+'>...',prop);
+                                                            if(!prop)
+                                                            {
+                                                                if(debug) console.log('props:COCK-BLOCK');
+                                                                continue;
+                                                            }
+                            
+                                                            try
+                                                            {
+                                                                if(debug) console.log('props--<1>--prop.name:'+prop.name);
+                                                                const nestedVMI:ViewModelInstance = parentVMI.viewModel(prop.name);
+                                                                if(nestedVMI)
+                                                                {
+                                                                    if(debug) console.log('props--<2>--');
+                                                                    const nestedPath = parentPath ? `${parentPath}/${prop.name}` : prop.name;
+                                                                    if(debug) console.log(`  🔗 Binding nested ViewModel: "${nestedPath}"`);
+                                                                    if(debug) console.log('props--<3>--');
+                            
+                                                                    // Check if already bound (prevents duplicate binding)
+                                                                    console.log(' 🔗 CHECK THE BINDING 2 : <'+prop.name+'> ',boundVMIs);
+                                                                    if(!boundVMIs.has(prop.name))
+                                                                    {
+                                                                        try
+                                                                        {
+                            
+                                                                            console.log('propname:'+prop.name);
+                                                                            console.log('viewModel.name:'+nestedVMI.viewModel.name);
+                                                                            console.log('artboard.name:'+nestedVMI.artboard.name);
+                                                                            console.log('viewModel:',nestedVMI);
+                                                                            sm.bindViewModelInstance(nestedVMI);
+                                                                            boundVMIs.add(prop.name);
+                                                                            //if(debug)
+                            
+                                                                            console.warn(`  ✅ Bound nested "${nestedPath}" to State Machine successfully`);
+                                                                        }
+                                                                        catch(e)
+                                                                        {
+                                                                            console.error(`  ❌ Failed to bind nested "${nestedPath}" to State Machine:`, e);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        //if(debug)
+                                                                            console.log(`  ⏭️  Skipped nested "${nestedPath}" - already bound to State Machine`);
+                                                                    }
+                            
+                                                                    if(debug) console.log('props--<5...> RECURSE?--');
+                                                                    // Recursively bind any viewModels nested within this one
+                                                                    bindNestedViewModels(nestedVMI, nestedPath);
+                                                                }
+                                                            }
+                                                            catch(e)
+                                                            {
+                                                                // Not a viewModel property, continue
+                                                                if(debug) console.log('props--<6.... CATCH!.');
+                                                            }
+                                                            if(debug) console.log('props--<.jjjsadjfjasdfjasdfjasdjfasjdasjdfjasdfjasdfj');
+                                                        }
+                                                    }
+                                                    catch(e)
+                                                    {
+                                                        // Error accessing properties
+                                                        if(debug) console.log('props--<7.... CATCH!.');
+                                                    }
+                                                        */
                         };
                         if (debug)
                             console.log('props--<8.... BINDING BINDING.. THE ROOT BITCHES.');
@@ -505,13 +513,11 @@ export class RiveController {
                                     }
                                 }
                                 // After binding the root viewModel, also bind any nested viewModels
+                                // NOTE: This was disabled because it broke library components.
+                                // Re-enabling to test with local nested artboards (FishTank_FrontPanel)
                                 if (debug)
-                                    console.log(`🔗 NESTED VIEW MODELS ARE DISABLED!!!! "${vmName}"`);
-                                //BREAKS THE COLOR THING
-                                //if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
-                                //bindNestedViewModels(vmi, vmName);
-                                //TODO:::::::::::::::::::::: FUCK
-                                //WOWOWOWOOWOWOWOWOW WTF.. hah it breaks one with a library.
+                                    console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
+                                bindNestedViewModels(vmi, vmName);
                             }
                             else {
                                 if (debug)

@@ -377,18 +377,8 @@ export class RiveController
 					const vmi = RivePakUtils.MakeBestVMI(vm, targetArtboard, instanceName);
 					if(vmi)
 					{
-						canvasRiveObj?.RegisterViewModel(vmName, vmi);
-						if(debug) console.log(`  ✅ Registered ViewModel: "${vmName}"`);
 
-						if(typeof (targetArtboard as any).bindViewModelInstance === "function")
-						{
-							boundVMIs.add(instanceName!);
-							(targetArtboard as any).bindViewModelInstance(vmi);
-							if(debug)
-							{
-								console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
-							}
-						}
+						if(debug) console.log(`  ✅ Registered ViewModel: "${vmName}"`);
 
 						if(debug)
 						{
@@ -396,16 +386,34 @@ export class RiveController
 							console.log(' vmName :', vmName);
 							console.log('vmIndex :', vmIndex);
 						}
+
+						// Determine if this is the primary ViewModel
 						const isPrimary = (def.primaryVMName && vmName === def.primaryVMName) || (!def.primaryVMName && vmIndex === 0);
+
+						// IMPORTANT: Only bind PRIMARY ViewModel to artboard!
+						// Binding multiple VMs to the same artboard overwrites the previous binding,
+						// breaking the primary VM. Secondary VMs should only bind to state machine.
 						if(isPrimary)
 						{
-							if(debug) console.error('IS IS IS IS IS IS PRIMARY');
-							if(debug) console.log(`  🌟 Setting "${vmName}" as PRIMARY ViewModel`);
+							if(debug) console.log(`  🌟 "${vmName}" is PRIMARY ViewModel`);
+
+							canvasRiveObj?.RegisterViewModel(vmName, vmi);
+
+							if(typeof (targetArtboard as any).bindViewModelInstance === "function")
+							{
+								boundVMIs.add(vmName);
+								(targetArtboard as any).bindViewModelInstance(vmi);
+								if(debug)
+								{
+									console.log(`  🔗 Bound "${vmName}" to artboard "${targetArtboard.name}"`);
+								}
+							}
+
 							canvasRiveObj?.SetViewModelInstance(vmi);
 						}
 						else
 						{
-							if(debug) console.error('NOT PRIMARY');
+							if(debug) console.log(`  ⏭️ "${vmName}" is SECONDARY - skipping artboard bind (will bind to SM later)`);
 						}
 					}
 					else
@@ -444,7 +452,7 @@ export class RiveController
 					// Helper function to recursively bind nested viewModels
 					const bindNestedViewModels = (parentVMI:any, parentPath:string = '') =>
 					{
-
+/*
 						if(!parentVMI) return;
 
 						try
@@ -522,6 +530,7 @@ export class RiveController
 							// Error accessing properties
 							if(debug) console.log('props--<7.... CATCH!.');
 						}
+							*/
 					};
 
 					if(debug) console.log('props--<8.... BINDING BINDING.. THE ROOT BITCHES.');
@@ -588,12 +597,10 @@ export class RiveController
 							}
 
 							// After binding the root viewModel, also bind any nested viewModels
-							if(debug) console.log(`🔗 NESTED VIEW MODELS ARE DISABLED!!!! "${vmName}"`);
-//BREAKS THE COLOR THING
-							//if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
-							//bindNestedViewModels(vmi, vmName);
-//TODO:::::::::::::::::::::: FUCK
-							//WOWOWOWOOWOWOWOWOW WTF.. hah it breaks one with a library.
+							// NOTE: This was disabled because it broke library components.
+							// Re-enabling to test with local nested artboards (FishTank_FrontPanel)
+							if(debug) console.log(`🔗 Searching for nested ViewModels in "${vmName}"`);
+							bindNestedViewModels(vmi, vmName);
 						}
 						else
 						{
